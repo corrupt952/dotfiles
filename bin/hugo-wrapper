@@ -1,0 +1,18 @@
+#!/bin/bash -eu
+case "$1" in
+    mkpost )
+        cat <<EOF >$2
++++
+title = ""
+date = "$(date '+%FT00:00:00+09:00')"
+draft = "false"
+author = ""
+cover = ""
+description = ""
++++
+
+EOF
+        ;;
+    * )
+        command hugo $@;;
+esac

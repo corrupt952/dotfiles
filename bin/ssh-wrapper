@@ -1,0 +1,7 @@
+#!/bin/bash -eu
+config_path=${HOME}/.ssh/config
+if [ "${SSH_CONFIG}" != "" ]; then
+    config_path=${SSH_CONFIG}
+fi
+
+command ssh -F ${config_path} $@

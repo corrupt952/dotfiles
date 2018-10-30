@@ -1,0 +1,144 @@
+[[plugins]]
+repo = 'Shougo/vimproc.vim'
+build = 'make -f make_mac.mak'
+
+[[plugins]]
+repo = 'Shougo/deoplete.nvim'
+hook_add = '''
+let g:deoplete#enable_at_startup = 1
+let g:deoplete#omni_input_patterns = {}
+let g:deoplete#auto_complete_delay = 0
+let g:deoplete#auto_complete_start_length = 1
+let g:deoplete#enable_camel_case = 0
+let g:deoplete#enable_ignore_case = 0
+let g:deoplete#enable_refresh_always = 0
+let g:deoplete#enable_smart_case = 1
+let g:deoplete#file#enable_buffer_path = 1
+let g:deoplete#max_list = 10000
+'''
+
+[[plugins]]
+repo = 'Shougo/neosnippet'
+
+[[plugins]]
+repo = 'Shougo/neosnippet-snippets'
+
+[[plugins]]
+repo = 'altercation/vim-colors-solarized'
+
+[[plugins]]
+repo = 'osyo-manga/vim-over'
+
+[[plugins]]
+repo = 'Shougo/denite.nvim'
+hook_add = '''
+nnoremap ub     :Denite buffer<CR>
+nnoremap uf     :Denite file_mru<CR>
+'''
+hook_post_source = '''
+call denite#custom#var('file_rec', 'command', ['ag', '--follow', '--nocolor', '--nogroup', '-g', ''])
+call denite#custom#var('grep', 'command', ['ag'])
+call denite#custom#var('grep', 'recursive_opts', [])
+call denite#custom#var('grep', 'pattern_opt', [])
+call denite#custom#var('grep', 'default_opts', ['--follow', '--no-group', '--no-color'])
+'''
+
+[[plugins]]
+repo = 'Shougo/neomru.vim'
+
+[[plugins]]
+repo = 'tomtom/tcomment_vim'
+
+[[plugins]]
+repo = 'nathanaelkane/vim-indent-guides'
+hook_add = '''
+let g:indent_guides_enable_on_vim_startup = 0
+'''
+
+[[plugins]]
+repo = 'w0ng/vim-hybrid'
+hook_add = '''
+let g:hybrid_use_iTerm_colors = 1
+'''
+
+[[plugins]]
+repo = 'Shougo/vinarise.vim'
+
+[[plugins]]
+repo = 'mbbill/undotree'
+hook_add = '''
+nnoremap us :UndotreeToggle<CR>
+'''
+
+[[plugins]]
+repo = 'airblade/vim-gitgutter'
+hook_add = '''
+let g:gitgutter_enabled = 1
+let g:gitgutter_realtime = 1
+let g:gitgutter_eager = 0
+let g:gitgutter_map_keys = 0
+let g:gitgutter_sign_added = '.'
+let g:gitgutter_sign_modified = '.'
+let g:gitgutter_sign_removed = '.'
+let g:gitgutter_sign_removed_first_line = '.'
+let g:gitgutter_sign_modified_removed = '.'
+
+nnoremap gs :GitGutterToggle<CR>
+nnoremap gn :GitGutterNextHunk<CR>
+nnoremap gb :GitGutterPrevHunk<CR>
+'''
+
+[[plugins]]
+repo = 'syui/airsave.vim'
+hook_add = '''
+let g:auto_write = 1
+'''
+
+[[plugins]]
+repo = 'junegunn/vim-easy-align'
+
+[[plugins]]
+repo = 'scrooloose/nerdtree'
+hook_add = '''
+let g:NERDTreeShowHidden=1
+
+noremap <C-n>   :NERDTreeToggle<CR>
+noremap! <C-n>  :NERDTreeToggle<CR>
+'''
+
+[[plugins]]
+repo = 'Townk/vim-autoclose'
+
+[[plugins]]
+repo = 'AndrewRadev/switch.vim'
+hook_add = '''
+let g:switch_mapping = ""
+
+nnoremap <SPACE><SPACE> :<C-u>Switch<CR>
+'''
+
+[[plugins]]
+repo = 'w0rp/ale'
+
+[[plugins]]
+repo = 'itchyny/lightline.vim'
+hook_add = '''
+let g:lightline = {
+      \ 'active': {
+      \   'left': [ [ 'mode', 'paste' ],
+      \             [ 'readonly', 'filename', 'modified', 'helloworld' ] ]
+      \ },
+      \ 'component': {
+      \   'helloworld': 'Hello, world!'
+      \ },
+      \ }
+'''
+
+# [[plugins]]
+# repo = 'nathanaelkane/vim-indent-guides'
+# hook_add = '''
+# let g:indent_guides_enable_on_vim_startup = 1
+#
+# hi IndentGuidesOdd guibg=black ctermbg=8
+# hi IndentGuidesEven guibg=darkgrey ctermbg=NONE
+# '''

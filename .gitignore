@@ -1,0 +1,15 @@
+*~
+*.o
+.DS_Store
+*.class
+*.log
+log/
+*.swp
+*.out
+tags
+.vim/.vim
+.envrc
+.terraform
+*.tfstate
+*.tfstate.backup
+tmp/

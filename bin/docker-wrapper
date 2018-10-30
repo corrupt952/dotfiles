@@ -1,0 +1,8 @@
+#!/bin/bash -eu
+case "$1" in
+    prune )
+        shift;
+        command docker system prune --volumes $@;;
+    * )
+        command docker $@;;
+esac
