@@ -74,7 +74,7 @@ if [ "$(uname)" == 'Darwin'  ]; then
 
         echo 'Set homebrew environment variables...'
         echo '# Homebrew' >> ${ZSH_LOCAL_PATH}
-        echo 'export PATH=${HOME}/.brew/bin:$PATH' >> ${ZSH_LOCAL_PATH}
+        echo 'export PATH=${HOME}/.brew/sbin:${HOME}/.brew/bin:$PATH' >> ${ZSH_LOCAL_PATH}
     fi
 fi
 
