@@ -1,5 +1,7 @@
 #!/bin/sh
-ZSH_LOCAL_PATH=${HOME}/.zshrc.local
+ZDIR=${HOME}/.zsh
+[ ! -d ${ZDIR} ] && mkdir ${ZDIR}
+ZSH_LOCAL_PATH=${HOME}/.zsh/.zshrc.local
 
 # make ~/.config
 HOME_CONFIG_PATH=${HOME}/.config
@@ -55,8 +57,6 @@ ln -sf ${PWD}/.dein_lazy.toml ${HOME}/
 
 # Zsh
 ln -sf ${PWD}/.zshenv ${HOME}/
-ZDIR=${HOME}/.zsh
-[ ! -d ${ZDIR} ] && mkdir ${ZDIR}
 find ${PWD}/.zsh -type f -name ".[^.]*" | xargs -I PLUG ln -sf PLUG ${ZDIR}
 
 # Powerline Fonts
@@ -109,3 +109,17 @@ if [ ! -d ${PYENV_DIR} ]; then
     echo 'eval "$(pyenv init -)"' >> ${ZSH_LOCAL_PATH}
     echo 'eval "$(pyenv virtualenv-init -)"' >> ${ZSH_LOCAL_PATH}
 fi
+
+# tfenv
+TFENV_DIR=${HOME}/.tfenv
+if [ ! -d ${TFENV_DIR} ]; then
+    echo 'Installing tfenv...'
+    git clone https://github.com/kamatama41/tfenv.git ~/.tfenv
+
+    echo 'Set tfenv environment variables...'
+    echo '# tfenv' >> ${ZSH_LOCAL_PATH}
+    echo "export TFENV_ROOT=${TFENV_DIR}" >> ${ZSH_LOCAL_PATH}
+    echo 'export PATH=${TFENV_ROOT}/bin:${PATH}' >> ${ZSH_LOCAL_PATH}
+fi
+
+# goenv
