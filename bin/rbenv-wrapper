@@ -1,0 +1,9 @@
+#!/bin/bash -e
+case "$1" in
+    update )
+        cd ${HOME}/.rbenv && git pull && cd -
+        cd ${HOME}/.rbenv/plugins/ruby-build && git pull && cd -
+        ;;
+    * )
+        command rbenv $@;;
+esac

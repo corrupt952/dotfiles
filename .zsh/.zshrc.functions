@@ -19,22 +19,16 @@ function exist() {
     false
 }
 
-# Get git config
-function gitenv() {
-    echo "user: $(git config --get user.name)"
-    echo "email: $(git config --get user.email)"
-}
-
-# rbenv update
-function rbenv_update() {
-    cd ${HOME}/.rbenv && git pull && cd -
-    cd ${HOME}/.rbenv/plugins/ruby-build && git pull && cd -
-}
-
 # Clean zcompdump
 function clean_zcompdump() {
     rm -f ${HOME}/.zcompdump*
     rm -f ${HOME}/.antigen/.zcompdump*
+}
+
+# Get git config
+function gitenv() {
+    echo "user: $(git config --get user.name)"
+    echo "email: $(git config --get user.email)"
 }
 
 # Create parent dir for git repositories

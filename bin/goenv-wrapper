@@ -1,0 +1,8 @@
+#!/bin/bash -e
+case "$1" in
+    update )
+        cd ${HOME}/.goenv && git pull && cd -
+        ;;
+    * )
+        command goenv $@;;
+esac

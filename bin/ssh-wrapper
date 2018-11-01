@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/bin/bash -e
 config_path=${HOME}/.ssh/config
 if [ "${SSH_CONFIG}" != "" ]; then
     config_path=${SSH_CONFIG}
