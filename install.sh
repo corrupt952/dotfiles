@@ -114,7 +114,7 @@ fi
 TFENV_DIR=${HOME}/.tfenv
 if [ ! -d ${TFENV_DIR} ]; then
     echo 'Installing tfenv...'
-    git clone https://github.com/kamatama41/tfenv.git ~/.tfenv
+    git clone https://github.com/kamatama41/tfenv.git ${TFENV_DIR}
 
     echo 'Set tfenv environment variables...'
     echo '# tfenv' >> ${ZSH_LOCAL_PATH}
@@ -123,3 +123,14 @@ if [ ! -d ${TFENV_DIR} ]; then
 fi
 
 # goenv
+GOENV_DIR=${HOME}/.goenv
+if [ ! -d "${GOENV_DIR}" ]; then
+    echo 'Installing goenv...'
+    git clone https://github.com/syndbg/goenv.git ${GOENV_DIR}
+
+    echo 'Set goenv environment variables...'
+    echo '# goenv' >> ${ZSH_LOCAL_PATH}
+    echo "export GOENV_ROOT=${GOENV_DIR}" >> ${ZSH_LOCAL_PATH}
+    echo 'export PATH=${GOENV_ROOT}/bin:${PATH}' >> ${ZSH_LOCAL_PATH}
+    echo 'eval "$(goenv init -)"' >> ${ZSH_LOCAL_PATH}
+fi
