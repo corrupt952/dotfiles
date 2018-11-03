@@ -26,16 +26,15 @@ if [ ! -e ${ZDOTDIR}/.zshrc.functions.zwc -o ${ZDOTDIR}/.zshrc.functions -nt ${Z
     echo 'compiling .zshrc.functions...'
     zcompile ${ZDOTDIR}/.zshrc.functions
 fi
+if [ ! -e ${ZDOTDIR}/.fzf.zsh.zwc -o ${ZDOTDIR}/.fzf.zsh -nt ${ZDOTDIR}/.fzf.zsh.zwc ]; then
+    echo 'compiling .fzf.zsh...'
+    zcompile ${ZDOTDIR}/.fzf.zsh
+fi
 
 #######################################
 # functions
 #######################################
 [ -f ${ZDOTDIR}/.zshrc.functions ] && source ${ZDOTDIR}/.zshrc.functions
-
-#######################################
-# local
-#######################################
-[ -f ${ZDOTDIR}/.zshrc.local ] && source ${ZDOTDIR}/.zshrc.local
 
 #######################################
 # color
@@ -62,13 +61,6 @@ DEFAULT_COLOR="${reset_color}"
 # term
 #######################################
 export TERM=xterm-256color
-
-#######################################
-# function
-#######################################
-function command_not_found_handler() {
-    echo "${LIGHT_RED}(;_;)${DEFAULT_COLOR} < Sorry, I didn't know ${PURPLE}${0}${DEFAULT_COLOR} command."
-}
 
 #######################################
 # zplug
@@ -132,19 +124,12 @@ zstyle ':completion:*' verbose yes
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
 #######################################
-# directory
+# change directory
 #######################################
 setopt auto_cd
 autoload -Uz add-zsh-hook
 autoload -Uz chpwd_recent_dirs cdr
 add-zsh-hook chpwd chpwd_recent_dirs
-#function chpwd() {
-#    if [ -d .git ]; then
-#        git status
-#    elif [ -d .hg ]; then
-#        hg status
-#    fi
-#}
 
 #######################################
 # options
@@ -158,27 +143,6 @@ setopt print_eight_bit
 setopt equals
 setopt magic_equal_subst
 setopt prompt_subst
-
-#######################################
-# alias
-#######################################
-[ -f ${ZDOTDIR}/.zshrc.aliases ] && source ${ZDOTDIR}/.zshrc.aliases
-
-#######################################
-# direnv
-#######################################
-if [ "$(command -v direnv)" != "" ]; then
-    eval "$(direnv hook zsh)"
-fi
-
-#######################################
-# environment variables
-#######################################
-if [ "$(command -v nvim)" != "" ]; then
-    export EDITOR=$(where nvim)
-else
-    export EDITOR=$(where vim)
-fi
 
 #######################################
 # bindkeys
@@ -200,3 +164,58 @@ bindkey '^xk' anyframe-widget-kill
 bindkey '^x^k' anyframe-widget-kill
 bindkey '^xe' anyframe-widget-insert-git-branch
 bindkey '^x^e' anyframe-widget-insert-git-branch
+
+#######################################
+# fzf
+#######################################
+[ -f ${ZDOTDIR}/.fzf.zsh ] && source ${ZDOTDIR}/.fzf.zsh
+
+#######################################
+# editor
+#######################################
+# if [ "$(command -v nvim)" != "" ]; then
+if exist nvim; then
+    export EDITOR=$(where nvim)
+else
+    export EDITOR=$(where vim)
+fi
+
+#######################################
+# direnv
+#######################################
+# if [ "$(command -v direnv)" != "" ]; then
+if exist direnv; then
+    eval "$(direnv hook zsh)"
+fi
+
+#######################################
+# rbenv
+#######################################
+if exist rbenv; then
+    eval "$(rbenv init - zsh)"
+fi
+
+#######################################
+# pyenv
+#######################################
+if exist rbenv; then
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+fi
+
+#######################################
+# goenv
+#######################################
+if exist goenv; then
+    eval "$(goenv init -)"
+fi
+
+#######################################
+# alias
+#######################################
+[ -f ${ZDOTDIR}/.zshrc.aliases ] && source ${ZDOTDIR}/.zshrc.aliases
+
+#######################################
+# local
+#######################################
+[ -f ${ZDOTDIR}/.zshrc.local ] && source ${ZDOTDIR}/.zshrc.local

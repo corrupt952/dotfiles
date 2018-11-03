@@ -71,10 +71,6 @@ if [ "$(uname)" == 'Darwin'  ]; then
         echo 'Installing homebrew...'
         brew_dir=${HOME}/.brew
         mkdir $brew_dir && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C $brew_dir
-
-        echo 'Set homebrew environment variables...'
-        echo '# Homebrew' >> ${ZSH_LOCAL_PATH}
-        echo 'export PATH=${HOME}/.brew/sbin:${HOME}/.brew/bin:$PATH' >> ${ZSH_LOCAL_PATH}
     fi
 fi
 
@@ -84,12 +80,6 @@ if [ ! -d ${RBENV_DIR} ]; then
     echo 'Installing rbenv...'
     git clone https://github.com/rbenv/rbenv.git ${RBENV_DIR}
     git clone git://github.com/sstephenson/ruby-build.git ${RBENV_DIR}/plugins/ruby-build
-
-    echo 'Set rbenv environment variables...'
-    echo '# rbenv' >> ${ZSH_LOCAL_PATH}
-    echo "export RBENV_ROOT=${RBENV_DIR}" >> ${ZSH_LOCAL_PATH}
-    echo 'export PATH=${RBENV_ROOT}/bin:${RBENV_ROOT}/shims:$PATH' >> ${ZSH_LOCAL_PATH}
-    echo 'eval "$(rbenv init -)"' >> ${ZSH_LOCAL_PATH}
 fi
 
 # irb
@@ -101,13 +91,6 @@ if [ ! -d ${PYENV_DIR} ]; then
     echo 'Installing pyenv...'
     git clone https://github.com/yyuu/pyenv.git ${PYENV_DIR}
     git clone https://github.com/yyuu/pyenv-virtualenv.git ${PYENV_DIR}/plugins/pyenv-virtualenv
-
-    echo 'Set pyenv environment variables...'
-    echo '# pyenv' >> ${ZSH_LOCAL_PATH}
-    echo "export PYENV_ROOT=${PYENV_DIR}" >> ${ZSH_LOCAL_PATH}
-    echo 'export PATH=${PYENV_ROOT}/bin:${PYENV_ROOT}/shims:${PATH}' >> ${ZSH_LOCAL_PATH}
-    echo 'eval "$(pyenv init -)"' >> ${ZSH_LOCAL_PATH}
-    echo 'eval "$(pyenv virtualenv-init -)"' >> ${ZSH_LOCAL_PATH}
 fi
 
 # tfenv
@@ -115,11 +98,6 @@ TFENV_DIR=${HOME}/.tfenv
 if [ ! -d ${TFENV_DIR} ]; then
     echo 'Installing tfenv...'
     git clone https://github.com/kamatama41/tfenv.git ${TFENV_DIR}
-
-    echo 'Set tfenv environment variables...'
-    echo '# tfenv' >> ${ZSH_LOCAL_PATH}
-    echo "export TFENV_ROOT=${TFENV_DIR}" >> ${ZSH_LOCAL_PATH}
-    echo 'export PATH=${TFENV_ROOT}/bin:${PATH}' >> ${ZSH_LOCAL_PATH}
 fi
 
 # goenv
@@ -127,10 +105,4 @@ GOENV_DIR=${HOME}/.goenv
 if [ ! -d "${GOENV_DIR}" ]; then
     echo 'Installing goenv...'
     git clone https://github.com/syndbg/goenv.git ${GOENV_DIR}
-
-    echo 'Set goenv environment variables...'
-    echo '# goenv' >> ${ZSH_LOCAL_PATH}
-    echo "export GOENV_ROOT=${GOENV_DIR}" >> ${ZSH_LOCAL_PATH}
-    echo 'export PATH=${GOENV_ROOT}/bin:${PATH}' >> ${ZSH_LOCAL_PATH}
-    echo 'eval "$(goenv init -)"' >> ${ZSH_LOCAL_PATH}
 fi

@@ -19,6 +19,10 @@ function exist() {
     false
 }
 
+function command_not_found_handler() {
+    echo "${LIGHT_RED}(;_;)${DEFAULT_COLOR} < Sorry, I didn't know ${PURPLE}${0}${DEFAULT_COLOR} command."
+}
+
 # Clean zcompdump
 function clean_zcompdump() {
     rm -f ${HOME}/.zcompdump*
