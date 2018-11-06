@@ -6,9 +6,10 @@ case "$1" in
 title = ""
 date = "$(date '+%FT00:00:00+09:00')"
 draft = "false"
-author = ""
+author = "${HUGO_AUTHOR}"
 cover = ""
 description = ""
+tags = []
 +++
 
 EOF
