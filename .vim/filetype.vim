@@ -61,8 +61,8 @@ augroup ftdetect
     " SELinux
     au BufNewFile,BufRead *.te                  setlocal tabstop=4 noexpandtab
     " Dockerfile
-    au BufNewFile,BufRead Dockerfile            setlocal ft=dockerfile
-    au BufNewFile,BufRead Dockerfile*           setlocal ft=dockerfile
+    au BufNewFile,BufRead Dockerfile            setlocal ft=Dockerfile
+    au BufNewFile,BufRead Dockerfile*           setlocal ft=Dockerfile
     " docker-compose.yml
     au BufNewFile,BufRead docker-compose.yml    setlocal ft=yaml.docker-compose tabstop=2 shiftwidth=2 expandtab
     au BufNewFile,BufRead docker-compose.yml*   setlocal ft=yaml.docker-compose tabstop=2 shiftwidth=2 expandtab
