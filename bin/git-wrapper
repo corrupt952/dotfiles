@@ -1,0 +1,10 @@
+#!/bin/bash -e
+case "$1" in
+    fmerge )
+        branches=$(git branch -a) \
+            && branch=$(echo "${branches}" | fzf +m) \
+            && git merge $(echo "$branch" | sed "s/.* //" | sed "s#remotes/##")
+        ;;
+    * )
+        command git $@;;
+esac
