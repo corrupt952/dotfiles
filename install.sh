@@ -55,9 +55,9 @@ ln -sf ${PWD}/.vim ${HOME_CONFIG_PATH}/nvim
 ln -sf ${PWD}/.dein.toml ${HOME}/
 ln -sf ${PWD}/.dein_lazy.toml ${HOME}/
 
-# Zsh
+# zsh
 ln -sf ${PWD}/.zshenv ${HOME}/
-find ${PWD}/.zsh -type f -name ".[^.]*" | xargs -I PLUG ln -sf PLUG ${ZDIR}
+find ${PWD}/.zsh -type f -name ".[^.]*" | xargs -I FILE ln -sf FILE ${ZDIR}
 
 # Powerline Fonts
 if [ "$(uname)" == 'Darwin'  ]; then
