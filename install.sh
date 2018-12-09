@@ -37,16 +37,6 @@ if [ ! -x ${nvim_bin_path} ]; then
     ln -s ${nvim_path}/bin/nvim ${nvim_bin_path}
 fi
 
-# Put Tmux configurations
-ln -sf ${PWD}/.tmux.conf ${HOME}/
-ln -sf ${PWD}/.tmux.darwin.conf ${HOME}/
-touch ${HOME}/.tmux.conf.local
-
-# Put Git conifugrations
-ln -sf ${PWD}/.gitignore ${HOME}/
-ln -sf ${PWD}/.gitconfig ${HOME}/
-touch ${HOME}/.gitconfig.local
-
 # Put Neovim configurations
 nvim_cfg_dir_path=${home_config_path}/nvim
 pwd_nvim_cfg_dir_path=${PWD}/.config/nvim
@@ -56,6 +46,18 @@ find ${pwd_nvim_cfg_dir_path}/.* -type f | xargs -I PLUG ln -sf PLUG ${nvim_cfg_
 ln -sf ${pwd_nvim_cfg_dir_path}/filetype.vim ${nvim_cfg_dir_path}/
 ln -sf ${pwd_nvim_cfg_dir_path}/.dein.toml ${nvim_cfg_dir_path}/
 ln -sf ${pwd_nvim_cfg_dir_path}/.dein_lazy.toml ${nvim_cfg_dir_path}/
+
+# Put Tmux configurations
+tmux_cfg_dir_path=${home_config_path}/tmux
+pwd_tmux_cfg_dir_path=${PWD}/.config/tmux
+[ ! -d ${tmux_cfg_dir_path} ] && mkdir ${tmux_cfg_dir_path}
+ln -sf ${PWD}/.tmux.conf ${HOME}/
+find ${pwd_tmux_cfg_dir_path}/.* -type f | xargs -I PLUG ln -sf PLUG ${tmux_cfg_dir_path}/
+
+# Put Git conifugrations
+ln -sf ${PWD}/.gitignore ${HOME}/
+ln -sf ${PWD}/.gitconfig ${HOME}/
+touch ${HOME}/.gitconfig.local
 
 # zsh
 ln -sf ${PWD}/.zshenv ${HOME}/
