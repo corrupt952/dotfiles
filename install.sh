@@ -1,38 +1,40 @@
 #!/bin/sh
-ZDIR=${HOME}/.zsh
-[ ! -d ${ZDIR} ] && mkdir ${ZDIR}
-ZSH_LOCAL_PATH=${HOME}/.zsh/.zshrc.local
+zdir=${HOME}/.zsh
+[ ! -d ${zdir} ] && mkdir ${zdir}
+zsh_local_path=${zdir}/.zshrc.local
 
 # make ~/.config
-HOME_CONFIG_PATH=${HOME}/.config
-[ ! -d ${HOME_CONFIG_PATH} ] && mkdir ${HOME_CONFIG_PATH}
+home_config_path=${HOME}/.config
+[ ! -d ${home_config_path} ] && mkdir ${home_config_path}
 
 # make ~/.cache
-HOME_CACHE_PATH=${HOME}/.cache
-[ ! -d ${HOME_CACHE_PATH} ] && mkdir ${HOME_CACHE_PATH}
+home_cache_path=${HOME}/.cache
+[ ! -d ${home_cache_path} ] && mkdir ${home_cache_path}
 
 # make ~/bin
-HOME_BIN_PATH=${HOME}/bin
-[ ! -d ${HOME_BIN_PATH} ] && mkdir ${HOME_BIN_PATH}
-find ${PWD}/bin/* -type f | xargs -I BIN ln -sf BIN ${HOME_BIN_PATH}
+home_bin_path=${HOME}/bin
+[ ! -d ${home_bin_path} ] && mkdir ${home_bin_path}
+find ${PWD}/bin/* -type f | xargs -I BIN ln -sf BIN ${home_bin_path}
 
 # Donwload Neovim
-NVIM_PATH=${HOME_CACHE_PATH}/nvim
-if [ ! -d ${NVIM_PATH} ]; then
-    NVIM_ARCHIVE_URL='https://github.com/neovim/neovim/releases/download/v0.3.1/nvim-macos.tar.gz'
-    NVIM_ARCHIVE_DIGEST=''
-    NVIM_ARCHIVE_PATH=${PWD}/tmp/nvim.tar.gz
-    wget -O ${NVIM_ARCHIVE_PATH} ${NVIM_ARCHIVE_URL}
-    # TOOD: md5 check
+nvim_path=${home_cache_path}/nvim
+if [ ! -d ${nvim_path} ]; then
+    # TODO: md5 check
+    # TODO: support linux
 
-    [ ! -d ${NVIM_PATH} ] && mkdir ${NVIM_PATH}
-    tar xvf ${NVIM_ARCHIVE_PATH} -C ${NVIM_PATH} --strip-components 1
+    nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.3.1/nvim-macos.tar.gz'
+    nvim_archive_digest=''
+    nvim_archive_path=${PWD}/tmp/nvim.tar.gz
+    wget -O ${nvim_archive_path} ${nvim_archive_url}
 
-    rm -f ${NVIM_ARCHIVE_PATH}
+    [ ! -d ${nvim_path} ] && mkdir ${nvim_path}
+    tar xvf ${nvim_archive_path} -C ${nvim_path} --strip-components 1
+
+    rm -f ${nvim_archive_path}
 fi
-NVIM_BIN_PATH=${HOME_BIN_PATH}/nvim
-if [ ! -x ${NVIM_BIN_PATH} ]; then
-    ln -s ${NVIM_PATH}/bin/nvim ${NVIM_BIN_PATH}
+nvim_bin_path=${home_bin_path}/nvim
+if [ ! -x ${nvim_bin_path} ]; then
+    ln -s ${nvim_path}/bin/nvim ${nvim_bin_path}
 fi
 
 # Put Tmux configurations
@@ -45,19 +47,19 @@ ln -sf ${PWD}/.gitignore ${HOME}/
 ln -sf ${PWD}/.gitconfig ${HOME}/
 touch ${HOME}/.gitconfig.local
 
-# Put Vim(Neovim) configurations
-ln -sf ${PWD}/.vimrc ${HOME}/
-[ ! -d ${HOME}/.vim ] && mkdir ${HOME}/.vim
-[ ! -d ${HOME}/.vim/ftplugin ] && mkdir ${HOME}/.vim/ftplugin
-find ${PWD}/.vim/ftplugin/* -type f | xargs -I PLUG ln -sf PLUG ${HOME}/.vim/ftplugin/
-ln -sf ${PWD}/.vim/filetype.vim ${HOME}/.vim/
-ln -sf ${PWD}/.vim ${HOME_CONFIG_PATH}/nvim
-ln -sf ${PWD}/.dein.toml ${HOME}/
-ln -sf ${PWD}/.dein_lazy.toml ${HOME}/
+# Put Neovim configurations
+nvim_cfg_dir_path=${home_config_path}/nvim
+pwd_nvim_cfg_dir_path=${PWD}/.config/nvim
+[ ! -d ${nvim_cfg_dir_path} ] && mkdir ${nvim_cfg_dir_path}
+[ ! -d ${nvim_cfg_dir_path}/ftplugin ] && mkdir ${nvim_cfg_dir_path}/ftplugin
+find ${pwd_nvim_cfg_dir_path}/.* -type f | xargs -I PLUG ln -sf PLUG ${nvim_cfg_dir_path}/
+ln -sf ${pwd_nvim_cfg_dir_path}/filetype.vim ${nvim_cfg_dir_path}/
+ln -sf ${pwd_nvim_cfg_dir_path}/.dein.toml ${nvim_cfg_dir_path}/
+ln -sf ${pwd_nvim_cfg_dir_path}/.dein_lazy.toml ${nvim_cfg_dir_path}/
 
 # zsh
 ln -sf ${PWD}/.zshenv ${HOME}/
-find ${PWD}/.zsh -type f -name ".[^.]*" | xargs -I FILE ln -sf FILE ${ZDIR}
+find ${PWD}/.zsh -type f -name ".[^.]*" | xargs -I FILE ln -sf FILE ${zdir}
 
 # Powerline Fonts
 if [ "$(uname)" == 'Darwin'  ]; then
@@ -75,34 +77,34 @@ if [ "$(uname)" == 'Darwin'  ]; then
 fi
 
 # rbenv
-RBENV_DIR=${HOME}/.rbenv
-if [ ! -d ${RBENV_DIR} ]; then
+rbenv_dir_path=${HOME}/.rbenv
+if [ ! -d ${rbenv_dir_path} ]; then
     echo 'Installing rbenv...'
-    git clone https://github.com/rbenv/rbenv.git ${RBENV_DIR}
-    git clone git://github.com/sstephenson/ruby-build.git ${RBENV_DIR}/plugins/ruby-build
+    git clone https://github.com/rbenv/rbenv.git ${rbenv_dir_path}
+    git clone git://github.com/sstephenson/ruby-build.git ${rbenv_dir_path}/plugins/ruby-build
 fi
 
 # irb
 ln -sf ${PWD}/.irbrc ${HOME}/
 
 # pyenv
-PYENV_DIR=${HOME}/.pyenv
-if [ ! -d ${PYENV_DIR} ]; then
+pyenv_dir_path=${HOME}/.pyenv
+if [ ! -d ${pyenv_dir_path} ]; then
     echo 'Installing pyenv...'
-    git clone https://github.com/yyuu/pyenv.git ${PYENV_DIR}
-    git clone https://github.com/yyuu/pyenv-virtualenv.git ${PYENV_DIR}/plugins/pyenv-virtualenv
+    git clone https://github.com/yyuu/pyenv.git ${pyenv_dir_path}
+    git clone https://github.com/yyuu/pyenv-virtualenv.git ${pyenv_dir_path}/plugins/pyenv-virtualenv
 fi
 
 # tfenv
-TFENV_DIR=${HOME}/.tfenv
-if [ ! -d ${TFENV_DIR} ]; then
+tfenv_dir_path=${HOME}/.tfenv
+if [ ! -d ${tfenv_dir_path} ]; then
     echo 'Installing tfenv...'
-    git clone https://github.com/kamatama41/tfenv.git ${TFENV_DIR}
+    git clone https://github.com/kamatama41/tfenv.git ${tfenv_dir_path}
 fi
 
 # goenv
-GOENV_DIR=${HOME}/.goenv
-if [ ! -d "${GOENV_DIR}" ]; then
+goenv_dir_path=${HOME}/.goenv
+if [ ! -d "${goenv_dir_path}" ]; then
     echo 'Installing goenv...'
-    git clone https://github.com/syndbg/goenv.git ${GOENV_DIR}
+    git clone https://github.com/syndbg/goenv.git ${goenv_dir_path}
 fi
