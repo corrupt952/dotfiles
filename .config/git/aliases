@@ -1,0 +1,69 @@
+[alias]
+	pick = cherry-pick
+	cfg = config
+	cl = clone
+	pu = pull
+	ps = push
+	rv = revert
+	st = status --short --branch
+	# reset
+	r = reset --soft HEAD
+	r1 = reset --soft HEAD~
+	r2 = reset --soft HEAD~~
+	r3 = reset --soft HEAD~~~
+	rh = reset --hard HEAD
+	rh1 = reset --hard HEAD~
+	rh2 = reset --hard HEAD~~
+	rh3 == reset --hard HEAD~~~
+	# stash
+	s = stash
+	ss = stash save
+	sp = stash pop
+	sa = stash apply
+	sl = stash list
+	# checkout
+	m = checkout master
+	co = checkout
+	nco = checkout -b
+	rvf = checkout HEAD
+	# add
+	a = add .
+	aa = add --all
+	add-all = add --all
+	ap = add --patch
+	add-patch = add --patch
+	# fetch
+	f = fetch
+	fp = fetch --prune
+	fetch-prune = fetch --prune
+	# branch
+	b = branch
+	ba = branch --all
+	branch-all = branch --all
+	bd = branch -D
+	branch-delete = branch -D
+	# diff
+	d = diff --color-words
+	di = diff --color-words
+	dh = diff --color-words HEAD
+	diff-head = diff --color-words HEAD
+	ds = diff --stat
+	diff-stat = diff --stat
+	ddi = diff --color-words --diff-algorithm=default
+	pdi = diff --color-words --diff-algorithm=patience
+	hdi = diff --color-words --diff-algorithm=histogram
+	# commit
+	ci = commit
+	eci = commit --allow-empty
+	empty-commit = commit --allow-empty
+	aci = commit --amend
+	ammend-commit = commit --amend
+	# log
+	ol = log --pretty=oneline
+	onelog = log --pretty=oneline
+	gl = log --graph
+	graph-log = log --graph
+	t = log --graph --pretty=oneline --abbrev-commit --decorate
+	tree = log --graph --pretty=oneline --abbrev-commit --decorate
+	# git-now
+	n = now --stat

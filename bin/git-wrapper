@@ -1,10 +1,85 @@
 #!/bin/bash -e
+_env() {
+    echo "user: $(git config --get user.name)"
+    echo "email: $(git config --get user.email)"
+}
+
+# Create parent dir for git repositories
+_mkparentdir() {
+    local git_cfg_dir_path=${HOME}/.config/git
+    local repo_name=$1
+    local repo_dir_path=${HOME}/Repo/${repo_name}
+    local repo_git_cfg_path=${git_cfg_dir_path}/${repo_name}
+
+    # Create parent dir
+    [ ! -d $repo_dir_path ] && mkdir -p $repo_dir_path
+
+    # Add config
+    if [ ! -f ${repo_git_cfg_path} ]; then
+        cat <<EOF > ${repo_git_cfg_path}
+[user]
+	name =
+	email =
+EOF
+    fi
+
+    # Add includeIf
+    local git_local_cfg_path=${git_cfg_dir_path}/local
+    if [ "$(grep ${repo_name} ${git_local_cfg_path})" = "" ]; then
+        cat <<EOS >> ${git_local_cfg_path}
+[includeIf "gitdir:${repo_dir_path}/"]
+	path = ${repo_git_cfg_path}
+EOS
+    fi
+
+    # add .ssh and configuration
+    local ssh_cfg_dir_path=${repo_dir_path}/.ssh
+    if [ ! -d ${ssh_cfg_dir_path} ]; then
+        mkdir ${ssh_cfg_dir_path}
+        chmod 700 ${ssh_cfg_dir_path}
+        touch ${ssh_cfg_dir_path}/config
+        chmod 600 ${ssh_cfg_dir_path}/config
+    fi
+
+    # add .git_ssh.sh
+    local git_ssh_sh_path=${repo_dir_path}/.git_ssh.sh
+    if [ ! -f ${git_ssh_sh_path} ]; then
+        cat <<EOF >> ${git_ssh_sh_path}
+#!/bin/sh
+# ssh-wrapper "\$@"
+EOF
+
+        chmod +x ${git_ssh_sh_path}
+    fi
+
+    # add .envrc
+    local envrc_path=${repo_dir_path}/.envrc
+    if [ ! -f ${envrc_path} ]; then
+        cat <<EOF > ${envrc_path}
+CURRENT_PATH=${repo_dir_path}
+export SSH_CONFIG=\${CURRENT_PATH}/.ssh/config
+export GIT_SSH=\${CURRENT_PATH}/.git_ssh.sh
+EOF
+    fi
+}
+
 case "$1" in
     fmerge )
         branches=$(git branch -a) \
             && branch=$(echo "${branches}" | fzf +m) \
             && git merge $(echo "$branch" | sed "s/.* //" | sed "s#remotes/##")
         ;;
+    env )
+        _env
+        ;;
+    mkparentdir )
+        if [ $# -eq 2 ]; then
+            _mkparentdir "$2"
+        else
+            echo 'too many arguments or less' >&2
+        fi
+        ;;
     * )
-        command git $@;;
+        command git $@
+        ;;
 esac

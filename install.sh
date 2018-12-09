@@ -47,14 +47,17 @@ ln -sf ${pwd_nvim_cfg_dir_path}/.dein_lazy.toml ${nvim_cfg_dir_path}/
 # Put Tmux configurations
 tmux_cfg_dir_path=${home_config_path}/tmux
 pwd_tmux_cfg_dir_path=${PWD}/.config/tmux
-[ ! -d ${tmux_cfg_dir_path} ] && mkdir ${tmux_cfg_dir_path}
 ln -sf ${PWD}/.tmux.conf ${HOME}/
-find ${pwd_tmux_cfg_dir_path}/.* -type f | xargs -I PLUG ln -sf PLUG ${tmux_cfg_dir_path}/
+[ ! -d ${tmux_cfg_dir_path} ] && mkdir ${tmux_cfg_dir_path}
+find ${pwd_tmux_cfg_dir_path} -type f | xargs -I PLUG ln -sf PLUG ${tmux_cfg_dir_path}/
 
 # Put Git conifugrations
-ln -sf ${PWD}/.gitignore ${HOME}/
+git_cfg_dir_path=${home_config_path}/git
+pwd_git_cfg_dir_path=${PWD}/.config/git
 ln -sf ${PWD}/.gitconfig ${HOME}/
-touch ${HOME}/.gitconfig.local
+[ ! -d ${git_cfg_dir_path} ] && mkdir ${git_cfg_dir_path}
+find ${pwd_git_cfg_dir_path} -type f | xargs -I PLUG ln -sf PLUG ${git_cfg_dir_path}/
+touch ${git_cfg_dir_path}/local
 
 # Put zsh configuration
 ln -sf ${PWD}/.zshenv ${HOME}/

@@ -1,6 +1,7 @@
 augroup ftdetect
     " Git
     au BufNewFile,BufRead .gitconfig*           setlocal ft=gitconfig
+    au BufNewFile,BufRead */.config/git/*       setlocal ft=gitconfig
     " C/C++
     au BufNewFile,BufRead *.c                   setlocal tabstop=4 noexpandtab
     au BufNewFile,BufRead *.cpp                 setlocal tabstop=4 noexpandtab

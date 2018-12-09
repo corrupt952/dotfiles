@@ -29,68 +29,6 @@ function clean_zcompdump() {
     rm -f ${HOME}/.antigen/.zcompdump*
 }
 
-# Get git config
-function gitenv() {
-    echo "user: $(git config --get user.name)"
-    echo "email: $(git config --get user.email)"
-}
-
-# Create parent dir for git repositories
-function mkgitparentdir() {
-    if [ $# -eq 1 ]; then
-        name=$1
-        parent_dir=${HOME}/Repo/$name
-
-        # Create parent dir
-        [ ! -d $parent_dir ] && mkdir -p $parent_dir
-
-        # Add gitconfig
-        if [ ! -f ${HOME}/.gitconfig.$name ]; then
-            cat <<EOF > ${HOME}/.gitconfig.$name
-[user]
-name =
-email =
-EOF
-        fi
-
-        # Add includeIf
-        if [ "$(grep $name ${HOME}/.gitconfig.local)" = "" ]; then
-            cat <<EOS >> ${HOME}/.gitconfig.local
-[includeIf "gitdir:${HOME}/Repo/$name/"]
-    path = ${HOME}/.gitconfig.$name
-EOS
-        fi
-
-        # add .ssh and configuration
-        if [ ! -d $parent_dir/.ssh ]; then
-            mkdir $parent_dir/.ssh
-            chmod 700 $parent_dir/.ssh
-            touch $parent_dir/.ssh/config
-            chmod 600 $parent_dir/.ssh/config
-        fi
-
-        # add .git_ssh.sh
-        if [ ! -f $parent_dir/.git_ssh.sh ]; then
-            cat <<EOF >> $parent_dir/.git_ssh.sh
-#!/bin/sh
-# ssh-wrapper "\$@"
-EOF
-            chmod +x $parent_dir/.git_ssh.sh
-        fi
-
-        # add .envrc
-        if [ ! -f $parent_dir/.envrc ]; then
-            cat <<EOF > $parent_dir/.envrc
-CURRENT_PATH=$parent_dir
-export SSH_CONFIG=\${CURRENT_PATH}/.ssh/config
-export GIT_SSH=\${CURRENT_PATH}/.git_ssh.sh
-EOF
-        fi
-    else
-        echo 'too many arguments or less' >&2
-    fi
-}
-
 # Darwin
 if isDarwin; then
     function clip() {

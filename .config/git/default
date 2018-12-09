@@ -1,0 +1,21 @@
+[color]
+	ui = true
+	diff = true
+	branch = true
+	interactive = true
+	status = true
+[color "branch"]
+	current = red
+	local = white
+	remote = yellow
+[push]
+	default = current
+[diff]
+	algorithm = patience
+[core]
+	editor = nvim
+	quotepath = false
+	precomposeunicode = true
+	whitespace=fix, -index-with-non-tab,trailing-space,cr-at-eol
+[ssh]
+	variant = ssh
