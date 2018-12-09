@@ -1,7 +1,4 @@
 #!/bin/sh
-zdir=${HOME}/.zsh
-[ ! -d ${zdir} ] && mkdir ${zdir}
-zsh_local_path=${zdir}/.zshrc.local
 
 # make ~/.config
 home_config_path=${HOME}/.config
@@ -59,9 +56,12 @@ ln -sf ${PWD}/.gitignore ${HOME}/
 ln -sf ${PWD}/.gitconfig ${HOME}/
 touch ${HOME}/.gitconfig.local
 
-# zsh
+# Put zsh configuration
 ln -sf ${PWD}/.zshenv ${HOME}/
-find ${PWD}/.zsh -type f -name ".[^.]*" | xargs -I FILE ln -sf FILE ${zdir}
+zdir=${home_config_path}/zsh
+[ ! -d ${zdir} ] && mkdir ${zdir}
+find ${PWD}/.config/zsh -type f -name ".[^.]*" | xargs -I FILE ln -sf FILE ${zdir}
+touch ${zdir}/.zshrc.local
 
 # Powerline Fonts
 if [ "$(uname)" == 'Darwin'  ]; then
