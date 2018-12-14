@@ -66,7 +66,7 @@ export TERM=xterm-256color
 # zplug
 # https://github.com/zplug/zplug
 #######################################
-export ZPLUG_HOME=${HOME}/.zplug
+export ZPLUG_HOME=${HOME}/.cache/zplug
 if [ ! -d ${ZPLUG_HOME} ]; then
     git clone https://github.com/zplug/zplug ${ZPLUG_HOME}
 fi

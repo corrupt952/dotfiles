@@ -66,6 +66,11 @@ zdir=${home_config_path}/zsh
 find ${PWD}/.config/zsh -type f -name ".[^.]*" | xargs -I FILE ln -sf FILE ${zdir}
 touch ${zdir}/.zshrc.local
 
+# Put zsh functions
+zsh_function_dir=${zdir}/functions
+[ ! -d ${zsh_function_dir} ] && mkdir ${zsh_function_dir}
+find ${PWD}/.config/zsh/functions -type f | xargs -I FILE ln -sf FILE ${zsh_function_dir}
+
 # Powerline Fonts
 if [ "$(uname)" == 'Darwin'  ]; then
     if [ "$(ls ${HOME}/Library/Fonts | grep -i powerline)" == "" ]; then

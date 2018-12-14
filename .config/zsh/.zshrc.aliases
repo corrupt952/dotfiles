@@ -31,14 +31,17 @@ alias -g X='| xargs'
 
 # wrapper scripts
 alias ssh='ssh-wrapper'
+compdef ssh-wrapper='ssh'
 alias scp="scp-wrapper"
+compdef scp-wrapper='scp'
+alias git='git-wrapper'
+compdef git-wrapper='git'
 alias hugo='hugo-wrapper'
 alias docker='docker-wrapper'
 alias rbenv='rbenv-wrapper'
 alias pyenv='pyenv-wrapper'
 alias tfenv='tfenv-wrapper'
 alias goenv='goenv-wrapper'
-alias git='git-wrapper'
 
 if exist git; then
     alias g='git'
