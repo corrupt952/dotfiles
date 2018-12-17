@@ -1,85 +1,95 @@
-#!/bin/bash -e
-_env() {
-    echo "user: $(git config --get user.name)"
-    echo "email: $(git config --get user.email)"
-}
+#!/usr/bin/env ruby
 
-# Create parent dir for git repositories
-_mkparentdir() {
-    local git_cfg_dir_path=${HOME}/.config/git
-    local repo_name=$1
-    local repo_dir_path=${HOME}/Repo/${repo_name}
-    local repo_git_cfg_path=${git_cfg_dir_path}/${repo_name}
+require 'fileutils'
 
-    # Create parent dir
-    [ ! -d $repo_dir_path ] && mkdir -p $repo_dir_path
+GIT_CMD = 'command git'
+GIT_CONFIG_DIR_PATH = File.join(Dir.home, '.config', 'git')
+GIT_REPO_GROUP_PATH = File.join(Dir.home, 'Repo')
 
-    # Add config
-    if [ ! -f ${repo_git_cfg_path} ]; then
-        cat <<EOF > ${repo_git_cfg_path}
+# Get user configurations
+def env
+  system 'echo "user: $(git config --get user.name)"'
+  system 'echo "email: $(git config --get user.email)"'
+end
+
+# Create group dir for git repositories
+def make_repo_group_dir(repo_name)
+  # Create group dir
+  repo_group_path = File.join(GIT_REPO_GROUP_PATH, repo_name)
+  FileUtils.mkdir_p(repo_group_path)
+
+  # Add config
+  repo_group_config_path = File.join(GIT_CONFIG_DIR_PATH, repo_name)
+  unless File.exist?(repo_group_config_path)
+    File.open(repo_group_config_path, 'a') do |f|
+      f.write <<-EOF
 [user]
-	name =
-	email =
-EOF
-    fi
+  name =
+  email =
+      EOF
+    end
+  end
 
-    # Add includeIf
-    local git_local_cfg_path=${git_cfg_dir_path}/local
-    if [ "$(grep ${repo_name} ${git_local_cfg_path})" = "" ]; then
-        cat <<EOS >> ${git_local_cfg_path}
-[includeIf "gitdir:${repo_dir_path}/"]
-	path = ${repo_git_cfg_path}
-EOS
-    fi
+  # Add includeIf
+  local_config_path = File.join(GIT_CONFIG_DIR_PATH, 'local')
+  unless File.readlines(local_config_path).grep(/#{repo_name}/).size > 0
+    File.open(local_config_path, 'a') do |f|
+      f.write <<-EOS
+  [includeIf "gitdir:#{repo_group_path}/"]
+    path = #{repo_group_config_path}
+      EOS
+    end
+  end
 
-    # add .ssh and configuration
-    local ssh_cfg_dir_path=${repo_dir_path}/.ssh
-    if [ ! -d ${ssh_cfg_dir_path} ]; then
-        mkdir ${ssh_cfg_dir_path}
-        chmod 700 ${ssh_cfg_dir_path}
-        touch ${ssh_cfg_dir_path}/config
-        chmod 600 ${ssh_cfg_dir_path}/config
-    fi
+  # add .ssh and configuration
+  ssh_config_path = File.join(repo_group_path, '.ssh')
+  unless File.exist?(ssh_config_path)
+    FileUtils.mkdir ssh_config_path, mode: 0700
+    FileUtils.touch File.join(ssh_config_path, 'config')
+    FileUtils.chmod File.join(ssh_config_path, 'config'), 0600
+  end
 
-    # add .git_ssh.sh
-    local git_ssh_sh_path=${repo_dir_path}/.git_ssh.sh
-    if [ ! -f ${git_ssh_sh_path} ]; then
-        cat <<EOF >> ${git_ssh_sh_path}
+  # add .git_ssh.sh
+  git_ssh_path = File.join(repo_group_path, '.git_ssh.sh')
+  unless File.exist?(git_ssh_path)
+    File.open(git_ssh_path, 'w', 0755) do |f|
+      f.write <<-EOF
 #!/bin/sh
 # ssh-wrapper "\$@"
-EOF
+      EOF
+    end
+  end
 
-        chmod +x ${git_ssh_sh_path}
-    fi
-
-    # add .envrc
-    local envrc_path=${repo_dir_path}/.envrc
-    if [ ! -f ${envrc_path} ]; then
-        cat <<EOF > ${envrc_path}
-CURRENT_PATH=${repo_dir_path}
+  # add .envrc
+  envrc_path = File.join(repo_group_path, '.envrc')
+  unless File.exist?(envrc_path)
+    File.open(envrc_path, 'w') do |f|
+      f.write <<-EOF
+CURRENT_PATH=#{repo_group_path}
 export SSH_CONFIG=\${CURRENT_PATH}/.ssh/config
 export GIT_SSH=\${CURRENT_PATH}/.git_ssh.sh
-EOF
-    fi
-}
+      EOF
+    end
+  end
+end
 
-case "$1" in
-    fmerge )
-        branches=$(git branch -a) \
+# main method
+if __FILE__ == $0
+  case ARGV[0]
+  when 'fmerge'
+    system 'branches=$(git branch -a) \
             && branch=$(echo "${branches}" | fzf +m) \
-            && git merge $(echo "$branch" | sed "s/.* //" | sed "s#remotes/##")
-        ;;
-    env )
-        _env
-        ;;
-    mkparentdir )
-        if [ $# -eq 2 ]; then
-            _mkparentdir "$2"
-        else
-            echo 'too many arguments or less' >&2
-        fi
-        ;;
-    * )
-        command git $@
-        ;;
-esac
+            && git merge $(echo "$branch" | sed "s/.* //" | sed "s#remotes/##")'
+  when 'env'
+    env
+  when 'mkparentdir'
+    if ARGV&.length == 2
+      make_repo_group_dir ARGV[1]
+    else
+      STDERR.puts 'too many arguments or less'
+      exit 1
+    end
+  else
+    system [GIT_CMD, *ARGV].join(' ')
+  end
+end
