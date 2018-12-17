@@ -75,6 +75,12 @@ end
 
 # main method
 if __FILE__ == $0
+  # TODO: 適当過ぎるのでもう少しいい感じに
+  if ARGV.join(' ') =~ /force/
+    STDERR.puts "Don't use force options!!!"
+    exit 1
+  end
+
   case ARGV[0]
   when 'fmerge'
     system 'branches=$(git branch -a) \
