@@ -1,4 +1,9 @@
-#!/bin/sh
+#!/bin/sh -o noglob
+
+# Link files maxdepth 1
+symlink_files() {
+    find $1 -type f -maxdepth 1 -name '*' -o -name '.*' | xargs -I FILE ln -sf FILE $2
+}
 
 # make ~/.config
 home_config_path=${HOME}/.config
@@ -11,7 +16,7 @@ home_cache_path=${HOME}/.cache
 # make ~/bin
 home_bin_path=${HOME}/bin
 [ ! -d ${home_bin_path} ] && mkdir ${home_bin_path}
-find ${PWD}/bin/* -type f | xargs -I BIN ln -sf BIN ${home_bin_path}
+symlink_files ${PWD}/bin ${home_bin_path}
 
 # Donwload Neovim
 nvim_path=${home_cache_path}/nvim
@@ -39,7 +44,8 @@ nvim_cfg_dir_path=${home_config_path}/nvim
 pwd_nvim_cfg_dir_path=${PWD}/.config/nvim
 [ ! -d ${nvim_cfg_dir_path} ] && mkdir ${nvim_cfg_dir_path}
 [ ! -d ${nvim_cfg_dir_path}/ftplugin ] && mkdir ${nvim_cfg_dir_path}/ftplugin
-find ${pwd_nvim_cfg_dir_path}/.* -type f | xargs -I PLUG ln -sf PLUG ${nvim_cfg_dir_path}/
+symlink_files ${pwd_nvim_cfg_dir_path}/ ${nvim_cfg_dir_path}/
+symlink_files ${pwd_nvim_cfg_dir_path}/ftplugin/ ${nvim_cfg_dir_path}/ftplugin
 ln -sf ${pwd_nvim_cfg_dir_path}/filetype.vim ${nvim_cfg_dir_path}/
 ln -sf ${pwd_nvim_cfg_dir_path}/.dein.toml ${nvim_cfg_dir_path}/
 ln -sf ${pwd_nvim_cfg_dir_path}/.dein_lazy.toml ${nvim_cfg_dir_path}/
@@ -49,27 +55,27 @@ tmux_cfg_dir_path=${home_config_path}/tmux
 pwd_tmux_cfg_dir_path=${PWD}/.config/tmux
 ln -sf ${PWD}/.tmux.conf ${HOME}/
 [ ! -d ${tmux_cfg_dir_path} ] && mkdir ${tmux_cfg_dir_path}
-find ${pwd_tmux_cfg_dir_path} -type f | xargs -I PLUG ln -sf PLUG ${tmux_cfg_dir_path}/
+symlink_files ${pwd_tmux_cfg_dir_path} ${tmux_cfg_dir_path}/
 
 # Put Git conifugrations
 git_cfg_dir_path=${home_config_path}/git
 pwd_git_cfg_dir_path=${PWD}/.config/git
 ln -sf ${PWD}/.gitconfig ${HOME}/
 [ ! -d ${git_cfg_dir_path} ] && mkdir ${git_cfg_dir_path}
-find ${pwd_git_cfg_dir_path} -type f | xargs -I PLUG ln -sf PLUG ${git_cfg_dir_path}/
+symlink_files ${pwd_git_cfg_dir_path}/ ${git_cfg_dir_path}/
 touch ${git_cfg_dir_path}/local
 
 # Put zsh configuration
 ln -sf ${PWD}/.zshenv ${HOME}/
 zdir=${home_config_path}/zsh
 [ ! -d ${zdir} ] && mkdir ${zdir}
-find ${PWD}/.config/zsh -type f -name ".[^.]*" | xargs -I FILE ln -sf FILE ${zdir}
+symlink_files ${PWD}/.config/zsh/ ${zdir}
 touch ${zdir}/.zshrc.local
 
 # Put zsh functions
 zsh_function_dir=${zdir}/functions
 [ ! -d ${zsh_function_dir} ] && mkdir ${zsh_function_dir}
-find ${PWD}/.config/zsh/functions -type f | xargs -I FILE ln -sf FILE ${zsh_function_dir}
+symlink_files ${PWD}/.config/zsh/functions/ ${zsh_function_dir}
 
 # Powerline Fonts
 if [ "$(uname)" == 'Darwin'  ]; then
