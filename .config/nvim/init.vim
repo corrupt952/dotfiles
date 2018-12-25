@@ -89,6 +89,8 @@ nnoremap ZQ     <Nop>
 nnoremap Q      <Nop>
 nnoremap tn     :tabnew<CR>
 nnoremap tt     gt
+nnoremap btt    :%!xxd<CR>
+nnoremap tbb    :%!xxd -r<CR>
 " }}}
 
 " .vimrc.local
