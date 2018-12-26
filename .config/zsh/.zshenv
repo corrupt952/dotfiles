@@ -7,19 +7,7 @@ export fpath=(${HOME}/.config/zsh/functions $fpath)
 #
 # Homebrew
 #
-export PATH=${HOME}/.brew/sbin:${HOME}/.brew/bin:$PATH
-
-#
-# rbenv
-#
-export RBENV_ROOT=${HOME}/.rbenv
-export PATH=${RBENV_ROOT}/bin:${RBENV_ROOT}/shims:$PATH
-
-#
-# pyenv
-#
-export PYENV_ROOT=${HOME}/.pyenv
-export PATH=${PYENV_ROOT}/bin:${PYENV_ROOT}/shims:${PATH}
+export PATH=${HOME}/.brew/opt/ruby/bin:${HOME}/.brew/sbin:${HOME}/.brew/bin:$PATH
 
 #
 # go & goenv

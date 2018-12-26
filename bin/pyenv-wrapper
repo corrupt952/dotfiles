@@ -1,9 +1,0 @@
-#!/bin/bash -e
-case "$1" in
-    update )
-        cd ${HOME}/.pyenv && git pull && cd -
-        cd ${HOME}/.pyenv/plugins/pyenv-virtualenv && git pull && cd -
-        ;;
-    * )
-        command pyenv "$@";;
-esac

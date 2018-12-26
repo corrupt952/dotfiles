@@ -39,8 +39,6 @@ alias git='git-wrapper'
 compdef git-wrapper='git'
 alias hugo='hugo-wrapper'
 alias docker='docker-wrapper'
-alias rbenv='rbenv-wrapper'
-alias pyenv='pyenv-wrapper'
 alias tfenv='tfenv-wrapper'
 alias goenv='goenv-wrapper'
 
@@ -60,13 +58,6 @@ if exist vagrant; then
     alias vgu='vagrant up'
     alias vgh='vagrant halt'
     alias vgr='vagrant reload'
-fi
-if exist rbenv; then
-    alias rv='rbenv'
-    alias rvr='rbenv rehash'
-    alias rvlist='rbenv install --list'
-    alias rvinst='rbenv install'
-    alias rvuninst='rbenv uninstall'
 fi
 if exist bundle; then
     alias bi='bundle install'

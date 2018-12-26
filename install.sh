@@ -92,24 +92,8 @@ if [ "$(uname)" == 'Darwin'  ]; then
     fi
 fi
 
-# rbenv
-rbenv_dir_path=${HOME}/.rbenv
-if [ ! -d ${rbenv_dir_path} ]; then
-    echo 'Installing rbenv...'
-    git clone https://github.com/rbenv/rbenv.git ${rbenv_dir_path}
-    git clone git://github.com/sstephenson/ruby-build.git ${rbenv_dir_path}/plugins/ruby-build
-fi
-
 # irb
 ln -sf ${PWD}/.irbrc ${HOME}/
-
-# pyenv
-pyenv_dir_path=${HOME}/.pyenv
-if [ ! -d ${pyenv_dir_path} ]; then
-    echo 'Installing pyenv...'
-    git clone https://github.com/yyuu/pyenv.git ${pyenv_dir_path}
-    git clone https://github.com/yyuu/pyenv-virtualenv.git ${pyenv_dir_path}/plugins/pyenv-virtualenv
-fi
 
 # tfenv
 tfenv_dir_path=${HOME}/.tfenv
