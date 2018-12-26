@@ -75,12 +75,6 @@ end
 
 # main method
 if __FILE__ == $0
-  # TODO: 適当過ぎるのでもう少しいい感じに
-  if ARGV.join(' ') =~ /force/
-    STDERR.puts "Don't use force options!!!"
-    exit 1
-  end
-
   case ARGV[0]
   when 'fmerge'
     system 'branches=$(git branch -a) \
@@ -95,6 +89,27 @@ if __FILE__ == $0
       STDERR.puts 'too many arguments or less'
       exit 1
     end
+  when 'push', 'ps'
+    # NOTE: GIT_ALLOW_FORCE_PUSHがtrueでなければ
+    #       forceオプションが含まれている場合にエラーとする
+    if ENV['GIT_ALLOW_FORCE_PUSH'] != 'true'
+      if ARGV.any? { |a| a.match?(/(--force|-f)/) }
+        STDERR.puts "Don't use force push!!!"
+        exit 1
+      end
+    end
+
+    # TODO: 出来れば環境変数か何かで規則作りたい
+    # NOTE: GIT_ALLOW_PUSH_MASTERがtrueでなければ
+    #       masterが含まれている場合にエラーとする
+    if ENV['GIT_ALLOW_PUSH_MASTER'] != 'true'
+      if ARGV.any? { |a| a.match?(/(master)/) }
+        STDERR.puts "Don't push to master!!!"
+        exit 1
+      end
+    end
+
+    system [GIT_CMD, *ARGV].join(' ')
   else
     system [GIT_CMD, *ARGV].join(' ')
   end
