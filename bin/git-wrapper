@@ -93,7 +93,7 @@ if __FILE__ == $0
     # NOTE: GIT_ALLOW_FORCE_PUSHがtrueでなければ
     #       forceオプションが含まれている場合にエラーとする
     if ENV['GIT_ALLOW_FORCE_PUSH'] != 'true'
-      if ARGV.any? { |a| a.match?(/(--force|-f)/) }
+      if ARGV.any? { |a| a.match?(/\s(--force|-f)/) }
         STDERR.puts "Don't use force push!!!"
         exit 1
       end

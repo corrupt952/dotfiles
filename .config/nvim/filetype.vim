@@ -47,6 +47,7 @@ augroup ftdetect
     " Go
     au BufNewFile,BufRead *.go                  setlocal ft=go
     " Nginx
+    au BufNewFile,BufRead nginx.conf.*          setlocal ft=nginx
     au BufNewFile,BufRead */nginx/*.conf        setlocal ft=nginx
     au BufNewFile,BufRead */nginx/*.conf.j2     setlocal ft=nginx
     " Coffeescript

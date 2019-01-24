@@ -4,4 +4,15 @@ if [ "${SSH_CONFIG}" != "" ]; then
     config_path=${SSH_CONFIG}
 fi
 
-command ssh -F ${config_path} $@
+_edit_config() {
+    $EDITOR $1
+}
+
+case "$1" in
+    edit )
+        _edit_config "${config_path}"
+        ;;
+    * )
+        command ssh -F ${config_path} $@
+        ;;
+esac
