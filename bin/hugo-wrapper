@@ -3,7 +3,7 @@
 _mkpost() {
     # create post
     local post_path="$1"
-    local img_dir_path="$(echo ${post_path} | awk -F '\.md' '{ print $1 }' | awk -F 'content/post/' '{ print $2 }')"
+    local img_dir_path="$(echo ${post_path} | awk -F '\.md' '{ print $1 }' | awk -F 'content/posts/' '{ print $2 }')"
     local img_dir_fullpath="static/img/${img_dir_path}"
 
     cat <<EOF >${post_path}

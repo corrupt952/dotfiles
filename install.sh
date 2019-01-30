@@ -92,6 +92,12 @@ if [ "$(uname)" == 'Darwin'  ]; then
     fi
 fi
 
+# Wallpaper
+wallpaper_cfg_dir_path=${home_config_path}/wallpaper
+pwd_wallpaper_cfg_dir_path=${PWD}/.config/wallpaper
+[ ! -d ${wallpaper_cfg_dir_path} ] && mkdir ${wallpaper_cfg_dir_path}
+symlink_files ${pwd_wallpaper_cfg_dir_path} ${wallpaper_cfg_dir_path}/
+
 # irb
 ln -sf ${PWD}/.irbrc ${HOME}/
 
