@@ -34,4 +34,8 @@ if isDarwin; then
     function clip() {
         cat $1 | pbcopy
     }
+
+    function revstr() {
+        echo $1 | rev | pbcopy
+    }
 fi

@@ -7,7 +7,7 @@ export fpath=(${HOME}/.config/zsh/functions $fpath)
 #
 # Homebrew
 #
-export PATH=${HOME}/.brew/opt/ruby/bin:${HOME}/.brew/sbin:${HOME}/.brew/bin:$PATH
+export PATH=${HOME}/.brew/lib/ruby/gems/2.6.0/bin:${HOME}/.brew/opt/ruby/bin:${HOME}/.brew/sbin:${HOME}/.brew/bin:$PATH
 
 #
 # go & goenv

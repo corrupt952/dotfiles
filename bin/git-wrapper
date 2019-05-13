@@ -60,14 +60,29 @@ def make_repo_group_dir(repo_name)
     end
   end
 
+  # add .aws and configuration
+  aws_config_path = File.join(repo_group_path, '.aws')
+  unless File.exist?(aws_config_path)
+    FileUtils.mkdir aws_config_path, mode: 0700
+    FileUtils.touch File.join(aws_config_path, 'config')
+    FileUtils.chmod File.join(aws_config_path, 'config'), 0600
+  end
+
   # add .envrc
   envrc_path = File.join(repo_group_path, '.envrc')
   unless File.exist?(envrc_path)
     File.open(envrc_path, 'w') do |f|
       f.write <<-EOF
 CURRENT_PATH=#{repo_group_path}
+
+# SSH
 export SSH_CONFIG=\${CURRENT_PATH}/.ssh/config
+
+# Git
 export GIT_SSH=\${CURRENT_PATH}/.git_ssh.sh
+
+# AWS
+export AWS_CONFIG_FILE=\${CURRENT_PATH}/.aws/config
       EOF
     end
   end

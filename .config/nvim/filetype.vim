@@ -72,6 +72,8 @@ augroup ftdetect
     au BufNewFile,BufRead *.ltsv                setlocal ft=ltsv
     " Markdown
     au BufNewFile,BufRead *.md                  setlocal ft=markdown
+    " Fluentd
+    au BufNewFile,BufRead fluent.conf           setlocal ft=fluentd
 
     " Common
     au BufWritePre * if &ft != "markdown" | :%s/\s\+$//ge | endif
