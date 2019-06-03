@@ -17,14 +17,12 @@
 	rh3 == reset --hard HEAD~~~
 	# stash
 	s = stash
-	ss = stash save
 	sp = stash pop
-	sa = stash apply
 	sl = stash list
 	# checkout
 	m = checkout master
 	co = checkout
-	nco = checkout -b
+	nco = checkout -B
 	rvf = checkout HEAD
 	# add
 	a = add .
@@ -33,9 +31,7 @@
 	ap = add --patch
 	add-patch = add --patch
 	# fetch
-	f = fetch
 	fp = fetch --prune
-	fetch-prune = fetch --prune
 	# branch
 	b = branch
 	ba = branch --all
