@@ -24,7 +24,7 @@ if [ ! -d ${nvim_path} ]; then
     # TODO: md5 check
     # TODO: support linux
 
-    nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.3.1/nvim-macos.tar.gz'
+    nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.3.7/nvim-macos.tar.gz'
     nvim_archive_digest=''
     nvim_archive_path=${PWD}/tmp/nvim.tar.gz
     wget -O ${nvim_archive_path} ${nvim_archive_url}
