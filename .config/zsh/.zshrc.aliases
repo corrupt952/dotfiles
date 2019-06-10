@@ -98,3 +98,6 @@ fi
 if exist ag; then
     alias grep="ag"
 fi
+if exist kubectl; then
+    alias k="kubectl"
+fi
