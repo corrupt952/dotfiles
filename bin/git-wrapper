@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 
 require 'fileutils'
+require 'shellwords'
 
-GIT_CMD = 'command git'
-GIT_CONFIG_DIR_PATH = File.join(Dir.home, '.config', 'git')
-GIT_REPO_GROUP_PATH = File.join(Dir.home, 'Repo')
+GIT_CMD                  = 'command git'
+GIT_CONFIG_DIR_PATH      = File.join(Dir.home, '.config', 'git')
+GIT_WORKSPACE_GROUP_PATH = File.join(Dir.home, 'Workspace')
 
 # Get user configurations
 def env
@@ -15,7 +16,7 @@ end
 # Create group dir for git repositories
 def make_repo_group_dir(repo_name)
   # Create group dir
-  repo_group_path = File.join(GIT_REPO_GROUP_PATH, repo_name)
+  repo_group_path = File.join(GIT_WORKSPACE_GROUP_PATH, repo_name)
   FileUtils.mkdir_p(repo_group_path)
 
   # Add config
@@ -124,8 +125,8 @@ if __FILE__ == $0
       end
     end
 
-    system [GIT_CMD, *ARGV].join(' ')
+    system "#{GIT_CMD} " + ARGV.map(&Shellwords.method(:escape)).join(' ')
   else
-    system [GIT_CMD, *ARGV].join(' ')
+    system "#{GIT_CMD} " + ARGV.map(&Shellwords.method(:escape)).join(' ')
   end
 end
