@@ -1,3 +1,13 @@
+#
+# Toml
+#
+[[plugins]]
+repo = 'cespare/vim-toml'
+on_ft = ['toml']
+
+#
+# Ruby
+#
 [[plugins]]
 repo = 'tpope/vim-rails'
 on_ft = ['ruby', 'eruby']
@@ -7,64 +17,54 @@ repo = 'tpope/vim-bundler'
 on_ft = ['ruby']
 
 [[plugins]]
-repo = 'cespare/vim-toml'
-on_ft = ['toml']
+repo = 'tpope/vim-endwise'
+on_ft = ['ruby']
 
-[[plugins]]
-repo = 'kchmck/vim-coffee-script'
-on_ft = ['coffee']
-
+#
+# SASS/SCSS
+#
 [[plugins]]
 repo = 'cakebaker/scss-syntax.vim'
 on_path = '.scss'
 
-[[plugins]]
-repo = 'mattn/emmet-vim'
-on_ft = ['html', 'eruby', 'php']
-
-[[plugins]]
-repo = 'hashivim/vim-terraform'
-on_path = '.tf'
-
-[[plugins]]
-repo = 'chr4/nginx.vim'
-on_ft = ['nginx']
-
-[[plugins]]
-repo = 'leafo/moonscript-vim'
-on_path = '.moon'
-
-[[plugins]]
-repo = 'tpope/vim-endwise'
-on_ft = ['ruby']
-
-[[plugins]]
-repo = 'mattn/emmet-vim'
-on_ft = ['html', 'eruby']
-
+#
+# Ansible
+#
 [[plugins]]
 repo = 'pearofducks/ansible-vim'
 on_ft = ['ansible']
 
+#
+# Nginx
+#
 [[plugins]]
-repo = 'slim-template/vim-slim'
-on_ft = ['slim']
+repo = 'chr4/nginx.vim'
+on_ft = ['nginx']
 
-[[plugins]]
-repo = 'ekalinin/Dockerfile.vim'
-on_ft = ['Dockerfile']
-
+#
+# LTSV
+#
 [[plugins]]
 repo = 'moznion/vim-ltsv'
 on_ft = ['ltsv']
 
-[[plugins]]
-repo = 'posva/vim-vue'
-on_ft = ['vue']
-on_post_source = """
-syntax sync fromstart
-"""
-
+#
+# Fluentd
+#
 [[plugins]]
 repo = 'itkq/fluentd-vim'
 on_ft = ['fluentd']
+
+#
+# Terraform
+#
+[[plugins]]
+repo     = 'hashivim/vim-terraform'
+on_ft    = ['terraform']
+
+#
+# Dockerfile
+#
+[[plugins]]
+repo = 'ekalinin/Dockerfile.vim'
+on_ft = ['Dockerfile']

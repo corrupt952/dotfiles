@@ -1,69 +1,9 @@
-[[plugins]]
-repo = 'prabirshrestha/asyncomplete.vim'
-
-[[plugins]]
-repo = 'prabirshrestha/async.vim'
-
-[[plugins]]
-repo = 'prabirshrestha/asyncomplete-file.vim'
-hook_add='''
-au User asyncomplete_setup call asyncomplete#register_source(asyncomplete#sources#file#get_source_options({
-    \ 'name': 'file',
-    \ 'whitelist': ['*'],
-    \ 'priority': 10,
-    \ 'completor': function('asyncomplete#sources#file#completor')
-    \ }))
-'''
-
-[[plugins]]
-repo = 'prabirshrestha/asyncomplete-lsp.vim'
-
-[[plugins]]
-repo = 'prabirshrestha/vim-lsp'
-hook_add='''
-setlocal omnifunc=lsp#complete   " オムニ補完を有効化
-
-let g:lsp_signs_enabled = 0
-let g:lsp_diagnostics_echo_cursor = 0
-
-if executable('solargraph')
-    " gem install solargraph
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'solargraph',
-        \ 'cmd': {server_info->[&shell, &shellcmdflag, 'solargraph stdio']},
-        \ 'initialization_options': {"diagnostics": "true"},
-        \ 'whitelist': ['ruby'],
-        \ })
-endif
-'''
-
+#
+# Overhaul
+#
 [[plugins]]
 repo = 'Shougo/vimproc.vim'
 build = 'make -f make_mac.mak'
-
-# [[plugins]]
-# repo = 'Shougo/deoplete.nvim'
-# hook_add = '''
-# let g:deoplete#enable_at_startup = 1
-# let g:deoplete#omni_input_patterns = {}
-# let g:deoplete#auto_complete_delay = 0
-# let g:deoplete#auto_complete_start_length = 1
-# let g:deoplete#enable_camel_case = 0
-# let g:deoplete#enable_ignore_case = 0
-# let g:deoplete#enable_refresh_always = 0
-# let g:deoplete#enable_smart_case = 1
-# let g:deoplete#file#enable_buffer_path = 1
-# let g:deoplete#max_list = 10000
-# '''
-
-[[plugins]]
-repo = 'Shougo/neosnippet'
-
-[[plugins]]
-repo = 'Shougo/neosnippet-snippets'
-
-[[plugins]]
-repo = 'altercation/vim-colors-solarized'
 
 [[plugins]]
 repo = 'osyo-manga/vim-over'
@@ -86,27 +26,31 @@ call denite#custom#var('grep', 'default_opts', ['--follow', '--no-group', '--no-
 repo = 'Shougo/neomru.vim'
 
 [[plugins]]
-repo = 'tomtom/tcomment_vim'
+repo = 'w0rp/ale'
 
+#
+# Completion
+#
 [[plugins]]
-repo = 'nathanaelkane/vim-indent-guides'
+repo     = 'Shougo/deoplete.nvim'
 hook_add = '''
-let g:indent_guides_enable_on_vim_startup = 0
+let g:deoplete#enable_at_startup = 1
 '''
 
+#
+# Interface
+#
 [[plugins]]
-repo = 'w0ng/vim-hybrid'
+repo = 'itchyny/lightline.vim'
 hook_add = '''
-let g:hybrid_use_iTerm_colors = 1
-'''
-
-[[plugins]]
-repo = 'Shougo/vinarise.vim'
-
-[[plugins]]
-repo = 'mbbill/undotree'
-hook_add = '''
-nnoremap us :UndotreeToggle<CR>
+let g:lightline = {
+\   'active': {
+\       'left': [ [ 'mode', 'paste' ],
+\               [ 'readonly', 'filename', 'lineinfo' ] ],
+\       'right': [ ['percent' ],
+\                  [ 'fileformat', 'fileencoding', 'filetype', 'charvaluehex' ] ]
+\   }
+\}
 '''
 
 [[plugins]]
@@ -127,26 +71,32 @@ nnoremap gn :GitGutterNextHunk<CR>
 nnoremap gb :GitGutterPrevHunk<CR>
 '''
 
+#
+# Colorscheme
+#
 [[plugins]]
-repo = 'syui/airsave.vim'
+repo = 'w0ng/vim-hybrid'
 hook_add = '''
-let g:auto_write = 1
+let g:hybrid_use_iTerm_colors = 1
 '''
 
+#
+# Formatter
+#
 [[plugins]]
 repo = 'junegunn/vim-easy-align'
-
-[[plugins]]
-repo = 'scrooloose/nerdtree'
 hook_add = '''
-let g:NERDTreeShowHidden=1
-
-noremap <C-n>   :NERDTreeToggle<CR>
-noremap! <C-n>  :NERDTreeToggle<CR>
+vmap <Enter> <Plug>(EasyAlign)
 '''
 
+#
+# Support tools
+#
 [[plugins]]
 repo = 'Townk/vim-autoclose'
+
+[[plugins]]
+repo = 'tomtom/tcomment_vim'
 
 [[plugins]]
 repo = 'AndrewRadev/switch.vim'
@@ -157,27 +107,13 @@ nnoremap <SPACE><SPACE> :<C-u>Switch<CR>
 '''
 
 [[plugins]]
-repo = 'w0rp/ale'
-
-[[plugins]]
-repo = 'itchyny/lightline.vim'
+repo = 'syui/airsave.vim'
 hook_add = '''
-let g:lightline = {
-      \ 'active': {
-      \   'left': [ [ 'mode', 'paste' ],
-      \             [ 'readonly', 'filename', 'modified', 'helloworld' ] ]
-      \ },
-      \ 'component': {
-      \   'helloworld': 'Hello, world!'
-      \ },
-      \ }
+let g:auto_write = 1
 '''
 
-# [[plugins]]
-# repo = 'nathanaelkane/vim-indent-guides'
-# hook_add = '''
-# let g:indent_guides_enable_on_vim_startup = 1
 #
-# hi IndentGuidesOdd guibg=black ctermbg=8
-# hi IndentGuidesEven guibg=darkgrey ctermbg=NONE
-# '''
+# Others
+#
+[[plugins]]
+repo = 'Shougo/vinarise.vim'
