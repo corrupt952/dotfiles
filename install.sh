@@ -1,8 +1,20 @@
-#!/bin/sh -o noglob
+#!/usr/bin/env bash
 
-# Link files maxdepth 1
+set -eu
+set -o pipefail
+
+#
+# Define functions
+#
+isDarwin() {
+    if test "$(uname -s)" = "Darwin"; then
+        true
+    else
+        false
+    fi
+}
 symlink_files() {
-    find $1 -type f -maxdepth 1 -name '*' -o -name '.*' | xargs -I FILE ln -sf FILE $2
+    find $1  -maxdepth 1 -type f -name '*' -o -name '.*' | xargs -I FILE ln -sf FILE $2
 }
 
 # make ~/.config
@@ -24,7 +36,11 @@ if [ ! -d ${nvim_path} ]; then
     # TODO: md5 check
     # TODO: support linux
 
-    nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.3.7/nvim-macos.tar.gz'
+    if isDarwin; then
+        nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.3.7/nvim-macos.tar.gz'
+    else
+        nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.3.7/nvim-linux64.tar.gz'
+    fi
     nvim_archive_digest=''
     nvim_archive_path=${PWD}/tmp/nvim.tar.gz
     wget -O ${nvim_archive_path} ${nvim_archive_url}
@@ -113,4 +129,15 @@ goenv_dir_path=${HOME}/.goenv
 if [ ! -d "${goenv_dir_path}" ]; then
     echo 'Installing goenv...'
     git clone https://github.com/syndbg/goenv.git ${goenv_dir_path}
+fi
+
+#
+# For Linux
+#
+if ! isDarwin; then
+    fzf_path=${HOME}/.fzf
+    if [ ! -d "${fzf_path}" ]; then
+        git clone --depth 1 https://github.com/junegunn/fzf.git ${fzf_path}
+        cd ${fzf_path} && ./install && cd -
+    fi
 fi
