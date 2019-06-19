@@ -47,8 +47,8 @@ pwd_nvim_cfg_dir_path=${PWD}/.config/nvim
 symlink_files ${pwd_nvim_cfg_dir_path}/ ${nvim_cfg_dir_path}/
 symlink_files ${pwd_nvim_cfg_dir_path}/ftplugin/ ${nvim_cfg_dir_path}/ftplugin
 ln -sf ${pwd_nvim_cfg_dir_path}/filetype.vim ${nvim_cfg_dir_path}/
-ln -sf ${pwd_nvim_cfg_dir_path}/.dein.toml ${nvim_cfg_dir_path}/
-ln -sf ${pwd_nvim_cfg_dir_path}/.dein_lazy.toml ${nvim_cfg_dir_path}/
+ln -sf ${pwd_nvim_cfg_dir_path}/dein.toml ${nvim_cfg_dir_path}/
+ln -sf ${pwd_nvim_cfg_dir_path}/dein_lazy.toml ${nvim_cfg_dir_path}/
 
 # Put Tmux configurations
 tmux_cfg_dir_path=${home_config_path}/tmux
