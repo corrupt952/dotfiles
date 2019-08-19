@@ -92,12 +92,28 @@ end
 # main method
 if __FILE__ == $0
   case ARGV[0]
+  when 'env'
+    env
+  when 'current'
+    system "#{GIT_CMD} branch --show-current"
+  when 'switch'
+    cmd = <<~CMD
+      #{GIT_CMD} for-each-ref --format='%(refname:short)' refs/heads \
+        | fzf --reverse --exit-0 --ansi \
+        | xargs #{GIT_CMD} checkout
+    CMD
+    system cmd
+  when 'delete'
+    cmd = <<~CMD
+      #{GIT_CMD} for-each-ref --format='%(refname:short)' refs/heads \
+        | fzf --multi --reverse --exit-0 --ansi \
+        | xargs #{GIT_CMD} branch -D
+    CMD
+    system cmd
   when 'fmerge'
     system 'branches=$(git branch -a) \
             && branch=$(echo "${branches}" | fzf +m) \
             && git merge $(echo "$branch" | sed "s/.* //" | sed "s#remotes/##")'
-  when 'env'
-    env
   when 'mkparentdir'
     if ARGV&.length == 2
       make_repo_group_dir ARGV[1]
