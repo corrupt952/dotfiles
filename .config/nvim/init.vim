@@ -83,14 +83,43 @@ if (exists('+colorcolumn'))
     hi ColorColumn ctermbg=167
 endif
 
+" Functions {{{
+" type ... p(revious) or n(ext)
+" mode ... n(ormal) or v(isual) or i(nsert)
+function! JumpToSameIndentLine(type, mode)
+    " TODO: visual mode support
+    if a:mode == "v"
+        execute "normal! gv\<Esc>"
+    endif
+
+    if a:type == "p"
+        let search_flags = "be"
+    elseif a:type == "n"
+        let search_flags = "ew"
+    endif
+
+    let pos = searchpos("^". matchstr(getline("."), '\(\s*\)') ."\\S", search_flags)
+    " call setpos('.', pos[1])
+endfunction
+" }}}
+
 " Keymaps {{{
-noremap s       <Nop>
-nnoremap ZQ     <Nop>
-nnoremap Q      <Nop>
-nnoremap tn     :tabnew<CR>
-nnoremap tt     gt
-nnoremap btt    :%!xxd<CR>
-nnoremap tbb    :%!xxd -r<CR>
+noremap s      <Nop>
+nnoremap ZQ    <Nop>
+nnoremap Q     <Nop>
+
+nnoremap <silent> tn    :tabnew<CR>
+nnoremap <silent> tt    gt
+
+" binary
+nnoremap <silent> btt   :%!xxd<CR>
+nnoremap <silent> tbb   :%!xxd -r<CR>
+
+" indent jump
+nnoremap <silent> <C-k> :call JumpToSameIndentLine('p', 'n')<CR>
+nnoremap <silent> <C-j> :call JumpToSameIndentLine('n', 'n')<CR>
+vnoremap <silent> <C-k> :call JumpToSameIndentLine('p', 'v')<CR>
+vnoremap <silent> <C-j> :call JumpToSameIndentLine('n', 'v')<CR>
 " }}}
 
 " .vimrc.local
