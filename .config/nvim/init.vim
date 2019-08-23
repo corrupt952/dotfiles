@@ -84,6 +84,11 @@ if (exists('+colorcolumn'))
 endif
 
 " Functions {{{
+" Returns current filepath
+function! Filepath()
+    return expand("%")
+endfunction
+
 " type ... p(revious) or n(ext)
 " mode ... n(ormal) or v(isual) or i(nsert)
 function! JumpToSameIndentLine(type, mode)
@@ -104,9 +109,9 @@ endfunction
 " }}}
 
 " Keymaps {{{
-noremap s      <Nop>
-nnoremap ZQ    <Nop>
-nnoremap Q     <Nop>
+noremap  s  <Nop>
+nnoremap ZQ <Nop>
+nnoremap Q  <Nop>
 
 nnoremap <silent> tn    :tabnew<CR>
 nnoremap <silent> tt    gt

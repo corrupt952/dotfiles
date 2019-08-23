@@ -80,6 +80,8 @@ zplug "zsh-users/zsh-completions"
 #     zplug install
 # fi
 zplug load
+zstyle ":anyframe:selector:" use fzf
+zstyle ":anyframe:selector:fzf:" command 'fzf --reverse'
 
 #######################################
 # prompt
