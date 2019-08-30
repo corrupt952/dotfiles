@@ -47,7 +47,7 @@ def make_repo_group_dir(repo_name)
   unless File.exist?(ssh_config_path)
     FileUtils.mkdir ssh_config_path, mode: 0700
     FileUtils.touch File.join(ssh_config_path, 'config')
-    FileUtils.chmod File.join(ssh_config_path, 'config'), 0600
+    FileUtils.chmod 0600, File.join(ssh_config_path, 'config')
   end
 
   # add .git_ssh.sh
@@ -66,7 +66,7 @@ def make_repo_group_dir(repo_name)
   unless File.exist?(aws_config_path)
     FileUtils.mkdir aws_config_path, mode: 0700
     FileUtils.touch File.join(aws_config_path, 'config')
-    FileUtils.chmod File.join(aws_config_path, 'config'), 0600
+    FileUtils.chmod 0600, File.join(aws_config_path, 'config')
   end
 
   # add .envrc

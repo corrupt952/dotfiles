@@ -43,7 +43,7 @@ if [ ! -d ${nvim_path} ]; then
     fi
     nvim_archive_digest=''
     nvim_archive_path=${PWD}/tmp/nvim.tar.gz
-    wget -O ${nvim_archive_path} ${nvim_archive_url}
+    curl -L -o ${nvim_archive_path} ${nvim_archive_url}
 
     [ ! -d ${nvim_path} ] && mkdir ${nvim_path}
     tar xvf ${nvim_archive_path} -C ${nvim_path} --strip-components 1
@@ -52,7 +52,7 @@ if [ ! -d ${nvim_path} ]; then
 fi
 nvim_bin_path=${home_bin_path}/nvim
 if [ ! -x ${nvim_bin_path} ]; then
-    ln -s ${nvim_path}/bin/nvim ${nvim_bin_path}
+    ln -sf ${nvim_path}/bin/nvim ${nvim_bin_path}
 fi
 
 # Put Neovim configurations
