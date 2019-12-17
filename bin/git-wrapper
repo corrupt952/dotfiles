@@ -142,7 +142,9 @@ if __FILE__ == $0
     end
 
     system "#{GIT_CMD} " + ARGV.map(&Shellwords.method(:escape)).join(' ')
+    exit $?.exitstatus
   else
     system "#{GIT_CMD} " + ARGV.map(&Shellwords.method(:escape)).join(' ')
+    exit $?.exitstatus
   end
 end
