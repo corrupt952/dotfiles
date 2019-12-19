@@ -1,0 +1,8 @@
+version: '3.7'
+services:
+  plantuml:
+    container_name: plantuml-server
+    image: plantuml/plantuml-server:jetty
+    ports:
+      - 18080:8080
+
