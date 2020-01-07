@@ -37,9 +37,9 @@ if [ ! -d ${nvim_path} ]; then
     # TODO: support linux
 
     if isDarwin; then
-        nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.3.7/nvim-macos.tar.gz'
+        nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.4.3/nvim-macos.tar.gz'
     else
-        nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.3.7/nvim-linux64.tar.gz'
+        nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.4.3/nvim-linux64.tar.gz'
     fi
     nvim_archive_digest=''
     nvim_archive_path=${PWD}/tmp/nvim.tar.gz
