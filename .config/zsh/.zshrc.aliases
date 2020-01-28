@@ -100,4 +100,6 @@ if exist ag; then
 fi
 if exist kubectl; then
     alias k="kubectl"
+    alias kctx="kubectx"
+    alias kns="kubens"
 fi
