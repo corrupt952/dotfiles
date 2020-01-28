@@ -97,7 +97,7 @@ augroup ftdetect
     " LTSV
     au BufNewFile,BufRead *.ltsv                setlocal ft=ltsv
     " Markdown
-    au BufNewFile,BufRead *.md                  setlocal ft=markdow
+    au BufNewFile,BufRead *.md                  setlocal ft=markdown
     " Fluentd
     au BufNewFile,BufRead fluent.conf           setlocal ft=fluentd
     au BufNewFile,BufRead td-agent.conf         setlocal ft=fluentd
