@@ -200,7 +200,7 @@ fi
 #######################################
 # pyenv
 #######################################
-if exist rbenv; then
+if exist pyenv; then
     eval "$(pyenv init -)"
     eval "$(pyenv virtualenv-init -)"
 fi
