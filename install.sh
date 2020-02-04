@@ -30,31 +30,6 @@ home_bin_path=${HOME}/bin
 [ ! -d ${home_bin_path} ] && mkdir ${home_bin_path}
 symlink_files ${PWD}/bin ${home_bin_path}
 
-# Donwload Neovim
-nvim_path=${home_cache_path}/nvim
-if [ ! -d ${nvim_path} ]; then
-    # TODO: md5 check
-    # TODO: support linux
-
-    if isDarwin; then
-        nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.4.3/nvim-macos.tar.gz'
-    else
-        nvim_archive_url='https://github.com/neovim/neovim/releases/download/v0.4.3/nvim-linux64.tar.gz'
-    fi
-    nvim_archive_digest=''
-    nvim_archive_path=${PWD}/tmp/nvim.tar.gz
-    curl -L -o ${nvim_archive_path} ${nvim_archive_url}
-
-    [ ! -d ${nvim_path} ] && mkdir ${nvim_path}
-    tar xvf ${nvim_archive_path} -C ${nvim_path} --strip-components 1
-
-    rm -f ${nvim_archive_path}
-fi
-nvim_bin_path=${home_bin_path}/nvim
-if [ ! -x ${nvim_bin_path} ]; then
-    ln -sf ${nvim_path}/bin/nvim ${nvim_bin_path}
-fi
-
 # Put Neovim configurations
 nvim_cfg_dir_path=${home_config_path}/nvim
 pwd_nvim_cfg_dir_path=${PWD}/.config/nvim
