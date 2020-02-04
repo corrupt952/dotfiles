@@ -36,9 +36,9 @@ pwd_nvim_cfg_dir_path=${PWD}/.config/nvim
 [ ! -d ${nvim_cfg_dir_path} ] && mkdir ${nvim_cfg_dir_path}
 [ ! -d ${nvim_cfg_dir_path}/ftplugin ] && mkdir ${nvim_cfg_dir_path}/ftplugin
 [ ! -d ${nvim_cfg_dir_path}/dictionaries ] && mkdir ${nvim_cfg_dir_path}/dictionaries
-symlink_files ${pwd_nvim_cfg_dir_path}/ ${nvim_cfg_dir_path}/
-symlink_files ${pwd_nvim_cfg_dir_path}/ftplugin/ ${nvim_cfg_dir_path}/ftplugin
-#symlink_files ${pwd_nvim_cfg_dir_path}/dictionaries/ ${nvim_cfg_dir_path}/dictionaries
+symlink_files ${pwd_nvim_cfg_dir_path} ${nvim_cfg_dir_path}/
+symlink_files ${pwd_nvim_cfg_dir_path}/ftplugin ${nvim_cfg_dir_path}/ftplugin
+symlink_files ${pwd_nvim_cfg_dir_path}/dictionaries/ ${nvim_cfg_dir_path}/dictionaries
 ln -sf ${pwd_nvim_cfg_dir_path}/filetype.vim ${nvim_cfg_dir_path}/
 ln -sf ${pwd_nvim_cfg_dir_path}/dein.toml ${nvim_cfg_dir_path}/
 ln -sf ${pwd_nvim_cfg_dir_path}/dein_lazy.toml ${nvim_cfg_dir_path}/
@@ -55,20 +55,20 @@ git_cfg_dir_path=${home_config_path}/git
 pwd_git_cfg_dir_path=${PWD}/.config/git
 ln -sf ${PWD}/.gitconfig ${HOME}/
 [ ! -d ${git_cfg_dir_path} ] && mkdir ${git_cfg_dir_path}
-symlink_files ${pwd_git_cfg_dir_path}/ ${git_cfg_dir_path}/
+symlink_files ${pwd_git_cfg_dir_path} ${git_cfg_dir_path}/
 touch ${git_cfg_dir_path}/local
 
 # Put zsh configuration
 ln -sf ${PWD}/.zshenv ${HOME}/
 zdir=${home_config_path}/zsh
 [ ! -d ${zdir} ] && mkdir ${zdir}
-symlink_files ${PWD}/.config/zsh/ ${zdir}
+symlink_files ${PWD}/.config/zsh ${zdir}
 touch ${zdir}/.zshrc.local
 
 # Put zsh functions
 zsh_function_dir=${zdir}/functions
 [ ! -d ${zsh_function_dir} ] && mkdir ${zsh_function_dir}
-symlink_files ${PWD}/.config/zsh/functions/ ${zsh_function_dir}
+symlink_files ${PWD}/.config/zsh/functions ${zsh_function_dir}
 
 # Powerline Fonts
 if [ "$(uname)" == 'Darwin'  ]; then
