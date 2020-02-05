@@ -101,13 +101,6 @@ if [ ! -d ${tfenv_dir_path} ]; then
     git clone https://github.com/kamatama41/tfenv.git ${tfenv_dir_path}
 fi
 
-# goenv
-goenv_dir_path=${HOME}/.goenv
-if [ ! -d "${goenv_dir_path}" ]; then
-    echo 'Installing goenv...'
-    git clone https://github.com/syndbg/goenv.git ${goenv_dir_path}
-fi
-
 #
 # For Linux
 #
