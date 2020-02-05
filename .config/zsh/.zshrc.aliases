@@ -40,7 +40,6 @@ compdef git-wrapper='git'
 alias hugo='hugo-wrapper'
 alias docker='docker-wrapper'
 alias tfenv='tfenv-wrapper'
-alias goenv='goenv-wrapper'
 
 if exist git; then
     alias g='git'

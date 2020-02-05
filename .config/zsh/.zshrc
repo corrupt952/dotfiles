@@ -1,3 +1,5 @@
+# zmodload zsh/zprof && zprof
+
 #######################################
 # language
 #######################################
@@ -198,21 +200,6 @@ if exist rbenv; then
 fi
 
 #######################################
-# pyenv
-#######################################
-if exist pyenv; then
-    eval "$(pyenv init -)"
-    eval "$(pyenv virtualenv-init -)"
-fi
-
-#######################################
-# goenv
-#######################################
-if exist goenv; then
-    eval "$(goenv init -)"
-fi
-
-#######################################
 # alias
 #######################################
 [ -f ${ZDOTDIR}/.zshrc.aliases ] && source ${ZDOTDIR}/.zshrc.aliases
@@ -221,3 +208,7 @@ fi
 # local
 #######################################
 [ -f ${ZDOTDIR}/.zshrc.local ] && source ${ZDOTDIR}/.zshrc.local
+
+# if (which zprof > /dev/null 2>&1) ;then
+#   zprof
+# fi
