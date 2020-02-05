@@ -19,4 +19,6 @@ fi
 namespace="$(kubectl config view -o "jsonpath={.contexts[?(@.name==\"${context}\")].context.namespace}" 2>/dev/null)"
 [[ -z "${namespace}" ]] && namespace="default"
 
+context="$(basename "${context}")"
+
 echo "(${context}/${namespace})"
