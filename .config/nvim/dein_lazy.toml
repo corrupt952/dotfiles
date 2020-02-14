@@ -68,3 +68,10 @@ on_ft    = ['terraform']
 [[plugins]]
 repo = 'ekalinin/Dockerfile.vim'
 on_ft = ['Dockerfile']
+
+#
+# Rego
+#
+[[plugins]]
+repo = 'tsandall/vim-rego'
+on_ft = ['rego']

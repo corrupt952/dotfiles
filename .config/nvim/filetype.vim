@@ -73,6 +73,8 @@ augroup ftdetect
     " Go
     "
     au BufNewFile,BufRead *.go                  setlocal ft=go
+    " Rego
+    au BufNewFile,BufRead *.rego                setlocal ft=rego tabstop=4 softtabstop=4 shiftwidth=4 noexpandtab
 
     "
     " Nginx
