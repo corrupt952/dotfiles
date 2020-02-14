@@ -16,8 +16,8 @@ if dein#load_state(s:dein_dir)
   call dein#begin(s:dein_dir)
 
   let s:toml = '~/.config/nvim/dein.toml'
-  let s:lazy_toml = '~/.config/nvim/dein_lazy.toml'
   call dein#load_toml(s:toml, {'lazy': 0})
+  let s:lazy_toml = '~/.config/nvim/dein_lazy.toml'
   call dein#load_toml(s:lazy_toml, {'lazy': 1})
 
   call dein#end()
@@ -49,6 +49,8 @@ set showmode
 set nomodeline
 set mouse=a
 set incsearch
+set wildmenu
+set wildmode=full
 
 " Editor {{{
 set number
@@ -125,6 +127,10 @@ nnoremap <silent> <C-k> :call JumpToSameIndentLine('p', 'n')<CR>
 nnoremap <silent> <C-j> :call JumpToSameIndentLine('n', 'n')<CR>
 vnoremap <silent> <C-k> :call JumpToSameIndentLine('p', 'v')<CR>
 vnoremap <silent> <C-j> :call JumpToSameIndentLine('n', 'v')<CR>
+
+" LSP
+nnoremap <silent> <C-]> :LspDefinition<CR>
+nnoremap <silent> <C-p> :LspPeekDefinition<CR>
 " }}}
 
 " .vimrc.local
