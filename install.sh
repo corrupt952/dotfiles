@@ -35,10 +35,8 @@ nvim_cfg_dir_path=${home_config_path}/nvim
 pwd_nvim_cfg_dir_path=${PWD}/.config/nvim
 [ ! -d ${nvim_cfg_dir_path} ] && mkdir ${nvim_cfg_dir_path}
 [ ! -d ${nvim_cfg_dir_path}/ftplugin ] && mkdir ${nvim_cfg_dir_path}/ftplugin
-[ ! -d ${nvim_cfg_dir_path}/dictionaries ] && mkdir ${nvim_cfg_dir_path}/dictionaries
 symlink_files ${pwd_nvim_cfg_dir_path} ${nvim_cfg_dir_path}/
 symlink_files ${pwd_nvim_cfg_dir_path}/ftplugin ${nvim_cfg_dir_path}/ftplugin
-symlink_files ${pwd_nvim_cfg_dir_path}/dictionaries/ ${nvim_cfg_dir_path}/dictionaries
 ln -sf ${pwd_nvim_cfg_dir_path}/filetype.vim ${nvim_cfg_dir_path}/
 ln -sf ${pwd_nvim_cfg_dir_path}/dein.toml ${nvim_cfg_dir_path}/
 ln -sf ${pwd_nvim_cfg_dir_path}/dein_lazy.toml ${nvim_cfg_dir_path}/
