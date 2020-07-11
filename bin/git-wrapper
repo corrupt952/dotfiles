@@ -3,7 +3,7 @@
 require 'fileutils'
 require 'shellwords'
 
-GIT_CMD                  = 'command git'
+GIT_CMD                  = '/usr/bin/env git'
 GIT_CONFIG_DIR_PATH      = File.join(Dir.home, '.config', 'git')
 GIT_WORKSPACE_GROUP_PATH = File.join(Dir.home, 'Workspace')
 
