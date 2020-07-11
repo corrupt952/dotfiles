@@ -13,7 +13,7 @@
 [diff]
 	algorithm = patience
 [core]
-	editor = nvim
+	editor = vim
 	quotepath = false
 	precomposeunicode = true
 	whitespace=fix, -index-with-non-tab,trailing-space,cr-at-eol
