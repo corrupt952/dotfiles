@@ -84,6 +84,7 @@ export GIT_SSH=\${CURRENT_PATH}/.git_ssh.sh
 
 # AWS
 export AWS_CONFIG_FILE=\${CURRENT_PATH}/.aws/config
+export AWS_SHARED_CREDENTIALS_FILE=\${CURRENT_PATH}/.aws/credentials
       EOF
     end
   end
