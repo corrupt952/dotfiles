@@ -39,12 +39,5 @@ if [ -d /home/linuxbrew/.linuxbrew ]; then
 fi
 
 ###
-# for tfenv
-if [ -d $HOME/.tfenv ]; then
-    export TFENV_ROOT=$HOME/.tfenv
-    export PATH=$TFENV_ROOT/bin:$PATH
-fi
-
-###
 # Local variables
 [ -f ${ZDOTDIR}/.zshenv.local ] && source ${ZDOTDIR}/.zshenv.local

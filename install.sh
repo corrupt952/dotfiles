@@ -68,8 +68,12 @@ zsh_function_dir=${zdir}/functions
 [ ! -d ${zsh_function_dir} ] && mkdir ${zsh_function_dir}
 symlink_files ${PWD}/.config/zsh/functions ${zsh_function_dir}
 
+###
+# irbrc
+ln -sf ${PWD}/.irbrc ${HOME}/
+
 # Powerline Fonts
-if [ "$(uname)" == 'Darwin'  ]; then
+if isDarwin; then
     if [ "$(ls ${HOME}/Library/Fonts | grep -i powerline)" == "" ]; then
         echo 'Installing powerline fonts...'
         git clone https://github.com/powerline/fonts.git
@@ -81,31 +85,19 @@ if [ "$(uname)" == 'Darwin'  ]; then
         brew_dir=${HOME}/.brew
         mkdir $brew_dir && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C $brew_dir
     fi
+
+    # Wallpaper
+    wallpaper_cfg_dir_path=${home_config_path}/wallpaper
+    pwd_wallpaper_cfg_dir_path=${PWD}/.config/wallpaper
+    [ ! -d ${wallpaper_cfg_dir_path} ] && mkdir ${wallpaper_cfg_dir_path}
+    symlink_files ${pwd_wallpaper_cfg_dir_path} ${wallpaper_cfg_dir_path}/
 fi
 
-# Wallpaper
-wallpaper_cfg_dir_path=${home_config_path}/wallpaper
-pwd_wallpaper_cfg_dir_path=${PWD}/.config/wallpaper
-[ ! -d ${wallpaper_cfg_dir_path} ] && mkdir ${wallpaper_cfg_dir_path}
-symlink_files ${pwd_wallpaper_cfg_dir_path} ${wallpaper_cfg_dir_path}/
-
-# irb
-ln -sf ${PWD}/.irbrc ${HOME}/
-
-# tfenv
-tfenv_dir_path=${HOME}/.tfenv
-if [ ! -d ${tfenv_dir_path} ]; then
-    echo 'Installing tfenv...'
-    git clone https://github.com/kamatama41/tfenv.git ${tfenv_dir_path}
-fi
-
-#
+###
 # For Linux
-#
 if ! isDarwin; then
-    fzf_path=${HOME}/.fzf
-    if [ ! -d "${fzf_path}" ]; then
-        git clone --depth 1 https://github.com/junegunn/fzf.git ${fzf_path}
-        cd ${fzf_path} && ./install && cd -
+    if [ ! -d /home/linuxbrew ]; then
+        echo "Installing linuxbrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi
 fi
