@@ -1,29 +1,50 @@
 setopt combiningchars
 setopt no_global_rcs
 
-typeset -U path PATH
+typeset -gU PATH
 
-export PATH=${HOME}/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
-export fpath=(${HOME}/.config/zsh/functions $fpath)
+###
+# Terminal variables
+export TERM=xterm-256color
 
-#
-# tfenv
-#
-export TFENV_ROOT=${HOME}/.tfenv
-export PATH=${TFENV_ROOT}/bin:${PATH}
+###
+# Path variables
+export fpath=($HOME/.config/zsh/functions $fpath)
+export PATH=$HOME/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 
-if test "$(uname -s)" = "Darwin"; then
-    # Homebrew
-    export PATH=${HOME}/.brew/lib/ruby/gems/2.6.0/bin:${HOME}/.brew/opt/ruby/bin:${HOME}/.brew/sbin:${HOME}/.brew/bin:$PATH
-else
-    # Linux Homebrew
-    export PATH=/home/linuxbrew/.linuxbrew/bin:${PATH}
+###
+# Language variables
+export LANG=ja_JP.UTF-8
 
-    # Snapd
-    export PATH=/var/lib/snapd/snap/bin:${PATH}
+###
+# Editor
+export EDITOR=$(where vim)
+
+###
+# for Snapd
+if [ -d /var/lib/snapd/snap ]; then
+    export PATH=/var/lib/snapd/snap/bin:$PATH
 fi
 
-#
-# Local
-#
+###
+# for Homebrew
+if [ -d $HOME/.brew ]; then
+    export PATH=$HOME/.brew/sbin:$HOME/.brew/bin:$PATH
+fi
+
+###
+# for Linuxbrew
+if [ -d /home/linuxbrew/.linuxbrew ]; then
+    export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
+fi
+
+###
+# for tfenv
+if [ -d $HOME/.tfenv ]; then
+    export TFENV_ROOT=$HOME/.tfenv
+    export PATH=$TFENV_ROOT/bin:$PATH
+fi
+
+###
+# Local variables
 [ -f ${ZDOTDIR}/.zshenv.local ] && source ${ZDOTDIR}/.zshenv.local

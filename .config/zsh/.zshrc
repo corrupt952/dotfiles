@@ -1,13 +1,7 @@
 # zmodload zsh/zprof && zprof
 
-#######################################
-# language
-#######################################
-export LANG=ja_JP.UTF-8
-
-#######################################
+###
 # zcompile
-#######################################
 if [ ! -e ${ZDOTDIR}/.zshrc.zwc -o ${ZDOTDIR}/.zshrc -nt ${ZDOTDIR}/.zshrc.zwc ]; then
     echo 'compiling .zshrc...'
     zcompile ${ZDOTDIR}/.zshrc
@@ -33,14 +27,12 @@ if [ ! -e ${ZDOTDIR}/.fzf.zsh.zwc -o ${ZDOTDIR}/.fzf.zsh -nt ${ZDOTDIR}/.fzf.zsh
     zcompile ${ZDOTDIR}/.fzf.zsh
 fi
 
-#######################################
+###
 # functions
-#######################################
 [ -f ${ZDOTDIR}/.zshrc.functions ] && source ${ZDOTDIR}/.zshrc.functions
 
-#######################################
+###
 # color
-#######################################
 autoload -Uz colors
 colors
 BLACK=$'\e[0;30m'
@@ -59,15 +51,9 @@ LIGHT_CYAN=$'\e[1;36m'
 WHITE=$'\e[1;37m'
 DEFAULT_COLOR="${reset_color}"
 
-#######################################
-# term
-#######################################
-export TERM=xterm-256color
-
-#######################################
+###
 # zplug
 # https://github.com/zplug/zplug
-#######################################
 export ZPLUG_HOME=${HOME}/.cache/zplug
 if [ ! -d ${ZPLUG_HOME} ]; then
     git clone https://github.com/zplug/zplug ${ZPLUG_HOME}
@@ -85,14 +71,12 @@ zplug load
 zstyle ":anyframe:selector:" use fzf
 zstyle ":anyframe:selector:fzf:" command 'fzf --reverse'
 
-#######################################
+###
 # prompt
-#######################################
 [ -f ${ZDOTDIR}/.zshrc.prompt ] && source ${ZDOTDIR}/.zshrc.prompt
 
-#######################################
+###
 # VCS
-#######################################
 autoload -Uz vcs_info
 zstyle ":vcs_info:*" enable git svn hg
 zstyle ":vcs_info:*" formats "⭠ %b"
@@ -100,16 +84,14 @@ zstyle ":vcs_info:*" actionformats "[%b|%a]"
 zstyle ":vcs_info:(svn)" branchformat "%b%r"
 zstyle ":vcs_info:*" max-exports 6
 
-#######################################
+###
 # history
-#######################################
 HISTFILE=${ZDOTDIR}/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 setopt bang_hist
 setopt extended_history
 setopt share_history
-setopt inc_append_history
 setopt append_history
 setopt hist_save_no_dups
 setopt hist_ignore_all_dups
@@ -120,24 +102,21 @@ setopt hist_no_store
 setopt hist_expand
 setopt hist_reduce_blanks
 
-#######################################
+###
 # complement
-#######################################
 autoload -U compinit; compinit -d
 zstyle ':completion:*' verbose yes
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
-#######################################
+###
 # change directory
-#######################################
 setopt auto_cd
 autoload -Uz add-zsh-hook
 autoload -Uz chpwd_recent_dirs cdr
 add-zsh-hook chpwd chpwd_recent_dirs
 
-#######################################
+###
 # options
-#######################################
 setopt auto_pushd
 setopt auto_list
 setopt auto_menu
@@ -148,9 +127,8 @@ setopt equals
 setopt magic_equal_subst
 setopt prompt_subst
 
-#######################################
+###
 # bindkeys
-#######################################
 bindkey -e
 bindkey "^[[Z" reverse-menu-complete
 bindkey "^R" history-incremental-search-backward
@@ -169,44 +147,34 @@ bindkey '^x^k' anyframe-widget-kill
 bindkey '^xe' anyframe-widget-insert-git-branch
 bindkey '^x^e' anyframe-widget-insert-git-branch
 
-#######################################
+###
 # fzf
-#######################################
 [ -f ${ZDOTDIR}/.fzf.zsh ] && source ${ZDOTDIR}/.fzf.zsh
 
-#######################################
-# editor
-#######################################
-# if [ "$(command -v nvim)" != "" ]; then
-if exist nvim; then
-    export EDITOR=$(where nvim)
-else
-    export EDITOR=$(where vim)
-fi
-
-#######################################
+###
 # direnv
-#######################################
-# if [ "$(command -v direnv)" != "" ]; then
 if exist direnv; then
     eval "$(direnv hook zsh)"
 fi
 
-#######################################
+###
+# linuxbrew
+if [ -d /home/linuxbrew ]; then
+    eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+fi
+
+###
 # rbenv
-#######################################
 if exist rbenv; then
     eval "$(rbenv init - zsh)"
 fi
 
-#######################################
+###
 # alias
-#######################################
 [ -f ${ZDOTDIR}/.zshrc.aliases ] && source ${ZDOTDIR}/.zshrc.aliases
 
-#######################################
+###
 # local
-#######################################
 [ -f ${ZDOTDIR}/.zshrc.local ] && source ${ZDOTDIR}/.zshrc.local
 
 # if (which zprof > /dev/null 2>&1) ;then
