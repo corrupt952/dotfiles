@@ -3,9 +3,8 @@
 set -o pipefail
 set -o errexit
 
-#
+###
 # Define functions
-#
 isDarwin() {
     if test "$(uname -s)" = "Darwin"; then
         true
@@ -72,20 +71,26 @@ symlink_files ${PWD}/.config/zsh/functions ${zsh_function_dir}
 # irbrc
 ln -sf ${PWD}/.irbrc ${HOME}/
 
-# Powerline Fonts
+###
+# for macOS
 if isDarwin; then
+    ###
+    # Powerline Fonts
     if [ "$(ls ${HOME}/Library/Fonts | grep -i powerline)" == "" ]; then
         echo 'Installing powerline fonts...'
         git clone https://github.com/powerline/fonts.git
         cd fonts && ./install.sh && cd .. && rm -rf fonts
     fi
 
+    ###
+    # Homebrew
     if [ ! -d ${HOME}/.brew ]; then
         echo 'Installing homebrew...'
         brew_dir=${HOME}/.brew
         mkdir $brew_dir && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C $brew_dir
     fi
 
+    ###
     # Wallpaper
     wallpaper_cfg_dir_path=${home_config_path}/wallpaper
     pwd_wallpaper_cfg_dir_path=${PWD}/.config/wallpaper
@@ -96,6 +101,8 @@ fi
 ###
 # For Linux
 if ! isDarwin; then
+    ###
+    # Linuxbrew
     if [ ! -d /home/linuxbrew ]; then
         echo "Installing linuxbrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"

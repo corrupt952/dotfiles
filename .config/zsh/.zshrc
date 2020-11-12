@@ -22,10 +22,6 @@ if [ ! -e ${ZDOTDIR}/.zshrc.functions.zwc -o ${ZDOTDIR}/.zshrc.functions -nt ${Z
     echo 'compiling .zshrc.functions...'
     zcompile ${ZDOTDIR}/.zshrc.functions
 fi
-if [ ! -e ${ZDOTDIR}/.fzf.zsh.zwc -o ${ZDOTDIR}/.fzf.zsh -nt ${ZDOTDIR}/.fzf.zsh.zwc ]; then
-    echo 'compiling .fzf.zsh...'
-    zcompile ${ZDOTDIR}/.fzf.zsh
-fi
 
 ###
 # functions
@@ -149,7 +145,9 @@ bindkey '^x^e' anyframe-widget-insert-git-branch
 
 ###
 # fzf
-[ -f ${ZDOTDIR}/.fzf.zsh ] && source ${ZDOTDIR}/.fzf.zsh
+if [ -e $HOME/.fzf.zsh ]; then
+    source $HOME/.fzf.zsh
+fi
 
 ###
 # direnv
@@ -180,3 +178,5 @@ fi
 # if (which zprof > /dev/null 2>&1) ;then
 #   zprof
 # fi
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
