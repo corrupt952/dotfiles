@@ -107,4 +107,12 @@ if ! isDarwin; then
         echo "Installing linuxbrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi
+
+    ###
+    # Install packages
+    if test "$(lsb_release -is)" == "Ubuntu"; then
+        sudo apt-get update \
+            && sudo apt-get upgrade \
+            && sudo apt-get install -y build-essential locales-all
+    fi
 fi
