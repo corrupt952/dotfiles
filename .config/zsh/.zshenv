@@ -18,7 +18,7 @@ export LANG=ja_JP.UTF-8
 
 ###
 # Editor
-export EDITOR=$(where vim)
+export EDITOR=$(which vim)
 
 ###
 # for Snapd
