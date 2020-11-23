@@ -1,41 +1,70 @@
-# General functions
-function isDarwin() {
-    if test "$(uname -s)" = "Darwin"; then
-        true
-    else
-        false
+###
+# Logger
+logger::print() {
+  local level="$1"
+  shift
+
+  case "$level" in
+    ERROR|WARN)
+      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] [$level] $*" >&2
+      ;;
+
+    INFO|DEBUG)
+      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] [$level] $*"
+      ;;
+  esac
+}
+logger::error() {
+  logger::print "ERROR" $*
+}
+logger::warn() {
+  logger::print "WARN" $*
+}
+logger::info() {
+  logger::print "INFO" $*
+}
+logger:debug() {
+  logger::print "DEBUG" $*
+}
+
+###
+# OS
+os::is_darwin() {
+  [ "$(uname -s)" = "Darwin" ]
+}
+os::is_ubuntu() {
+  [ "$(lsb_release -is)" = "Ubuntu" ]
+}
+
+###
+# Command
+command::exist() {
+  if [ $# -eq 1 ]; then
+    if `which $1 > /dev/null 2>&1`; then
+      true
+      return
     fi
+  else
+    logger::error 'too many arguments or less'
+  fi
+  false
 }
 
-function exist() {
-    if [ $# -eq 1 ]; then
-        if `which $1 > /dev/null 2>&1`; then
-            true
-            return
-        fi
-    else
-        echo 'too many arguments or less' >&2
-    fi
-    false
+###
+# zsh
+zsh::clean_zcompdump() {
+  rm -f ${HOME}/.zcompdump*
+  rm -f ${HOME}/.antigen/.zcompdump*
 }
 
-function command_not_found_handler() {
-    echo "${LIGHT_RED}(;_;)${DEFAULT_COLOR} < Sorry, I didn't know ${PURPLE}${0}${DEFAULT_COLOR} command."
-}
+###
+# for Darwin functions
+if os::is_darwin; then
+  function clip() {
+    cat $1 | pbcopy
+  }
 
-# Clean zcompdump
-function clean_zcompdump() {
-    rm -f ${HOME}/.zcompdump*
-    rm -f ${HOME}/.antigen/.zcompdump*
-}
-
-# Darwin
-if isDarwin; then
-    function clip() {
-        cat $1 | pbcopy
-    }
-
-    function revstr() {
-        echo $1 | rev | pbcopy
-    }
+  function revstr() {
+    echo $1 | rev | pbcopy
+  }
 fi

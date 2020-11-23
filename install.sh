@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 
+# Load functions
+source "$(dirname "$(dirname "$0")")/.config/zsh/.zshrc.functions"
+
 set -o pipefail
 set -o errexit
 
 ###
 # Define functions
-isDarwin() {
-  if test "$(uname -s)" = "Darwin"; then
-    true
-  else
-    false
-  fi
-}
 symlink_files() {
   find $1  -maxdepth 1 -type f -name '*' -o -name '.*' | xargs -I FILE ln -sf FILE $2
 }
@@ -73,11 +69,11 @@ ln -sf ${PWD}/.irbrc ${HOME}/
 
 ###
 # for macOS
-if isDarwin; then
+if os::is_darwin; then
   ###
   # Powerline Fonts
   if [ "$(ls ${HOME}/Library/Fonts | grep -i powerline)" == "" ]; then
-    echo 'Installing powerline fonts...'
+    logger:info 'Installing powerline fonts...'
     git clone https://github.com/powerline/fonts.git
     cd fonts && ./install.sh && cd .. && rm -rf fonts
   fi
@@ -86,7 +82,7 @@ if isDarwin; then
   # Homebrew
   local brew_dir_path=$HOME/.brew
   if [ ! -d $brew_dir_path ]; then
-    echo 'Installing homebrew...'
+    logger:info 'Installing homebrew...'
     mkdir $brew_dir_path \
       && curl -L https://github.com/Homebrew/brew/tarball/master \
       | tar xz --strip 1 -C $brew_dir_path
@@ -96,21 +92,19 @@ fi
 
 ###
 # For Linux
-if ! isDarwin; then
+if os::is_ubuntu; then
+  ###
+  # Install packages
+  logger::info "Install system packages"
+  sudo apt-get update \
+    && sudo apt-get upgrade \
+    && sudo apt-get install -y build-essential locales-all
+
   ###
   # Linuxbrew
   if [ ! -d /home/linuxbrew ]; then
-    echo "Installing linuxbrew..."
+    logger:info "Installing linuxbrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
   fi
-
-  ###
-  # Install packages
-  if test "$(lsb_release -is)" == "Ubuntu"; then
-    sudo apt-get update \
-      && sudo apt-get upgrade \
-      && sudo apt-get install -y build-essential locales-all
-
-    /home/linuxbrew/.linuxbrew/bin/brew bundle --file ./brewfiles/ubuntu/Brewfile
-  fi
+  /home/linuxbrew/.linuxbrew/bin/brew bundle --file ./brewfiles/ubuntu/Brewfile
 fi

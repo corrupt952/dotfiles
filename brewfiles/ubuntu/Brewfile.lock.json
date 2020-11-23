@@ -11,7 +11,7 @@
         "revision": "d1a530ada501e983aef2748411b947b8c5696ac9"
       },
       "homebrew/core": {
-        "revision": "041b1d97f22aa54d48bf50ee4dd6944c06581923"
+        "revision": "211a160afd200c6e2538ab82b0b875c6548e0397"
       }
     },
     "brew": {
@@ -853,7 +853,7 @@
       "Ubuntu 20.04.1 LTS (focal)": {
         "HOMEBREW_VERSION": "2.5.11-178-g1ba26be",
         "HOMEBREW_PREFIX": "/home/linuxbrew/.linuxbrew",
-        "Homebrew/linuxbrew-core": "041b1d97f22aa54d48bf50ee4dd6944c06581923",
+        "Homebrew/linuxbrew-core": "211a160afd200c6e2538ab82b0b875c6548e0397",
         "GCC": "9.3.0"
       }
     }

@@ -151,7 +151,7 @@ fi
 
 ###
 # direnv
-if exist direnv; then
+if command::exist direnv; then
     eval "$(direnv hook zsh)"
 fi
 
@@ -163,7 +163,7 @@ fi
 
 ###
 # rbenv
-if exist rbenv; then
+if command::exist rbenv; then
     eval "$(rbenv init - zsh)"
 fi
 

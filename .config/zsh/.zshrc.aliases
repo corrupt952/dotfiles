@@ -1,12 +1,17 @@
-if isDarwin; then
-    alias ls='ls -aAG'
-else
-    alias ls='ls -aAG --color=auto'
-fi
+###
+# Global aliases
+alias -g G='| gr'
+alias -g L='| less -R'
+alias -g H='| head'
+alias -g T='| tail'
+alias -g S='| sort'
+alias -g W='| wc'
+alias -g X='| xargs'
 
-alias pu='pushd'
-alias po='popd'
+###
+# Simple alias
 alias ...='cd ../..'
+alias ....='cd ../../..'
 alias l='ls'
 alias ll='ls -lh'
 alias gr='grep'
@@ -22,83 +27,71 @@ alias reboot='sudo reboot'
 alias vi='vim'
 alias bvim='vim -b'
 alias reload='exec zsh -l'
-alias -g G='| gr'
-alias -g L='| less -R'
-alias -g H='| head'
-alias -g T='| tail'
-alias -g S='| sort'
-alias -g W='| wc'
-alias -g X='| xargs'
 
-# wrapper scripts
-alias ssh='ssh-wrapper'
-compdef ssh-wrapper='ssh'
-alias scp="scp-wrapper"
-compdef scp-wrapper='scp'
-alias git='git-wrapper'
-compdef git-wrapper='git'
-alias hugo='hugo-wrapper'
-alias docker='docker-wrapper'
-alias tfenv='tfenv-wrapper'
-
-if exist git; then
-    alias g='git'
+if command::exist ssh; then
+  alias ssh='ssh-wrapper'
+  compdef ssh-wrapper='ssh'
 fi
-if exist hg; then
-    alias h='hg'
+if command::exist git; then
+  alias git='git-wrapper'
+  alias g='git'
+  compdef git-wrapper='git'
 fi
-if exist nvim; then
-    alias vim='nvim'
-    alias view='nvim -R'
-    alias vimdiff='nvim -d'
+if command::exist scp; then
+  alias scp="scp-wrapper"
+  compdef scp-wrapper='scp'
 fi
-if exist vagrant; then
-    alias vg='vagrant'
-    alias vgu='vagrant up'
-    alias vgh='vagrant halt'
-    alias vgr='vagrant reload'
+if command::exist vagrant; then
+  alias vg='vagrant'
+  alias vgu='vagrant up'
+  alias vgh='vagrant halt'
+  alias vgr='vagrant reload'
 fi
-if exist bundle; then
-    alias bi='bundle install'
-    alias bu='bundle update'
-    alias be='bundle exec'
-    alias tbe='RAILS_ENV=test bundle exec'
+if command::exist bundle; then
+  alias bi='bundle install'
+  alias bu='bundle update'
+  alias be='bundle exec'
+  alias tbe='RAILS_ENV=test bundle exec'
 fi
-if exist docker; then
-    alias dk='docker'
+if command::exist docker; then
+  alias docker='docker-wrapper'
+  alias dk='docker'
 fi
-if exist docker-machine; then
+if command::exist docker-machine; then
     alias dkm='docker-machine'
 fi
-if exist docker-swarm; then
+if command::exist docker-swarm; then
     alias dks='docker-swarm'
 fi
-if exist docker-compose; then
+if command::exist docker-compose; then
     alias dkc='docker-compose'
 fi
-if exist docker-sync; then
+if command::exist docker-sync; then
     alias dsync='docker-sync'
 fi
-if exist terraform; then
+if command::exist terraform; then
     alias tf='terraform'
 fi
-if exist tmuxist; then
+if command::exist tmuxist; then
     alias tk="tmuxist"
 fi
-if exist jq; then
-    alias -g JQ="| jq"
-fi
-if exist peco; then
-    alias -g P="| peco"
-fi
-if exist godoc; then
-    alias godoc_server='godoc -http=:8080'
-fi
-if exist ag; then
+if command::exist ag; then
     alias grep="ag"
 fi
-if exist kubectl; then
+if command::exist kubectl; then
     alias k="kubectl"
     alias kctx="kubectx"
     alias kns="kubens"
 fi
+if command::exist hugo; then
+  alias hugo='hugo-wrapper'
+fi
+if command::exist tfenv; then
+  alias tfenv='tfenv-wrapper'
+fi
+if os::is_darwin; then
+    alias ls='ls -aAG'
+else
+    alias ls='ls -aAG --color=auto'
+fi
+
