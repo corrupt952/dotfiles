@@ -8,6 +8,10 @@
 	current = red
 	local = white
 	remote = yellow
+
+[init]
+	defaultBranch = main
+
 [push]
 	default = current
 [diff]
