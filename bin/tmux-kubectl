@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 
 if [[ -z "$(which kubectl 2>/dev/null)" ]]; then
-    echo "kubectl doesn't exist"
-    exit 1
+  echo "kubectl doesn't exist"
+  exit 1
 fi
 
 kubeconfig="$HOME/.kube/config"
 if [[ -n "${KUBECONFIG}" ]]; then
-    kubeconfig=${KUBECONFIG}
+  kubeconfig=${KUBECONFIG}
 fi
 
 context="$(kubectl config current-context 2>/dev/null)"
 if [[ -z "${context}" ]]; then
-    echo "current-context doesn't exist"
-    exit 1
+  echo "current-context doesn't exist"
+  exit 1
 fi
 
 namespace="$(kubectl config view -o "jsonpath={.contexts[?(@.name==\"${context}\")].context.namespace}" 2>/dev/null)"

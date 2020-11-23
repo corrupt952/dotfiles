@@ -1,18 +1,18 @@
 #!/bin/bash -e
 config_path=${HOME}/.ssh/config
 if [ "${SSH_CONFIG}" != "" ]; then
-    config_path=${SSH_CONFIG}
+  config_path=${SSH_CONFIG}
 fi
 
 _edit_config() {
-    $EDITOR $1
+  $EDITOR $1
 }
 
 case "$1" in
-    edit )
-        _edit_config "${config_path}"
-        ;;
-    * )
-        command ssh -F ${config_path} $@
-        ;;
+  edit )
+    _edit_config "${config_path}"
+    ;;
+  * )
+    command ssh -F ${config_path} $@
+    ;;
 esac

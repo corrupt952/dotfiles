@@ -2,106 +2,106 @@
 
 # Macでないなら実行しない
 if [ "$(uname -s)" != "Darwin" ]; then
-    echo "This computer isn't Darwin!"
-    exit 1
+  echo "This computer isn't Darwin!"
+  exit 1
 fi
 
 set -o errexit
 set -o pipefail
 
 setDnsServers() {
-    local NETWORK_SERVICE_NAME=""
-    local DNS_SERVER_SET=""
-    local DNS_SERVERS=""
+  local NETWORK_SERVICE_NAME=""
+  local DNS_SERVER_SET=""
+  local DNS_SERVERS=""
 
-    while [ "$1" != "" ]
-    do
-        case "$1" in
-            --network-service|-s)
-                NETWORK_SERVICE_NAME="$2"
-                shift
-                shift
-                ;;
-            --dns|-d)
-                DNS_SERVER_SET="$2"
-                shift
-                shift
-                ;;
-            --verbose|-v)
-                set -o xtrace
-                shift
-                ;;
-            *)
-                echo "Unknown option: $1" >&2
-                exit 1
-                ;;
-        esac
-    done
-
-    if [ -z "$NETWORK_SERVICE_NAME" ]; then
-        echo "Required --network-service" >&2
+  while [ "$1" != "" ]
+  do
+    case "$1" in
+      --network-service|-s)
+        NETWORK_SERVICE_NAME="$2"
+        shift
+        shift
+        ;;
+      --dns|-d)
+        DNS_SERVER_SET="$2"
+        shift
+        shift
+        ;;
+      --verbose|-v)
+        set -o xtrace
+        shift
+        ;;
+      *)
+        echo "Unknown option: $1" >&2
         exit 1
-    fi
-
-    case "$DNS_SERVER_SET" in
-        cloudflare)
-            DNS_SERVERS="1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001"
-            ;;
-        google)
-            DNS_SERVERS="8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844"
-            ;;
-        "")
-            DNS_SERVERS="Empty"
-            ;;
-        *)
-            DNS_SERVERS="$DNS_SERVER_SET"
-            ;;
+        ;;
     esac
+  done
 
-    networksetup -setdnsservers $NETWORK_SERVICE_NAME $DNS_SERVERS
+  if [ -z "$NETWORK_SERVICE_NAME" ]; then
+    echo "Required --network-service" >&2
+    exit 1
+  fi
+
+  case "$DNS_SERVER_SET" in
+    cloudflare)
+      DNS_SERVERS="1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001"
+      ;;
+    google)
+      DNS_SERVERS="8.8.8.8 8.8.4.4 2001:4860:4860::8888 2001:4860:4860::8844"
+      ;;
+    "")
+      DNS_SERVERS="Empty"
+      ;;
+    *)
+      DNS_SERVERS="$DNS_SERVER_SET"
+      ;;
+  esac
+
+  networksetup -setdnsservers $NETWORK_SERVICE_NAME $DNS_SERVERS
 }
 
 getDnsServers() {
-    local NETWORK_SERVICE_NAME=""
+  local NETWORK_SERVICE_NAME=""
 
-    while [ "$1" != "" ]
-    do
-        case "$1" in
-            --network-service|-s)
-                NETWORK_SERVICE_NAME="$2"
-                shift
-                shift
-                ;;
-            --verbose|-v)
-                set -o xtrace
-                shift
-                ;;
-            *)
-                echo "Unknown option: $1" >&2
-                exit 1
-                ;;
-        esac
-    done
-
-    if [ -z "$NETWORK_SERVICE_NAME" ]; then
-        echo "Required --network-service" >&2
+  while [ "$1" != "" ]
+  do
+    case "$1" in
+      --network-service|-s)
+        NETWORK_SERVICE_NAME="$2"
+        shift
+        shift
+        ;;
+      --verbose|-v)
+        set -o xtrace
+        shift
+        ;;
+      *)
+        echo "Unknown option: $1" >&2
         exit 1
-    fi
+        ;;
+    esac
+  done
 
-    networksetup -getdnsservers $NETWORK_SERVICE_NAME
+  if [ -z "$NETWORK_SERVICE_NAME" ]; then
+    echo "Required --network-service" >&2
+    exit 1
+  fi
+
+  networksetup -getdnsservers $NETWORK_SERVICE_NAME
 }
 
 case "$1" in
-    set)
-        shift
-        setDnsServers $@
-        ;;
-    get)
-        shift
-        getDnsServers $@
-        ;;
-    *)
-        echo "Unknown subcommand: $1" >&2
-        exit 1
-        ;;
+  set)
+    shift
+    setDnsServers $@
+    ;;
+  get)
+    shift
+    getDnsServers $@
+    ;;
+  *)
+    echo "Unknown subcommand: $1" >&2
+    exit 1
+    ;;
 esac

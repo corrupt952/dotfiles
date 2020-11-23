@@ -1,7 +1,11 @@
-#!/bin/bash -e
-config_path=${HOME}/.scp/config
-if [ "${SSH_CONFIG}" != "" ]; then
-    config_path=${SSH_CONFIG}
+#!/usr/bin/env bash
+
+set -o pipefail
+set -o errexit
+
+config_path=$HOME/.ssh/config
+if [ "$SSH_CONFIG" != "" ]; then
+  config_path=$SSH_CONFIG
 fi
 
-command scp -F ${config_path} $@
+command scp -F $config_path $@
