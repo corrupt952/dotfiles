@@ -11,7 +11,7 @@
         "revision": "d1a530ada501e983aef2748411b947b8c5696ac9"
       },
       "homebrew/core": {
-        "revision": "45a0682ffc2421f9530259da928021adce9f2688"
+        "revision": "041b1d97f22aa54d48bf50ee4dd6944c06581923"
       }
     },
     "brew": {
@@ -820,7 +820,32 @@
           }
         }
       },
-      "corrupt952/tmuxist/tmuxist": null
+      "corrupt952/tmuxist/tmuxist": null,
+      "vim": {
+        "version": "8.2.2000",
+        "bottle": {
+          "cellar": "/home/linuxbrew/.linuxbrew/Cellar",
+          "prefix": "/home/linuxbrew/.linuxbrew",
+          "files": {
+            "big_sur": {
+              "url": "https://linuxbrew.bintray.com/bottles/vim-8.2.2000.big_sur.bottle.tar.gz",
+              "sha256": "01f8c155d4e1a6007cdc4a7684e4d664f391484a2f9c6637b05811eea424a924"
+            },
+            "catalina": {
+              "url": "https://linuxbrew.bintray.com/bottles/vim-8.2.2000.catalina.bottle.tar.gz",
+              "sha256": "34b283b4367a0c6c1215b2c42520a1f070fc4297f08a2893a6718858b33d347f"
+            },
+            "mojave": {
+              "url": "https://linuxbrew.bintray.com/bottles/vim-8.2.2000.mojave.bottle.tar.gz",
+              "sha256": "74b6645674e1e590a13f43f5e0d8cd614f08de95f0ee5acf9fd2830a6995f221"
+            },
+            "x86_64_linux": {
+              "url": "https://linuxbrew.bintray.com/bottles/vim-8.2.2000.x86_64_linux.bottle.tar.gz",
+              "sha256": "69248677db8e882c44ed95943084828ee517bbd75e32d4c919c6f8cdad83d128"
+            }
+          }
+        }
+      }
     }
   },
   "system": {
@@ -828,7 +853,7 @@
       "Ubuntu 20.04.1 LTS (focal)": {
         "HOMEBREW_VERSION": "2.5.11-178-g1ba26be",
         "HOMEBREW_PREFIX": "/home/linuxbrew/.linuxbrew",
-        "Homebrew/linuxbrew-core": "45a0682ffc2421f9530259da928021adce9f2688",
+        "Homebrew/linuxbrew-core": "041b1d97f22aa54d48bf50ee4dd6944c06581923",
         "GCC": "9.3.0"
       }
     }
