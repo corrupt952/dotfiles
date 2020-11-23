@@ -1,9 +1,16 @@
+[core]
+	editor = vim
+	quotepath = false
+	precomposeunicode = true
+	whitespace=fix, -index-with-non-tab,trailing-space,cr-at-eol
+
 [color]
 	ui = true
 	diff = true
 	branch = true
 	interactive = true
 	status = true
+
 [color "branch"]
 	current = red
 	local = white
@@ -13,13 +20,10 @@
 	defaultBranch = main
 
 [push]
-	default = current
+	default = nothing
+
 [diff]
 	algorithm = patience
-[core]
-	editor = vim
-	quotepath = false
-	precomposeunicode = true
-	whitespace=fix, -index-with-non-tab,trailing-space,cr-at-eol
+
 [ssh]
 	variant = ssh
