@@ -13,115 +13,32 @@ def env
   system 'echo "email: $(git config --get user.email)"'
 end
 
-# Create group dir for git repositories
-def make_repo_group_dir(repo_name)
-  # Create group dir
-  repo_group_path = File.join(GIT_WORKSPACE_GROUP_PATH, repo_name)
-  FileUtils.mkdir_p(repo_group_path)
-
-  # Add config
-  repo_group_config_path = File.join(GIT_CONFIG_DIR_PATH, repo_name)
-  unless File.exist?(repo_group_config_path)
-    File.open(repo_group_config_path, 'a') do |f|
-      f.write <<-EOF
-[user]
-  name =
-  email =
-      EOF
-    end
-  end
-
-  # Add includeIf
-  local_config_path = File.join(GIT_CONFIG_DIR_PATH, 'local')
-  unless File.readlines(local_config_path).grep(/#{repo_name}/).size > 0
-    File.open(local_config_path, 'a') do |f|
-      f.write <<-EOS
-  [includeIf "gitdir:#{repo_group_path}/"]
-    path = #{repo_group_config_path}
-      EOS
-    end
-  end
-
-  # add .ssh and configuration
-  ssh_config_path = File.join(repo_group_path, '.ssh')
-  unless File.exist?(ssh_config_path)
-    FileUtils.mkdir ssh_config_path, mode: 0700
-    FileUtils.touch File.join(ssh_config_path, 'config')
-    FileUtils.chmod 0600, File.join(ssh_config_path, 'config')
-  end
-
-  # add .git_ssh.sh
-  git_ssh_path = File.join(repo_group_path, '.git_ssh.sh')
-  unless File.exist?(git_ssh_path)
-    File.open(git_ssh_path, 'w', 0755) do |f|
-      f.write <<-EOF
-#!/bin/sh
-# ssh-wrapper "\$@"
-      EOF
-    end
-  end
-
-  # add .aws and configuration
-  aws_config_path = File.join(repo_group_path, '.aws')
-  unless File.exist?(aws_config_path)
-    FileUtils.mkdir aws_config_path, mode: 0700
-    FileUtils.touch File.join(aws_config_path, 'config')
-    FileUtils.chmod 0600, File.join(aws_config_path, 'config')
-  end
-
-  # add .envrc
-  envrc_path = File.join(repo_group_path, '.envrc')
-  unless File.exist?(envrc_path)
-    File.open(envrc_path, 'w') do |f|
-      f.write <<-EOF
-CURRENT_PATH=#{repo_group_path}
-
-# SSH
-export SSH_CONFIG=\${CURRENT_PATH}/.ssh/config
-
-# Git
-export GIT_SSH=\${CURRENT_PATH}/.git_ssh.sh
-
-# AWS
-export AWS_CONFIG_FILE=\${CURRENT_PATH}/.aws/config
-export AWS_SHARED_CREDENTIALS_FILE=\${CURRENT_PATH}/.aws/credentials
-      EOF
-    end
-  end
-end
-
 # main method
 if __FILE__ == $0
   case ARGV[0]
+
+  # Show user.name and user.email
   when 'env'
     env
-  when 'current'
-    system "#{GIT_CMD} branch --show-current"
-  when 'switch'
+
+  # Change current branch
+  when 'switch', 'sw'
     cmd = <<~CMD
       #{GIT_CMD} for-each-ref --format='%(refname:short)' refs/heads \
         | fzf --reverse --exit-0 --ansi \
         | xargs #{GIT_CMD} checkout
     CMD
     system cmd
-  when 'delete'
+
+  # Delete selected branches
+  when 'delete', 'del'
     cmd = <<~CMD
       #{GIT_CMD} for-each-ref --format='%(refname:short)' refs/heads \
         | fzf --multi --reverse --exit-0 --ansi \
         | xargs #{GIT_CMD} branch -D
     CMD
     system cmd
-  when 'fmerge'
-    system 'branches=$(git branch -a) \
-            && branch=$(echo "${branches}" | fzf +m) \
-            && git merge $(echo "$branch" | sed "s/.* //" | sed "s#remotes/##")'
-  when 'mkparentdir'
-    if ARGV&.length == 2
-      make_repo_group_dir ARGV[1]
-    else
-      STDERR.puts 'too many arguments or less'
-      exit 1
-    end
+
   when 'push', 'ps'
     # NOTE: GIT_ALLOW_FORCE_PUSHがtrueでなければ
     #       forceオプションが含まれている場合にエラーとする
@@ -133,17 +50,18 @@ if __FILE__ == $0
     end
 
     # TODO: 出来れば環境変数か何かで規則作りたい
-    # NOTE: GIT_ALLOW_PUSH_MASTERがtrueでなければ
-    #       masterが含まれている場合にエラーとする
-    if ENV['GIT_ALLOW_PUSH_MASTER'] != 'true'
-      if ARGV.any? { |a| a.match?(/(master)/) }
-        STDERR.puts "Don't push to master!!!"
+    # NOTE: GIT_ALLOW_PUSH_MAIN_BRANCHがtrueでなければ、
+    #       main,masterブランチへのプッシュをエラーとする
+    if ENV['GIT_ALLOW_PUSH_MAIN_BRANCH'] != 'true'
+      if ARGV.any? { |a| a.match?(/\A(main|master)\z/) }
+        STDERR.puts "Don't push to protected branches!!!"
         exit 1
       end
     end
 
     system "#{GIT_CMD} " + ARGV.map(&Shellwords.method(:escape)).join(' ')
     exit $?.exitstatus
+
   else
     system "#{GIT_CMD} " + ARGV.map(&Shellwords.method(:escape)).join(' ')
     exit $?.exitstatus

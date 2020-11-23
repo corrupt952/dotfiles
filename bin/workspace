@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+set -o pipefail
+set -o errexit
+
+WORKSPACE_ROOT_DIR_PATH="$HOME/Workspace"
+GIT_CONFIG_ROOT_DIR_PATH="$HOME/.config/git"
+
+# Create workspace directory
+create_workspace() {
+    local workspace_name="$1"
+    local workspace_dir_path="$WORKSPACE_ROOT_DIR_PATH/$workspace_name"
+
+    if [ -z "$workspace_name" ]; then
+        echo "Set workspace name"
+        exit 1
+    fi
+
+    if [ -e "$workspace_dir_path" ]; then
+        echo "Already exists: $workspace_name"
+        exit 0
+    fi
+
+    # Make workspace directory
+    mkdir -p "$workspace_dir_path"
+
+    # Make git config for workspace
+    cat << EOF >> $GIT_CONFIG_ROOT_DIR_PATH/$workspace_name
+[user]
+    name =
+    email =
+EOF
+
+    # Add includeIf to git local config
+    cat << EOF >> $GIT_CONFIG_ROOT_DIR_PATH/local
+[includeIf "gitdir:$workspace_dir_path"]
+    path = $GIT_CONFIG_ROOT_DIR_PATH/$workspace_name
+EOF
+
+    # Make ssh config for workspace
+    local ssh_config_dir_path=$workspace_dir_path/.ssh
+    mkdir -p -m 700 $ssh_config_dir_path
+    touch $ssh_config_dir_path/config
+    chmod 600 $ssh_config_dir_path/config
+
+    # Make .git_ssh.sh
+    cat << EOF >> $workspace_dir_path/.git_ssh.sh
+#!/bin/sh
+ssh-wrapper "\$@"
+EOF
+
+    # Make aws config for workspace
+    local aws_config_dir_path=$workspace_dir_path/.aws
+    mkdir -p $aws_config_dir_path
+    touch $aws_config_dir_path/config
+    touch $aws_config_dir_path/credentials
+
+    # Make direnv config for workspace
+    cat << EOF >> $workspace_dir_path/.envrc
+CURRENT_PATH=$workspace_dir_path
+
+# SSH
+export SSH_CONFIG=\$CURRENT_PATH/.ssh/config
+
+# Git
+export GIT_SSH=\$CURRENT_PATH/.git_ssh.sh
+
+# AWS
+export AWS_CONFIG_FILE=\$CURRENT_PATH/.aws/config
+export AWS_SHARED_CREDENTIALS_FILE=\$CURRENT_PATH/.aws/credentials
+EOF
+}
+
+main() {
+  local subcommand="$1"
+  shift
+
+  case "$subcommand" in
+    create )
+      create_workspace "$@"
+      ;;
+  esac
+}
+main "$@"
