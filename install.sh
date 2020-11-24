@@ -12,11 +12,6 @@ _link_files() {
   find $src_path  -maxdepth 1 -type f -name '*' -o -name '.*' | xargs -I FILE ln -sf FILE $dest_path
 }
 
-_make_directory() {
-  local dpath="$1"
-  [ ! -d $dpath ] && mkdir $dpath
-}
-
 main() {
   # make ~/.config
   local config_path=$HOME/.config
@@ -61,6 +56,9 @@ main() {
   _make_directory $zdir
   _link_files $PWD/.config/zsh $zdir
   touch $zdir/.zshrc.local
+
+  # direnv
+  ln -sf $PWD/.direnvrc $HOME/
 
   # Ruby
   ln -sf $PWD/.gemrc $HOME/
