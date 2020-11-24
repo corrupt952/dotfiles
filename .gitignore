@@ -1,0 +1,15 @@
+# Created by https://www.toptal.com/developers/gitignore/api/homebrew,vscode
+# Edit at https://www.toptal.com/developers/gitignore?templates=homebrew,vscode
+
+### Homebrew ###
+Brewfile.lock.json
+
+### vscode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# End of https://www.toptal.com/developers/gitignore/api/homebrew,vscode
