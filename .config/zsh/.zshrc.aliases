@@ -1,6 +1,6 @@
 ###
 # Global aliases
-alias -g G='| gr'
+alias -g G='| grep'
 alias -g L='| less -R'
 alias -g H='| head'
 alias -g T='| tail'
@@ -12,17 +12,14 @@ alias -g X='| xargs'
 # Simple alias
 alias ...='cd ../..'
 alias ....='cd ../../..'
-alias l='ls'
 alias ll='ls -lh'
 alias gr='grep'
-alias uln='unlink'
 alias du='du -h'
 alias df='df -h'
 alias cp='cp -i'
 alias mv='mv -iv'
 alias rm='rm -i'
-alias c='cdr'
-alias stdn='sudo shutdown'
+alias shutdown='sudo shutdown'
 alias reboot='sudo reboot'
 alias vi='vim'
 alias bvim='vim -b'
@@ -41,12 +38,6 @@ if command::exist scp; then
   alias scp="scp-wrapper"
   compdef scp-wrapper='scp'
 fi
-if command::exist vagrant; then
-  alias vg='vagrant'
-  alias vgu='vagrant up'
-  alias vgh='vagrant halt'
-  alias vgr='vagrant reload'
-fi
 if command::exist bundle; then
   alias bi='bundle install'
   alias bu='bundle update'
@@ -56,12 +47,6 @@ fi
 if command::exist docker; then
   alias docker='docker-wrapper'
   alias dk='docker'
-fi
-if command::exist docker-machine; then
-    alias dkm='docker-machine'
-fi
-if command::exist docker-swarm; then
-    alias dks='docker-swarm'
 fi
 if command::exist docker-compose; then
     alias dkc='docker-compose'
@@ -89,9 +74,15 @@ fi
 if command::exist tfenv; then
   alias tfenv='tfenv-wrapper'
 fi
+if command::exist vagrant; then
+  alias vg='vagrant'
+  alias vgu='vagrant up'
+  alias vgh='vagrant halt'
+  alias vgr='vagrant reload'
+fi
+
 if os::is_darwin; then
     alias ls='ls -aAG'
 else
     alias ls='ls -aAG --color=auto'
 fi
-
