@@ -51,20 +51,49 @@ command::exist() {
 }
 
 ###
-# zsh
+# Zsh
+# FYI: https://wiki.archlinux.org/index.php/Zsh#The_.22command_not_found.22_handler
+command_not_found_handler() {
+  echo "${LIGHT_RED}(;_;)${DEFAULT_COLOR} < Sorry, I didn't know ${PURPLE}${0}${DEFAULT_COLOR} command."
+}
+
 zsh::clean_zcompdump() {
-  rm -f ${HOME}/.zcompdump*
-  rm -f ${HOME}/.antigen/.zcompdump*
+  rm -f $HOME/.zcompdump*
+  rm -f $HOME/.antigen/.zcompdump*
+}
+
+zsh::prompt::segment() {
+  local bg fg
+  [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
+  [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
+  echo -n "%{$bg%}%{$fg%} "
+  [[ -n $3 ]] && echo -n $3
+}
+zsh::prompt::end() {
+  echo -n "%{%f%}"
+}
+zsh::prompt::user() {
+  zsh::prompt::segment none white "%n"
+}
+zsh::prompt::dir() {
+  zsh::prompt::segment none white "%~"
+}
+zsh::prompt::git() {
+  LANG=ja_JP.UTF-8 vcs_info
+  zsh::prompt::segment none red "$vcs_info_msg_0_%f"
+}
+zsh::prompt::exit_code() {
+  zsh::prompt::segment none white "%?"
 }
 
 ###
 # for Darwin functions
 if os::is_darwin; then
-  function clip() {
+  clip() {
     cat $1 | pbcopy
   }
 
-  function revstr() {
+  revstr() {
     echo $1 | rev | pbcopy
   }
 fi

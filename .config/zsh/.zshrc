@@ -24,10 +24,6 @@ if [ ! -e ${ZDOTDIR}/.zshrc.functions.zwc -o ${ZDOTDIR}/.zshrc.functions -nt ${Z
 fi
 
 ###
-# functions
-[ -f ${ZDOTDIR}/.zshrc.functions ] && source ${ZDOTDIR}/.zshrc.functions
-
-###
 # color
 autoload -Uz colors
 colors
@@ -46,6 +42,10 @@ LIGHT_PURPLE=$'\e[1;35m'
 LIGHT_CYAN=$'\e[1;36m'
 WHITE=$'\e[1;37m'
 DEFAULT_COLOR="${reset_color}"
+
+###
+# functions
+[ -f ${ZDOTDIR}/.zshrc.functions ] && source ${ZDOTDIR}/.zshrc.functions
 
 ###
 # zplug

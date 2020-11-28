@@ -4,45 +4,13 @@ setopt nobeep
 setopt prompt_subst
 setopt no_tify
 
-CURRENT_BG="NONE"
-
-function command_not_found_handler() {
-  echo "${LIGHT_RED}(;_;)${DEFAULT_COLOR} < Sorry, I didn't know ${PURPLE}${0}${DEFAULT_COLOR} command."
+left_prompt() {
+  zsh::prompt::dir
+  zsh::prompt::end
 }
-
-function prompt_segment() {
-  local bg fg
-  [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
-  [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
-  echo -n "%{$bg%}%{$fg%} "
-  CURRENT_BG=$1
-  [[ -n $3 ]] && echo -n $3
-}
-function prompt_end() {
-  echo -n "%{%f%}"
-  CURRENT_BG="NONE"
-}
-function prompt_user() {
-  prompt_segment $CURRENT_BG white "%n"
-}
-function prompt_dir() {
-  prompt_segment $CURRENT_BG white "%~"
-}
-function prompt_git() {
-  LANG=en_US.UTF-8 vcs_info
-  prompt_segment $CURRENT_BG red "$vcs_info_msg_0_%f"
-}
-function prompt_exit_code() {
-  prompt_segment $CURRENT_BG white "%?"
-}
-
-function left_prompt() {
-  prompt_dir
-  prompt_end
-}
-function right_prompt() {
-  prompt_git
-  prompt_end
+right_prompt() {
+  zsh::prompt::git
+  zsh::prompt::end
 }
 
 PROMPT="\$(left_prompt)
