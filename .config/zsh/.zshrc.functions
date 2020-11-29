@@ -35,19 +35,8 @@ os::is_darwin() {
 os::is_ubuntu() {
   [ "$(lsb_release -is)" = "Ubuntu" ]
 }
-
-###
-# Command
-command::exist() {
-  if [ $# -eq 1 ]; then
-    if `which $1 > /dev/null 2>&1`; then
-      true
-      return
-    fi
-  else
-    logger::error 'too many arguments or less'
-  fi
-  false
+os::is_wsl() {
+  [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ]
 }
 
 ###
@@ -87,13 +76,23 @@ zsh::prompt::exit_code() {
 }
 
 ###
-# for Darwin functions
-if os::is_darwin; then
-  clip() {
-    cat $1 | pbcopy
-  }
+# Command
+command::exist() {
+  if [ $# -eq 1 ]; then
+    if `which $1 > /dev/null 2>&1`; then
+      true
+      return
+    fi
+  else
+    logger::error 'too many arguments or less'
+  fi
+  false
+}
 
-  revstr() {
-    echo $1 | rev | pbcopy
-  }
-fi
+command::clip() {
+  if os::is_darwin; then
+    cat $1 | pbcopy
+  else
+    logger::error "This function works only on macOS"
+  fi
+}
