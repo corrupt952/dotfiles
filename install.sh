@@ -12,6 +12,11 @@ _link_files() {
   find $src_path  -maxdepth 1 -type f -name '*' -o -name '.*' | xargs -I FILE ln -sf FILE $dest_path
 }
 
+_make_directory() {
+  local dpath="$1"
+  [ ! -d $dpath ] && mkdir -p $dpath
+}
+
 main() {
   # make ~/.config
   local config_path=$HOME/.config
