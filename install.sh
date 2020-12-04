@@ -14,7 +14,9 @@ _link_files() {
 
 _make_directory() {
   local dpath="$1"
-  [ ! -d $dpath ] && mkdir -p $dpath
+  if [ ! -d $dpath ]; then
+    mkdir -p $dpath
+  fi
 }
 
 main() {
@@ -109,6 +111,18 @@ main() {
       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi
     /home/linuxbrew/.linuxbrew/bin/brew bundle --file ./brewfiles/ubuntu/Brewfile
+  fi
+
+  if os::is_wsl; then
+    local win32yank_path=$HOME/bin/win32yank.exe
+    if [ ! -e $win32yank_path ]; then
+      echo "hoge"
+      wget -O tmp/win32yank.zip https://github.com/equalsraf/win32yank/releases/download/v0.0.4/win32yank-x64.zip
+      unzip -d tmp tmp/win32yank.zip
+      mv tmp/win32yank.exe $win32yank_path
+      chmod u+x $win32yank_path
+      rm -f tmp/win32yank.zip tmp/LICENSE tmp/README.md
+    fi
   fi
 }
 main "$@"
