@@ -39,5 +39,9 @@ if [ -d /home/linuxbrew/.linuxbrew ]; then
 fi
 
 ###
+# fzf
+export FZF_DEFAULT_OPTS="--exact --cycle --ansi"
+
+###
 # Local variables
 [ -f ${ZDOTDIR}/.zshenv.local ] && source ${ZDOTDIR}/.zshenv.local

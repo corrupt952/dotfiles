@@ -65,7 +65,7 @@ zplug "zsh-users/zsh-completions"
 # fi
 zplug load
 zstyle ":anyframe:selector:" use fzf
-zstyle ":anyframe:selector:fzf:" command 'fzf --extended --no-sort'
+zstyle ":anyframe:selector:fzf:" command 'fzf --no-sort'
 
 ###
 # prompt
