@@ -61,11 +61,11 @@ source ${ZPLUG_HOME}/init.zsh
 zplug "mollifier/anyframe"
 zplug "zsh-users/zsh-completions"
 # if ! zplug check --verbose; then
-#     zplug install
+#   zplug install
 # fi
 zplug load
 zstyle ":anyframe:selector:" use fzf
-zstyle ":anyframe:selector:fzf:" command 'fzf --reverse'
+zstyle ":anyframe:selector:fzf:" command 'fzf --extended --no-sort'
 
 ###
 # prompt
@@ -127,7 +127,7 @@ setopt prompt_subst
 # bindkeys
 bindkey -e
 bindkey "^[[Z" reverse-menu-complete
-bindkey "^R" history-incremental-search-backward
+bindkey "^R" anyframe-widget-execute-history
 bindkey "^S" history-incremental-search-forward
 # anyframe
 bindkey '^xb' anyframe-widget-cdr
