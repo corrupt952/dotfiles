@@ -25,6 +25,7 @@ alias vi='vim'
 alias bvim='vim -b'
 alias reload='exec zsh -l'
 alias clip='command::clip'
+alias loop='command::loop'
 
 if command::exist ssh; then
   alias ssh='ssh-wrapper'

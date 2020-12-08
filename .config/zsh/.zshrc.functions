@@ -96,3 +96,11 @@ command::clip() {
     logger::error "This function works only on macOS"
   fi
 }
+
+command::loop() {
+  while :
+  do
+    eval "$@"
+    sleep 1
+  done
+}
