@@ -125,4 +125,4 @@ main() {
     fi
   fi
 }
-main "$@"
+main $*

@@ -94,11 +94,11 @@ getDnsServers() {
 case "$1" in
   set)
     shift
-    setDnsServers $@
+    setDnsServers $*
     ;;
   get)
     shift
-    getDnsServers $@
+    getDnsServers $*
     ;;
   *)
     echo "Unknown subcommand: $1" >&2

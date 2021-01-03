@@ -87,7 +87,7 @@ main() {
   case "$subcommand" in
     create )
       shift
-      create_workspace "$@"
+      create_workspace $*
       ;;
 
     help )
@@ -100,4 +100,4 @@ main() {
       ;;
   esac
 }
-main "$@"
+main $*

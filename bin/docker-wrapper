@@ -1,15 +1,15 @@
 #!/bin/bash -e
 
 _prune() {
-  command docker system prune --volumes $@
+  command docker system prune --volumes $*
 }
 
 case "$1" in
   prune )
     shift;
-    _prune "$@"
+    _prune $*
     ;;
   * )
-    command docker $@
+    command docker $*
     ;;
 esac

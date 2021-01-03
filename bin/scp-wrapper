@@ -8,4 +8,4 @@ if [ "$SSH_CONFIG" != "" ]; then
   config_path=$SSH_CONFIG
 fi
 
-command scp -F $config_path $@
+command scp -F $config_path $*

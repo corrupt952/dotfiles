@@ -100,7 +100,7 @@ command::clip() {
 command::loop() {
   while :
   do
-    eval "$@"
+    eval $*
     sleep 1
   done
 }
