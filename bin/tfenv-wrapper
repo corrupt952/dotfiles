@@ -1,8 +1,0 @@
-#!/bin/bash -e
-case "$1" in
-  update )
-    cd ${HOME}/.tfenv && git pull && cd -
-    ;;
-  * )
-    command tfenv $@;;
-esac

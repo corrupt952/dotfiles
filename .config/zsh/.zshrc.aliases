@@ -70,9 +70,6 @@ if command::exist kubectl; then
     alias kctx="kubectx"
     alias kns="kubens"
 fi
-if command::exist tfenv; then
-  alias tfenv='tfenv-wrapper'
-fi
 if command::exist vagrant; then
   alias vg='vagrant'
   alias vgu='vagrant up'
