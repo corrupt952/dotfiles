@@ -91,7 +91,7 @@ main() {
         && curl -L https://github.com/Homebrew/brew/tarball/master \
         | tar xz --strip 1 -C $brew_dir_path
     fi
-    $brew_dir_path/bin/brew bundle --file ./brewfiles/darwin/Brewfile
+    $brew_dir_path/bin/brew bundle --no-lock --file ./brewfiles/darwin/Brewfile
   fi
 
   ###
@@ -110,7 +110,7 @@ main() {
       logger:info "Installing linuxbrew..."
       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     fi
-    /home/linuxbrew/.linuxbrew/bin/brew bundle --file ./brewfiles/ubuntu/Brewfile
+    /home/linuxbrew/.linuxbrew/bin/brew bundle --no-lock --file ./brewfiles/ubuntu/Brewfile
   fi
 
   if os::is_wsl; then
