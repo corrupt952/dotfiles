@@ -58,14 +58,11 @@ if [ ! -e ${ZPLUG_HOME}/init.zsh.zwc -o ${ZPLUG_HOME}/init.zsh -nt ${ZPLUG_HOME}
     zcompile ${ZPLUG_HOME}/init.zsh
 fi
 source ${ZPLUG_HOME}/init.zsh
-zplug "mollifier/anyframe"
 zplug "zsh-users/zsh-completions"
 # if ! zplug check --verbose; then
 #   zplug install
 # fi
 zplug load
-zstyle ":anyframe:selector:" use fzf
-zstyle ":anyframe:selector:fzf:" command 'fzf --no-sort'
 
 ###
 # prompt
@@ -124,29 +121,19 @@ setopt magic_equal_subst
 setopt prompt_subst
 
 ###
-# bindkeys
-bindkey -e
-bindkey "^[[Z" reverse-menu-complete
-bindkey "^R" anyframe-widget-execute-history
-bindkey "^S" history-incremental-search-forward
-# anyframe
-bindkey '^xb' anyframe-widget-cdr
-bindkey '^x^b' anyframe-widget-cdr
-bindkey '^xr' anyframe-widget-execute-history
-bindkey '^x^r' anyframe-widget-execute-history
-bindkey '^xi' anyframe-widget-put-history
-bindkey '^x^i' anyframe-widget-put-history
-# bindkey '^xg' anyframe-widget-cd-ghq-repository
-# bindkey '^x^g' anyframe-widget-cd-ghq-repository
-bindkey '^xk' anyframe-widget-kill
-bindkey '^x^k' anyframe-widget-kill
-bindkey '^xe' anyframe-widget-insert-git-branch
-bindkey '^x^e' anyframe-widget-insert-git-branch
+# Linuxbrew
+if [ -d /home/linuxbrew ]; then
+    eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+fi
 
 ###
-# fzf
-if [ -e $HOME/.fzf.zsh ]; then
-    source $HOME/.fzf.zsh
+# Homebrew & Linuxbrew
+if command::exist brew; then
+  FZF_PATH=$(brew --prefix fzf)
+  if [ -e $FZF_PATH ]; then
+    source $FZF_PATH/shell/completion.zsh
+    source $FZF_PATH/shell/key-bindings.zsh
+  fi
 fi
 
 ###
@@ -156,16 +143,17 @@ if command::exist direnv; then
 fi
 
 ###
-# linuxbrew
-if [ -d /home/linuxbrew ]; then
-    eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
-fi
-
-###
 # rbenv
 if command::exist rbenv; then
     eval "$(rbenv init - zsh)"
 fi
+
+###
+# bindkeys
+bindkey -e
+bindkey "^[[Z" reverse-menu-complete
+bindkey "^R" fzf-history-widget
+bindkey "^S" history-incremental-search-forward
 
 ###
 # alias
