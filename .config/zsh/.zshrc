@@ -152,8 +152,9 @@ fi
 # bindkeys
 bindkey -e
 bindkey "^[[Z" reverse-menu-complete
-bindkey "^R" fzf-history-widget
 bindkey "^S" history-incremental-search-forward
+bindkey "^R" fzf-history-widget
+bindkey "^xb" widget::fzf::cdr
 
 ###
 # alias
