@@ -92,8 +92,10 @@ command::exist() {
 command::clip() {
   if os::is_darwin; then
     cat $1 | pbcopy
+  elif os::is_wsl; then
+    cat $1 | win32yank.exe -i
   else
-    logger::error "This function works only on macOS"
+    logger::error "This function works only on macOS or WSL"
   fi
 }
 
