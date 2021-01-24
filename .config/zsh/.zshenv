@@ -43,5 +43,10 @@ fi
 export FZF_DEFAULT_OPTS="--exact --cycle --ansi"
 
 ###
+# Node.js
+export N_PREFIX=$HOME/.cache/n
+export PATH=$N_PREFIX/bin:$PATH
+
+###
 # Local variables
 [ -f ${ZDOTDIR}/.zshenv.local ] && source ${ZDOTDIR}/.zshenv.local
