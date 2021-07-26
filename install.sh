@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC1091
 # Load functions
 source "$(dirname "$(dirname "$0")")/.config/zsh/.zshrc.functions"
 
-set -o pipefail
-set -o errexit
+set -Ceuo pipefail
 
 _link_files() {
   local src_path="$1"
@@ -125,4 +125,4 @@ main() {
     fi
   fi
 }
-main $*
+main "$@"
