@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+##
+# Functions
+restrict_branches() {
+  local -r branch_name="$1"
+
+  case "$branch_name" in
+  master | main)
+    if ! [[ "$GIT_ALLOW_PUSH_MAIN_BRANCH" =~ ^y|yes|true$ ]]; then
+      echo "デフォルトブランチにプッシュしないでください" >&2
+      exit 1
+    fi
+    ;;
+
+  esac
+}
+
+restrict_force_push() {
+  local -r push_command=$(ps -o command= -p $PPID)
+
+  if [[ "$push_command" =~ --force|-f ]] &&
+       ! [[ "$GIT_ALLOW_FORCE_PUSH" =~ ^y|yes|true$ ]]; then
+    echo "force pushしないでください" >&2
+    exit 1
+  fi
+}
+
+##
+# Main
+main() {
+  while read local_ref local_oid remote_ref remote_oid
+  do
+    local -r branch_name="${remote_ref##refs/heads/}"
+
+    restrict_branches "$branch_name"
+    restrict_force_push ""
+  done
+}
+main "$@"
