@@ -32,9 +32,7 @@ if command::exist ssh; then
   compdef ssh-wrapper='ssh'
 fi
 if command::exist git; then
-  alias git='git-wrapper'
   alias g='git'
-  compdef git-wrapper='git'
 fi
 if command::exist scp; then
   alias scp="scp-wrapper"
