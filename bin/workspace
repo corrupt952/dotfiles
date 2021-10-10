@@ -36,7 +36,7 @@ EOF
 
   # Add includeIf to git local config
   cat << EOF >> $GIT_CONFIG_ROOT_DIR_PATH/local
-[includeIf "gitdir:$workspace_dir_path"]
+[includeIf "gitdir:$workspace_dir_path/"]
   path = $GIT_CONFIG_ROOT_DIR_PATH/$workspace_name
 EOF
 
