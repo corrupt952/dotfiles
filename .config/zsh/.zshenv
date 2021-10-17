@@ -17,10 +17,6 @@ export PATH=$HOME/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 export LANG=ja_JP.UTF-8
 
 ###
-# Editor
-export EDITOR=$(which vim)
-
-###
 # for Snapd
 if [ -d /var/lib/snapd/snap ]; then
     export PATH=/var/lib/snapd/snap/bin:$PATH
@@ -50,3 +46,11 @@ export PATH=$N_PREFIX/bin:$PATH
 ###
 # Local variables
 [ -f ${ZDOTDIR}/.zshenv.local ] && source ${ZDOTDIR}/.zshenv.local
+
+###
+# Editor
+if [[ -n "$(command -v code)" ]]; then
+  export EDITOR="$(printf %q "$(command -v code)")"
+else
+  export EDITOR="$(printf %q "$(command -v vim)")"
+fi
