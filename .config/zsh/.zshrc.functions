@@ -23,7 +23,7 @@ logger::warn() {
 logger::info() {
   logger::print "INFO" $*
 }
-logger:debug() {
+logger::debug() {
   logger::print "DEBUG" $*
 }
 
@@ -107,10 +107,12 @@ command::loop() {
   done
 }
 
-###
-# Widget
-widget::fzf::cdr() {
-  cd "$(cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf -1 | sed "s@~@$HOME@g")"
-  zle reset-prompt
-}
-zle -N widget::fzf::cdr
+if command::exist zle; then
+  ###
+  # Widget
+  widget::fzf::cdr() {
+    cd "$(cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf -1 | sed "s@~@$HOME@g")"
+    zle reset-prompt
+  }
+  zle -N widget::fzf::cdr
+fi
