@@ -6,6 +6,8 @@ source "$(dirname "$(dirname "$0")")/.config/zsh/.zshrc.functions"
 
 set -Ceuo pipefail
 
+##
+# Fucntions
 _link_files() {
   local src_path="$1"
   local dest_path="$2"
@@ -19,6 +21,8 @@ _make_directory() {
   fi
 }
 
+##
+# Main
 main() {
   # make ~/.config
   local config_path=$HOME/.config
@@ -55,6 +59,8 @@ main() {
   ln -sf $PWD/.gitconfig $HOME/
   _make_directory $git_cfg_dir_path
   _link_files $PWD/.config/git $git_cfg_dir_path/
+  _make_directory "$git_cfg_dir_path/hooks"
+  _link_files $PWD/.config/git/hooks "$git_cfg_dir_path/hooks"
   touch $git_cfg_dir_path/local
 
   # Put zsh configuration
@@ -71,10 +77,10 @@ main() {
   ln -sf $PWD/.gemrc $HOME/
   ln -sf $PWD/.irbrc $HOME/
 
-  ###
+  ##
   # for macOS
   if os::is_darwin; then
-    ###
+    ##
     # Powerline Fonts
     if [ "$(ls $HOME/Library/Fonts | grep -i powerline)" == "" ]; then
       logger:info 'Installing powerline fonts...'
@@ -82,7 +88,7 @@ main() {
       cd fonts && ./install.sh && cd .. && rm -rf fonts
     fi
 
-    ###
+    ##
     # Homebrew
     local brew_dir_path=$HOME/.brew
     if [ ! -d $brew_dir_path ]; then
@@ -94,17 +100,17 @@ main() {
     $brew_dir_path/bin/brew bundle --no-lock --file ./brewfiles/darwin/Brewfile
   fi
 
-  ###
+  ##
   # For Linux
   if os::is_ubuntu; then
-    ###
+    ##
     # Install packages
     logger::info "Install system packages"
     sudo apt-get update \
       && sudo apt-get upgrade \
       && sudo apt-get install -y build-essential locales-all
 
-    ###
+    ##
     # Linuxbrew
     if [ ! -d /home/linuxbrew ]; then
       logger:info "Installing linuxbrew..."
