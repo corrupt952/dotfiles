@@ -1,33 +1,35 @@
-###
+# shellcheck shell=bash
+
+##
 # Logger
 logger::print() {
   local level="$1"
   shift
 
   case "$level" in
-    ERROR|WARN)
-      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] [$level] $*" >&2
-      ;;
+  ERROR | WARN)
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] [$level] $*" >&2
+    ;;
 
-    INFO|DEBUG)
-      echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] [$level] $*"
-      ;;
+  INFO | DEBUG)
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] [$level] $*"
+    ;;
   esac
 }
 logger::error() {
-  logger::print "ERROR" $*
+  logger::print "ERROR" "$@"
 }
 logger::warn() {
-  logger::print "WARN" $*
+  logger::print "WARN" "$@"
 }
 logger::info() {
-  logger::print "INFO" $*
+  logger::print "INFO" "$@"
 }
 logger::debug() {
-  logger::print "DEBUG" $*
+  logger::print "DEBUG" "$@"
 }
 
-###
+##
 # OS
 os::is_darwin() {
   [ "$(uname -s)" = "Darwin" ]
@@ -39,47 +41,13 @@ os::is_wsl() {
   [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ]
 }
 
-###
-# Zsh
-# FYI: https://wiki.archlinux.org/index.php/Zsh#The_.22command_not_found.22_handler
-command_not_found_handler() {
-  echo "${LIGHT_RED}(;_;)${DEFAULT_COLOR} < Sorry, I didn't know ${PURPLE}${0}${DEFAULT_COLOR} command."
-}
-
-zsh::clean_zcompdump() {
-  rm -f $HOME/.zcompdump*
-  rm -f $HOME/.antigen/.zcompdump*
-}
-
-zsh::prompt::segment() {
-  local bg fg
-  [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
-  [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
-  echo -n "%{$bg%}%{$fg%} "
-  [[ -n $3 ]] && echo -n $3
-}
-zsh::prompt::end() {
-  echo -n "%{%f%}"
-}
-zsh::prompt::user() {
-  zsh::prompt::segment none white "%n"
-}
-zsh::prompt::dir() {
-  zsh::prompt::segment none white "%~"
-}
-zsh::prompt::git() {
-  LANG=ja_JP.UTF-8 vcs_info
-  zsh::prompt::segment none red "$vcs_info_msg_0_%f"
-}
-zsh::prompt::exit_code() {
-  zsh::prompt::segment none white "%?"
-}
-
-###
+##
 # Command
 command::exist() {
-  if [ $# -eq 1 ]; then
-    if `which $1 > /dev/null 2>&1`; then
+  if ((# == 1)); then
+    local -i result=0
+    which "$1" >/dev/null 2>&1 || result=1
+    if ((result == 0)); then
       true
       return
     fi
@@ -91,28 +59,65 @@ command::exist() {
 
 command::clip() {
   if os::is_darwin; then
-    cat $1 | pbcopy
+    pbcopy <"$1"
   elif os::is_wsl; then
-    cat $1 | win32yank.exe -i
+    win32yank.exe -i <"$1"
   else
     logger::error "This function works only on macOS or WSL"
   fi
 }
 
 command::loop() {
-  while :
-  do
-    eval $*
+  while :; do
+    eval "$*"
     sleep 1
   done
 }
 
-if command::exist zle; then
-  ###
-  # Widget
-  widget::fzf::cdr() {
-    cd "$(cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf -1 | sed "s@~@$HOME@g")"
-    zle reset-prompt
+##
+# Zsh
+if [ -n "$ZSH_NAME" ]; then
+  # FYI: https://wiki.archlinux.org/index.php/Zsh#The_.22command_not_found.22_handler
+  command_not_found_handler() {
+    echo "${LIGHT_RED}(;_;)${DEFAULT_COLOR} < Sorry, I didn't know ${PURPLE}${0}${DEFAULT_COLOR} command."
   }
+
+  zsh::clean_zcompdump() {
+    rm -f "$HOME"/.zcompdump*
+    rm -f "$HOME"/.antigen/.zcompdump*
+  }
+
+  zsh::prompt::segment() {
+    local bg fg
+    [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
+    [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
+    echo -n "%{$bg%}%{$fg%} "
+    [[ -n $3 ]] && echo -n "$3"
+  }
+  zsh::prompt::end() {
+    echo -n "%{%f%}"
+  }
+  zsh::prompt::user() {
+    zsh::prompt::segment none white "%n"
+  }
+  zsh::prompt::dir() {
+    zsh::prompt::segment none white "%~"
+  }
+  zsh::prompt::git() {
+    LANG=ja_JP.UTF-8 vcs_info
+    zsh::prompt::segment none red "${vcs_info_msg_0_}%f"
+  }
+  zsh::prompt::exit_code() {
+    zsh::prompt::segment none white "%?"
+  }
+
+  # Widget for zsh
+  widget::fzf::cdr() {
+    {
+      cd "$(cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf -1 | sed "s@~@$HOME@g")" || exit
+      zle reset-prompt
+    }
+  }
+
   zle -N widget::fzf::cdr
 fi
