@@ -1,4 +1,4 @@
-###
+##
 # Global aliases
 alias -g G='| grep'
 alias -g L='| less -R'
@@ -8,7 +8,7 @@ alias -g S='| sort'
 alias -g W='| wc'
 alias -g X='| xargs'
 
-###
+##
 # Simple alias
 alias ...='cd ../..'
 alias ....='cd ../../..'

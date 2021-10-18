@@ -1,6 +1,6 @@
 # zmodload zsh/zprof && zprof
 
-###
+##
 # zcompile
 if [ ! -e ${ZDOTDIR}/.zshrc.zwc -o ${ZDOTDIR}/.zshrc -nt ${ZDOTDIR}/.zshrc.zwc ]; then
     echo 'compiling .zshrc...'
@@ -23,7 +23,7 @@ if [ ! -e ${ZDOTDIR}/.zshrc.functions.zwc -o ${ZDOTDIR}/.zshrc.functions -nt ${Z
     zcompile ${ZDOTDIR}/.zshrc.functions
 fi
 
-###
+##
 # color
 autoload -Uz colors
 colors
@@ -43,11 +43,11 @@ LIGHT_CYAN=$'\e[1;36m'
 WHITE=$'\e[1;37m'
 DEFAULT_COLOR="${reset_color}"
 
-###
+##
 # functions
 [ -f ${ZDOTDIR}/.zshrc.functions ] && source ${ZDOTDIR}/.zshrc.functions
 
-###
+##
 # zplug
 # https://github.com/zplug/zplug
 export ZPLUG_HOME=${HOME}/.cache/zplug
@@ -64,11 +64,11 @@ zplug "zsh-users/zsh-completions"
 # fi
 zplug load
 
-###
+##
 # prompt
 [ -f ${ZDOTDIR}/.zshrc.prompt ] && source ${ZDOTDIR}/.zshrc.prompt
 
-###
+##
 # VCS
 autoload -Uz vcs_info
 zstyle ":vcs_info:*" enable git svn hg
@@ -77,7 +77,7 @@ zstyle ":vcs_info:*" actionformats "[%b|%a]"
 zstyle ":vcs_info:(svn)" branchformat "%b%r"
 zstyle ":vcs_info:*" max-exports 6
 
-###
+##
 # history
 HISTFILE=${ZDOTDIR}/.zsh_history
 HISTSIZE=10000
@@ -95,20 +95,20 @@ setopt hist_no_store
 setopt hist_expand
 setopt hist_reduce_blanks
 
-###
+##
 # complement
 autoload -U compinit; compinit -d
 zstyle ':completion:*' verbose yes
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
-###
+##
 # change directory
 setopt auto_cd
 autoload -Uz add-zsh-hook
 autoload -Uz chpwd_recent_dirs cdr
 add-zsh-hook chpwd chpwd_recent_dirs
 
-###
+##
 # options
 setopt auto_pushd
 setopt auto_list
@@ -120,13 +120,13 @@ setopt equals
 setopt magic_equal_subst
 setopt prompt_subst
 
-###
+##
 # Linuxbrew
 if [ -d /home/linuxbrew ]; then
     eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 fi
 
-###
+##
 # Homebrew & Linuxbrew
 if command::exist brew; then
   FZF_PATH=$(brew --prefix fzf)
@@ -136,19 +136,19 @@ if command::exist brew; then
   fi
 fi
 
-###
+##
 # direnv
 if command::exist direnv; then
     eval "$(direnv hook zsh)"
 fi
 
-###
+##
 # rbenv
 if command::exist rbenv; then
     eval "$(rbenv init - zsh)"
 fi
 
-###
+##
 # bindkeys
 bindkey -e
 bindkey "^[[Z" reverse-menu-complete
@@ -156,11 +156,11 @@ bindkey "^S" history-incremental-search-forward
 bindkey "^R" fzf-history-widget
 bindkey "^xb" widget::fzf::cdr
 
-###
+##
 # alias
 [ -f ${ZDOTDIR}/.zshrc.aliases ] && source ${ZDOTDIR}/.zshrc.aliases
 
-###
+##
 # local
 [ -f ${ZDOTDIR}/.zshrc.local ] && source ${ZDOTDIR}/.zshrc.local
 
