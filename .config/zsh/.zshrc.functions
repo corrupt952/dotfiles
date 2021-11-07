@@ -35,7 +35,7 @@ os::is_darwin() {
   [ "$(uname -s)" = "Darwin" ]
 }
 os::is_ubuntu() {
-  command::exist lsb_release && [ "$(lsb_release -is)" = "Ubuntu" ]
+  (command::exist lsb_release) && [ "$(lsb_release -is)" = "Ubuntu" ]
 }
 os::is_wsl() {
   [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ]
@@ -44,7 +44,7 @@ os::is_wsl() {
 ##
 # Command
 command::exist() {
-  if ((# == 1)); then
+  if [[ "$#" == 1 ]]; then
     local -i result=0
     which "$1" >/dev/null 2>&1 || result=1
     if ((result == 0)); then
