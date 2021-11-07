@@ -35,7 +35,7 @@ os::is_darwin() {
   [ "$(uname -s)" = "Darwin" ]
 }
 os::is_ubuntu() {
-  [ "$(lsb_release -is)" = "Ubuntu" ]
+  command::exist lsb_release && [ "$(lsb_release -is)" = "Ubuntu" ]
 }
 os::is_wsl() {
   [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ]
