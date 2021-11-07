@@ -25,6 +25,7 @@ fi
 ###
 # for Homebrew
 if [ -d $HOME/.brew ]; then
+    export fpath=($HOME/.brew/share/zsh/site-functions $fpath)
     export PATH=$HOME/.brew/sbin:$HOME/.brew/bin:$PATH
 fi
 
