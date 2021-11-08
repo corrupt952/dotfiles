@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-# shellcheck disable=SC1091
 # Load functions
-source "$(dirname "$(dirname "$0")")/.config/zsh/.zshrc.functions"
+source "$(dirname "$(dirname "$0")")/.config/bash/.bashrc.functions"
 
 set -Ceuo pipefail
 
@@ -11,14 +10,12 @@ set -Ceuo pipefail
 _link_files() {
   local src_path="$1"
   local dest_path="$2"
-  find $src_path  -maxdepth 1 -type f -name '*' -o -name '.*' | xargs -I FILE ln -sf FILE "$dest_path"
+  find $src_path -maxdepth 1 -type f -name '*' -o -name '.*' | xargs -I FILE ln -sf FILE "$dest_path"
 }
 
 _make_directory() {
   local dpath="$1"
-  if [ ! -d "$dpath" ]; then
-    mkdir -p "$dpath"
-  fi
+  [[ ! -d "$dpath" ]] && mkdir -p "$dpath"
 }
 
 ##
@@ -63,6 +60,12 @@ main() {
   _link_files "$PWD"/.config/git/hooks "$git_cfg_dir_path/hooks"
   touch "$git_cfg_dir_path"/local
 
+  # Put bash configuraiton
+  local bdir=$config_path/bash
+  _make_directory "$bdir"
+  _link_files "$PWD"/.config/bash "$bdir"
+  touch "$bdir"/.bashrc.local
+
   # Put zsh configuration
   ln -sf "$PWD"/.zshenv "$HOME"/
   local zdir=$config_path/zsh
@@ -93,9 +96,9 @@ main() {
     local brew_dir_path=$HOME/.brew
     if [ ! -d "$brew_dir_path" ]; then
       logger::info 'Installing homebrew...'
-      mkdir "$brew_dir_path" \
-        && curl -L https://github.com/Homebrew/brew/tarball/master \
-        | tar xz --strip 1 -C "$brew_dir_path"
+      mkdir "$brew_dir_path" &&
+        curl -L https://github.com/Homebrew/brew/tarball/master |
+        tar xz --strip 1 -C "$brew_dir_path"
     fi
     "$brew_dir_path"/bin/brew bundle --no-lock --file ./brewfiles/darwin/Brewfile
   fi
@@ -106,9 +109,9 @@ main() {
     ##
     # Install packages
     logger::info "Install system packages"
-    sudo apt-get update \
-      && sudo apt-get upgrade \
-      && sudo apt-get install -y build-essential locales-all
+    sudo apt-get update &&
+      sudo apt-get upgrade &&
+      sudo apt-get install -y build-essential locales-all
 
     ##
     # Linuxbrew

@@ -1,0 +1,73 @@
+##
+# Logger
+logger::print() {
+  local level="$1"
+  shift
+
+  case "$level" in
+  ERROR | WARN)
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] [$level] $*" >&2
+    ;;
+
+  INFO | DEBUG)
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] [$level] $*"
+    ;;
+  esac
+}
+logger::error() {
+  logger::print "ERROR" "$@"
+}
+logger::warn() {
+  logger::print "WARN" "$@"
+}
+logger::info() {
+  logger::print "INFO" "$@"
+}
+logger::debug() {
+  logger::print "DEBUG" "$@"
+}
+
+##
+# OS
+os::is_darwin() {
+  [ "$(uname -s)" = "Darwin" ]
+}
+os::is_ubuntu() {
+  (command::exist lsb_release) && [ "$(lsb_release -is)" = "Ubuntu" ]
+}
+os::is_wsl() {
+  [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ]
+}
+
+##
+# Command
+command::exist() {
+  if [[ "$#" == 1 ]]; then
+    local -i result=0
+    which "$1" >/dev/null 2>&1 || result=1
+    if ((result == 0)); then
+      true
+      return
+    fi
+  else
+    logger::error 'too many arguments or less'
+  fi
+  false
+}
+
+command::clip() {
+  if os::is_darwin; then
+    pbcopy <"$1"
+  elif os::is_wsl; then
+    win32yank.exe -i <"$1"
+  else
+    logger::error "This function works only on macOS or WSL"
+  fi
+}
+
+command::loop() {
+  while :; do
+    eval "$*"
+    sleep 1
+  done
+}
