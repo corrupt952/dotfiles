@@ -11,11 +11,13 @@ _link_files() {
   local src_path="$1"
   local dest_path="$2"
   find $src_path -maxdepth 1 -type f -name '*' -o -name '.*' | xargs -I FILE ln -sf FILE "$dest_path"
+  :
 }
 
 _make_directory() {
   local dpath="$1"
   [[ ! -d "$dpath" ]] && mkdir -p "$dpath"
+  :
 }
 
 ##
@@ -125,7 +127,6 @@ main() {
   if os::is_wsl; then
     local win32yank_path=$HOME/bin/win32yank.exe
     if [ ! -e "$win32yank_path" ]; then
-      echo "hoge"
       wget -O tmp/win32yank.zip https://github.com/equalsraf/win32yank/releases/download/v0.0.4/win32yank-x64.zip
       unzip -d tmp tmp/win32yank.zip
       mv tmp/win32yank.exe "$win32yank_path"
