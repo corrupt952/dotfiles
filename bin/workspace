@@ -1,103 +1,194 @@
-#!/usr/bin/env bash
+#!/usr/bin/env ruby
 
-# Load functions
-source "$ZDOTDIR/.zshrc.functions"
+require 'fileutils'
+require 'logger'
 
-set -o pipefail
-set -o errexit
+#
+# Workspace command
+#
+class WorkspaceCommand
+  def run(argv)
+    subcommand = argv[0] || ''
+    workspace_name = argv[1] || ''
 
-WORKSPACE_ROOT_DIR_PATH="$HOME/Workspace"
-GIT_CONFIG_ROOT_DIR_PATH="$HOME/.config/git"
-
-# Create workspace directory
-create_workspace() {
-  local workspace_name="$1"
-  local workspace_dir_path="$WORKSPACE_ROOT_DIR_PATH/$workspace_name"
-
-  if [ -z "$workspace_name" ]; then
-    logger::error "Please set workspacename"
-    exit 1
-  fi
-
-  if [ -e "$workspace_dir_path" ]; then
-    logger::warn "Already exists: $workspace_name"
-    exit 0
-  fi
-
-  # Make workspace directory
-  mkdir -p "$workspace_dir_path"
-
-  # Make git config for workspace
-  cat << EOF >> $GIT_CONFIG_ROOT_DIR_PATH/$workspace_name
-[user]
-  name =
-  email =
-EOF
-
-  # Add includeIf to git local config
-  cat << EOF >> $GIT_CONFIG_ROOT_DIR_PATH/local
-[includeIf "gitdir:$workspace_dir_path/"]
-  path = $GIT_CONFIG_ROOT_DIR_PATH/$workspace_name
-EOF
-
-  # Make ssh config for workspace
-  local ssh_config_dir_path=$workspace_dir_path/.ssh
-  mkdir -p -m 700 $ssh_config_dir_path
-  touch $ssh_config_dir_path/config
-  chmod 600 $ssh_config_dir_path/config
-
-  # Make .git_ssh.sh
-  cat << EOF >> $workspace_dir_path/.git_ssh.sh
-#!/bin/sh
-ssh-wrapper "\$@"
-EOF
-
-  # Make aws config for workspace
-  local aws_config_dir_path=$workspace_dir_path/.aws
-  mkdir -p $aws_config_dir_path
-  touch $aws_config_dir_path/config
-  touch $aws_config_dir_path/credentials
-
-  # Make direnv config for workspace
-  cat << EOF >> $workspace_dir_path/.envrc
-CURRENT_PATH=$workspace_dir_path
-
-# SSH
-export SSH_CONFIG=\$CURRENT_PATH/.ssh/config
-
-# Git
-export GIT_SSH=\$CURRENT_PATH/.git_ssh.sh
-
-# AWS
-export AWS_CONFIG_FILE=\$CURRENT_PATH/.aws/config
-export AWS_SHARED_CREDENTIALS_FILE=\$CURRENT_PATH/.aws/credentials
-EOF
-}
-
-help() {
-  echo "Usage: workspace <command> [<options>]
-
-Commands:
-  workspace       Create workspace directory"
-}
-
-main() {
-  local subcommand="$1"
-
-  case "$subcommand" in
-    create )
-      shift
-      create_workspace $*
-      ;;
-
-    help )
+    case subcommand
+    when 'create'
+      create workspace_name
+    when 'delete'
+      delete workspace_name
+    when 'help'
       help
-      ;;
+    else
+      abort "Unknown subcommand: #{subcommand}"
+    end
+  rescue => e
+    e.backtrace.each(&logger.method(:error))
+    abort e
+  end
 
-    * )
-      logger::error "Unknown subcommand: $subcommand"
-      exit 1
-      ;;
-  esac
-}
-main $*
+  private
+
+  #
+  # Create workspace directory and git configuration
+  #
+  # @param workspace_name Workspace Name
+  def create(workspace_name)
+    abort "Please set workspace_name" if workspace_name.empty?
+
+    workspace_path = File.join Dir.home, 'Workspace', workspace_name
+    abort "Already exist: #{workspace_name}"if Dir.exist? workspace_path
+
+    # Make workspace and configurations
+    FileUtils.mkdir_p workspace_path, mode: 0o755
+    make_ssh_config workspace_path
+    make_aws_config workspace_path
+    make_direnv_config workspace_path
+
+    # Make git configuration
+    make_git_config workspace_name, workspace_path
+  end
+
+  #
+  # Delete workspace directory and git configuration
+  #
+  # @param workspace_name Workspace Name
+  def delete(workspace_name)
+    abort "Please set workspace_name" if workspace_name.empty?
+
+    workspace_path = File.join Dir.home, 'Workspace', workspace_name
+    abort "Doesn't exist: #{workspace_name}" unless Dir.exist? workspace_path
+
+    # Remove workspace directory and files
+    FileUtils.remove_entry_secure workspace_path
+
+    # Remove git configuration
+    # $HOME/.config/git/{WORKSPACE_NAME}
+    config_path = File.join(Dir.home, '.config', 'git', workspace_name)
+    FileUtils.remove_entry_secure config_path
+    # Ignore workspace config by $HOME/.config/git/local
+    local_path = File.join(Dir.home, '.config', 'git', 'local')
+    config = File
+      .readlines(local_path)
+      .reject { |l| l.include?(workspace_path) || l.include?(config_path) }
+      .join
+    File.write local_path, config
+  end
+
+  #
+  # Display help text
+  def help
+    puts <<~HELP
+    Usage: workspace <command> [<options>]
+
+    Commands:
+      create      Create workspace directory
+      delete      Delete workspace directory
+      help        Display help
+    HELP
+  end
+
+  #
+  # Make git configuration
+  #
+  # @param workspace_name
+  def make_git_config(workspace_name, workspace_path)
+    git_path = File.join Dir.home, '.config', 'git'
+
+    # $HOME/.config/git/{WORKSPACE_NAME}
+    config_path = File.join git_path, workspace_name
+    File.write config_path, <<~SHELL
+    [user]
+    name =
+    email =
+    SHELL
+    FileUtils.chmod 0o644, config_path
+
+    # append includeIf to $HOME/.config/git/local
+    File.open File.join(git_path, 'local'), 'a' do |f|
+      f.puts <<~SHELL
+      [includeIf "gitdir:#{workspace_path}/"]
+      path = #{config_path}
+      SHELL
+    end
+  end
+
+  #
+  # Make ssh configuration and wrapper script
+  #
+  # @param workspace_path
+  def make_ssh_config(workspace_path)
+    ssh_path = File.join(workspace_path, '.ssh')
+
+    FileUtils.mkdir_p ssh_path, mode: 0o700
+    touch File.join(ssh_path, 'config'), 0o600
+
+    # .git_ssh.sh
+    git_ssh_path = File.join(workspace_path, '.git_ssh.sh')
+    File.write git_ssh_path, <<~SHELL
+    #!/bin/sh
+    ssh-wrapper "$@"
+    SHELL
+    FileUtils.chmod 0o755, git_ssh_path
+  end
+
+  #
+  # Make aws configuration
+  #
+  # @param workspace_path
+  def make_aws_config(workspace_path)
+    aws_path = File.join(workspace_path, '.aws')
+
+    FileUtils.mkdir_p aws_path, mode: 0o755
+    touch File.join(aws_path, 'config'), 0o755
+    touch File.join(aws_path, 'credentials'), 0o755
+  end
+
+  #
+  # Make direnv configuration
+  #
+  # @param workspace_path
+  def make_direnv_config(workspace_path)
+    envrc_path = File.join(workspace_path, '.git_ssh.sh')
+    File.write envrc_path, <<~SHELL
+    WORKSPACE_PATH="#{workspace_path}"
+
+    # SSH
+    export SSH_CONFIG=$WORKSPACE_PATH/.ssh/config
+
+    # Git
+    export GIT_SSH=$WORKSPACE_PATH/.git_ssh.sh
+
+    # AWS
+    export AWS_CONFIG_FILE=$WORKSPACE_PATH/.aws/config
+    export AWS_SHARED_CREDENTIALS_FILE=$WORKSPACE_PATH/.aws/credentials
+    SHELL
+    FileUtils.chmod 0o755, envrc_path
+  end
+
+  #
+  # Touch file and change permission
+  #
+  # @param path
+  # @param mode
+  def touch(path, mode = 0o755)
+    FileUtils.touch path
+    FileUtils.chmod mode, path
+  end
+
+  #
+  # Print error message and exit process
+  #
+  # @param msg
+  def abort(msg)
+    logger.error msg
+    exit 1
+  end
+
+  def logger
+    @logger ||= Logger.new(STDOUT).tap do |logger|
+      logger.formatter = proc { |s, _, _, m| "[#{s}] #{m}\n" }
+    end
+  end
+end
+
+WorkspaceCommand.new.run(ARGV) if __FILE__ == $0
