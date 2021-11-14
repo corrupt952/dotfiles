@@ -35,6 +35,14 @@ if [ -d /home/linuxbrew/.linuxbrew ]; then
     export PATH=/home/linuxbrew/.linuxbrew/sbin:/home/linuxbrew/.linuxbrew/bin:$PATH
 fi
 
+##
+# VSCode
+if [ -d $HOME/.vscode-server ]; then
+  for vspath in "$(ls -1d $HOME/.vscode-server/bin/*)"; do
+    export PATH=$vspath/bin:$PATH
+  done
+fi
+
 ###
 # fzf
 export FZF_DEFAULT_OPTS="--exact --cycle --ansi"
