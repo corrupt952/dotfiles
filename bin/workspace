@@ -148,7 +148,7 @@ class WorkspaceCommand
   #
   # @param workspace_path
   def make_direnv_config(workspace_path)
-    envrc_path = File.join(workspace_path, '.git_ssh.sh')
+    envrc_path = File.join(workspace_path, '.envrc')
     File.write envrc_path, <<~SHELL
     WORKSPACE_PATH="#{workspace_path}"
 
