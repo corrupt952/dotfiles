@@ -1,29 +1,30 @@
 [core]
-	editor = vim
-	quotepath = false
-	precomposeunicode = true
-	whitespace=fix, -index-with-non-tab,trailing-space,cr-at-eol
+  editor = vim
+  quotepath = false
+  precomposeunicode = true
+  whitespace=fix, -index-with-non-tab,trailing-space,cr-at-eol
+  hooksPath = ~/.config/git/hooks
 
 [color]
-	ui = true
-	diff = true
-	branch = true
-	interactive = true
-	status = true
+  ui = true
+  diff = true
+  branch = true
+  interactive = true
+  status = true
 
 [color "branch"]
-	current = red
-	local = white
-	remote = yellow
+  current = red
+  local = white
+  remote = yellow
 
 [init]
-	defaultBranch = main
+  defaultBranch = main
 
 [push]
-	default = nothing
+  default = nothing
 
 [diff]
-	algorithm = patience
+  algorithm = patience
 
 [ssh]
-	variant = ssh
+  variant = ssh
