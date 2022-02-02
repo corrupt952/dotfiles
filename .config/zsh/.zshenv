@@ -10,7 +10,7 @@ export TERM=xterm-256color
 ###
 # Path variables
 export fpath=($HOME/.config/zsh/functions $fpath)
-export PATH=$HOME/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 
 ###
 # Language variables
@@ -51,6 +51,10 @@ export FZF_DEFAULT_OPTS="--exact --cycle --ansi"
 # Node.js
 export N_PREFIX=$HOME/.cache/n
 export PATH=$N_PREFIX/bin:$PATH
+
+##
+# Home bin path
+export PATH=$HOME/bin:$PATH
 
 ###
 # Local variables
