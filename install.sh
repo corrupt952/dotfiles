@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 # Load functions
-source "$(dirname "$(dirname "$0")")/.config/bash/.bashrc.functions"
+source "$(dirname "$(dirname "$0")")/.config/zsh/.zshrc.functions"
 
 set -Ceuo pipefail
 
@@ -62,12 +62,6 @@ main() {
   _link_files "$PWD"/.config/git/hooks "$git_cfg_dir_path/hooks"
   touch "$git_cfg_dir_path"/local
 
-  # Put bash configuraiton
-  local bdir=$config_path/bash
-  _make_directory "$bdir"
-  _link_files "$PWD"/.config/bash "$bdir"
-  touch "$bdir"/.bashrc.local
-
   # Put zsh configuration
   ln -sf "$PWD"/.zshenv "$HOME"/
   local zdir=$config_path/zsh
@@ -85,14 +79,6 @@ main() {
   ##
   # for macOS
   if os::is_darwin; then
-    ##
-    # Powerline Fonts
-    if [ "$(ls "$HOME"/Library/Fonts | grep -i powerline)" == "" ]; then
-      logger::info 'Installing powerline fonts...'
-      git clone https://github.com/powerline/fonts.git
-      cd fonts && ./install.sh && cd .. && rm -rf fonts
-    fi
-
     ##
     # Homebrew
     local brew_dir_path=$HOME/.brew

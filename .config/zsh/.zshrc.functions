@@ -74,7 +74,8 @@ command::loop() {
 
 # FYI: https://wiki.archlinux.org/index.php/Zsh#The_.22command_not_found.22_handler
 command_not_found_handler() {
-  echo "${LIGHT_RED}(;_;)${DEFAULT_COLOR} < Sorry, I didn't know ${PURPLE}${0}${DEFAULT_COLOR} command."
+  local command="$1"
+  echo "${LIGHT_RED}(;_;)${DEFAULT_COLOR} < Sorry, I didn't know ${PURPLE}${command}${DEFAULT_COLOR} command."
 }
 
 zsh::clean_zcompdump() {
