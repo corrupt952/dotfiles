@@ -39,9 +39,6 @@ fi
 if command::exist docker-compose; then
   alias dkc='docker-compose'
 fi
-if command::exist docker-sync; then
-  alias dsync='docker-sync'
-fi
 if command::exist terraform; then
   alias tf='terraform'
 fi
