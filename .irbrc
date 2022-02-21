@@ -1,5 +1,13 @@
 # load libraries
-libraries = %w(rubygems pp irb ostruct open-uri benchmark irb/completion)
+libraries = %w(
+  irb irb/completion rubygems
+  cgi net/http open-uri socket
+  fileutils pathname tempfile
+  csv json yaml
+  benchmark pp
+  base64 objspace ostruct
+)
+
 libraries.each do |lib|
   begin
     require lib
