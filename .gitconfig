@@ -2,5 +2,3 @@
 	path = .config/git/default
 	path = .config/git/aliases
 	path = .config/git/local
-[core]
-	hooksPath = .config/git/hooks
