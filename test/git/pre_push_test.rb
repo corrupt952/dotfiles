@@ -71,8 +71,22 @@ describe 'Git pre-push hook' do
   end
 
   describe '#restrict_force_push' do
-    context '--force-with-lease in command' do
+    context 'branch name is develop/tidyup-fargate'do
       it 'be nothing' do
+        restrict_force_push 'git push origin develop/tidyup-fargate'
+      end
+    end
+
+    context '-f in command' do
+      it 'raise RuntimeError' do
+        assert_raises RuntimeError do
+          restrict_force_push 'git push -f origin master'
+        end
+      end
+    end
+
+    context '--force-with-lease in command' do
+      it 'raise RuntimeError' do
         assert_raises RuntimeError do
           restrict_force_push 'git push --force-with-lease origin master'
         end
