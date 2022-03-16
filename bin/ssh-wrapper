@@ -13,6 +13,12 @@ case "$1" in
     _edit_config "${config_path}"
     ;;
   * )
-    command ssh -F ${config_path} $*
+    if [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ]; then
+      # WSL
+      /mnt/c/Windows/System32/OpenSSH/ssh.exe -F ${config_path} $*
+    else
+      # Darwin or Linux
+      command ssh -F ${config_path} $*
+    fi
     ;;
 esac
