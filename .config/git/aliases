@@ -66,4 +66,4 @@
   # kustomize command
   sw = "! git for-each-ref --format='%(refname:short)' refs/heads | fzf --reverse --exit-0 --ansi | xargs git checkout"
   del = "! git for-each-ref --format='%(refname:short)' refs/heads | fzf --multi --reverse --exit-0 --ansi | xargs git branch -D"
-  env = "! git config --get-regexp 'user.'"
+  env = "! git config --get-regexp '^user.'"
