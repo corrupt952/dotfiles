@@ -1,24 +1,27 @@
-#!/bin/bash -e
-config_path=${HOME}/.ssh/config
-if [ "${SSH_CONFIG}" != "" ]; then
-  config_path=${SSH_CONFIG}
-fi
+#!/usr/bin/env bash
 
-_edit_config() {
-  $EDITOR $1
+set -e
+
+ssh_config_path() {
+  if [ -z "$SSH_CONFIG" ]; then
+    echo "$HOME/.ssh/config"
+  else
+    echo "$SSH_CONFIG"
+  fi
 }
 
-case "$1" in
-  edit )
-    _edit_config "${config_path}"
-    ;;
-  * )
-    if [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ]; then
-      # WSL
-      /mnt/c/Windows/System32/OpenSSH/ssh.exe -F ${config_path} $*
-    else
-      # Darwin or Linux
-      command ssh -F ${config_path} $*
-    fi
-    ;;
-esac
+main() {
+  local -r command="$1"
+  local -r config=$(ssh_config_path)
+
+  case "$1" in
+    edit )
+      $EDITOR $config
+      ;;
+
+    * )
+      command ssh -F $config $*
+      ;;
+  esac
+}
+main "$*"
