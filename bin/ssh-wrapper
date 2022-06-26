@@ -20,7 +20,13 @@ main() {
       ;;
 
     * )
-      command ssh -F $config $*
+      if [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ]; then
+        # WSL
+        /mnt/c/Windows/System32/OpenSSH/ssh.exe -F $config $*
+      else
+        # Darwin or Linux
+        command ssh -F $config $*
+      fi
       ;;
   esac
 }
