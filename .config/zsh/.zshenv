@@ -6,6 +6,7 @@ typeset -gU PATH
 ###
 # Terminal variables
 export TERM=xterm-256color
+export GPG_TTY=$TTY
 
 ###
 # Path variables
