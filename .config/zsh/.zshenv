@@ -27,7 +27,7 @@ fi
 # for Homebrew
 if [ -d $HOME/.brew ]; then
     export fpath=($HOME/.brew/share/zsh/site-functions $fpath)
-    export PATH=$HOME/.brew/sbin:$HOME/.brew/bin:$PATH
+    export PATH=$HOME/.brew/sbin:$HOME/.brew/bin:$HOME/.brew/opt/ruby/bin:$PATH
 fi
 
 ###
@@ -52,6 +52,15 @@ export FZF_DEFAULT_OPTS="--exact --cycle --ansi"
 # Node.js
 export N_PREFIX=$HOME/.cache/n
 export PATH=$N_PREFIX/bin:$PATH
+
+###
+# Flutter
+export FLUTTER_PREFIX=$HOME/.cache/flutter
+export PATH=$FLUTTER_PREFIX/bin:$PATH
+
+###
+# Dart
+export PATH=$HOME/.pub-cache/bin:$PATH
 
 ##
 # Home bin path
