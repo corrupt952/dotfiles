@@ -49,6 +49,10 @@ fi
 export FZF_DEFAULT_OPTS="--exact --cycle --ansi"
 
 ###
+# asdf
+export export PATH=$HOME/.asdf/bin:$PATH
+
+###
 # Node.js
 export N_PREFIX=$HOME/.cache/n
 export PATH=$N_PREFIX/bin:$PATH

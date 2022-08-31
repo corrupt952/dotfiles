@@ -21,7 +21,7 @@ def restrict_force_push(command)
 end
 
 def main
-  _, _, remote_ref, _ = STDIN.gets.chomp.split
+  _, _, remote_ref, _ = (STDIN.gets || '').chomp.split
   branch_name = remote_ref.gsub('refs/heads/', '')
   command = `ps -o command= -p #{Process.ppid}`.chomp
 

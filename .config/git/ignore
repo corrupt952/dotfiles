@@ -1,7 +1,7 @@
 *.o
 *.class
 *.log
-log/
+/log/
 *.out
 .envrc
 .terraform
