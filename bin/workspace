@@ -150,7 +150,7 @@ class WorkspaceCommand
   def make_direnv_config(workspace_path)
     envrc_path = File.join(workspace_path, '.envrc')
     File.write envrc_path, <<~SHELL
-    WORKSPACE_PATH="#{workspace_path}"
+    export WORKSPACE_PATH="#{workspace_path}"
 
     # SSH
     export SSH_CONFIG=$WORKSPACE_PATH/.ssh/config
