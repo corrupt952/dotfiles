@@ -114,5 +114,12 @@ widget::fzf::cdr() {
     zle reset-prompt
   }
 }
-
 zle -N widget::fzf::cdr
+
+widget::fzf::workspace() {
+  local -r base_path=$HOME/Workspace
+  local -r directories=$(find $base_path -depth 2 -type d -regex '[^.]*$' | sed "s@$base_path/@@g")
+  cd $(echo "$directories" | fzf -1 -0 --ansi --preview "bat --color=always $base_path/{}/README.md 2>&1" | xargs -I{} echo $base_path/{})
+  zle reset-prompt
+}
+zle -N widget::fzf::workspace
