@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+set -Ceuo pipefail
+
+fetch_local_branches() {
+  echo "$(git for-each-ref --format='%(refname)' refs/heads | sed 's#refs/heads/##')"
+}
+
+fetch_remote_branches() {
+  echo "$(git for-each-ref --format='%(refname)' refs/remotes | sed 's#refs/remotes/origin/##' | grep -v -e HEAD)"
+}
+
+has() {
+  local -r branch="$1"
+  local -r branches="$2"
+  for b in $branches; do
+    if [[ "$b" =~ ${branch}$ ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+command::select() {
+  local -r local_branches="$(fetch_local_branches)"
+  local -r remote_branches="$(fetch_remote_branches)"
+  local -r selectable_branches="$(sort -u <(echo "$local_branches") <(echo "$remote_branches"))"
+
+  local branch_list=""
+  for branch in $selectable_branches; do
+    local local="$(if has "$branch" "$local_branches"; then echo  "\033[0;32m✔\033[0m"; else echo "\033[0;31m✗\033[0m"; fi)"
+    local remote="$(if has "$branch" "$remote_branches"; then echo "\033[0;32m✔\033[0m"; else echo "\033[0;31m✗\033[0m"; fi)"
+    branch_list+="$(echo -e "[l:$local, r:$remote]\t$branch")\n"
+  done
+  branch=$(
+    echo -e "$branch_list" \
+      | fzf --exit-0 --height 70% --reverse --ansi --nth 2 -d "\t" \
+        --preview "echo {} | awk -F \"\t\" '{print \$2}' | xargs -IXXX bash -c 'git --no-pager log -20 --color=always refs/heads/XXX || git --no-pager log -20 --color=always refs/remotes/origin/XXX' 2>/dev/null" \
+      | awk -F "\t" '{print $2}'
+    )
+
+  if has $branch "$local_branches"; then
+    git switch $branch
+  elif has $branch "$remote_branches"; then
+    git checkout -B $branch origin/$branch
+  else
+    # TODO: create new branch
+    echo "hello"
+  fi
+}
+
+command::help() {
+  cat <<EOF
+Usage: git-select-branch [options]
+
+Options:
+  -n, --no-fetch Do not fetch remote branches
+  -h, --help     Show this help
+EOF
+}
+
+main() {
+  # options
+  local fetch=true
+  set +o nounset
+  while [ "$1" != "" ]; do
+    case "$1" in
+    -n | --no-fetch)
+      fetch=false
+      shift
+      ;;
+
+    -h | --help)
+      command::help
+      exit 0
+      ;;
+    esac
+  done
+  set -o nounset
+
+  if [[ "$fetch" = true ]]; then
+    git fetch --prune --all
+  fi
+
+  command::select
+}
+main "$@"
