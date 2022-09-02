@@ -49,8 +49,8 @@ fi
 export FZF_DEFAULT_OPTS="--exact --cycle --ansi --height 70% --reverse"
 
 ###
-# asdf
-export export PATH=$HOME/.asdf/bin:$PATH
+# aqua
+export PATH="${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH"
 
 ###
 # Node.js
