@@ -51,6 +51,10 @@ alias k="kubectl"
 alias kc="kubectx"
 alias kn="kubens"
 
+# fzf
+alias fgs='git fselect'
+alias fgd='git fdelete'
+
 ##
 # Global aliases
 alias -g G='| grep'
