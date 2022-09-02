@@ -46,7 +46,7 @@ fi
 
 ###
 # fzf
-export FZF_DEFAULT_OPTS="--exact --cycle --ansi"
+export FZF_DEFAULT_OPTS="--exact --cycle --ansi --height 70% --reverse"
 
 ###
 # asdf

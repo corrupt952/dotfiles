@@ -33,7 +33,7 @@ command::delete() {
   done
   branch=$(
     echo -e "$branch_list" \
-      | fzf --exit-0 --height 70% --multi --reverse --ansi --nth 2 -d "\t" \
+      | fzf --exit-0 --multi --nth 2 -d "\t" \
         --preview "echo {} | awk -F \"\t\" '{print \$2}' | xargs -IXXX bash -c 'git --no-pager log -20 --color=always refs/heads/XXX || git --no-pager log -20 --color=always refs/remotes/origin/XXX' 2>/dev/null" \
       | awk -F "\t" '{print $2}'
     )
