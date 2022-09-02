@@ -117,14 +117,17 @@ widget::fzf::cdr() {
 zle -N widget::fzf::cdr
 
 widget::fzf::workspace() {
-  local -r base_path=$HOME/Workspace
-  local directories
-  if os::is_darwin; then
-    directories=$(find "$base_path" -depth 2 -type d | sed "s#$base_path/##g" | fzf -1)
-  else
-    directories=$(find "$base_path" -mindepth 2 -maxdepth 2 -type d | sed "s#$base_path/##g" | fzf -1)
-  fi
-  cd $(echo "$directories" | fzf -1 -0 --ansi --preview "bat --color=always $base_path/{}/README.md 2>&1" | xargs -I{} echo $base_path/{})
-  zle reset-prompt
+  {
+    local -r _base_path=$HOME/Workspace
+    local _directories
+    if os::is_darwin; then
+      _directories=$(find "$_base_path" -depth 2 -type d | sed "s#$_base_path/##g" | fzf -1)
+    else
+      _directories=$(find "$_base_path" -mindepth 2 -maxdepth 2 -type d | sed "s#$_base_path/##g" | fzf -1)
+    fi
+    local -r _path="$(echo "$_directories" | fzf -1 -0 --preview "bat --color=always $_base_path/{}/README.md 2>&1" | xargs -I{} echo $_base_path/{})"
+    [[ -n "$_path" ]] && cd "$_path"
+    zle reset-prompt
+  }
 }
 zle -N widget::fzf::workspace
