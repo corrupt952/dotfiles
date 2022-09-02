@@ -109,25 +109,21 @@ zsh::prompt::exit_code() {
 
 # Widget for zsh
 widget::fzf::cdr() {
-  {
-    cd "$(cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf -1 | sed "s@~@$HOME@g")" || exit
-    zle reset-prompt
-  }
+  cd "$(cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf -1 | sed "s@~@$HOME@g")" || exit
+  zle reset-prompt
 }
 zle -N widget::fzf::cdr
 
 widget::fzf::workspace() {
-  {
-    local -r _base_path=$HOME/Workspace
-    local _directories
-    if os::is_darwin; then
-      _directories=$(find "$_base_path" -depth 2 -type d | sed "s#$_base_path/##g" | fzf -1)
-    else
-      _directories=$(find "$_base_path" -mindepth 2 -maxdepth 2 -type d | sed "s#$_base_path/##g" | fzf -1)
-    fi
-    local -r _path="$(echo "$_directories" | fzf -1 -0 --preview "bat --color=always $_base_path/{}/README.md 2>&1" | xargs -I{} echo $_base_path/{})"
-    [[ -n "$_path" ]] && cd "$_path"
-    zle reset-prompt
-  }
+  local -r _base_path=$HOME/Workspace
+  local _directories
+  if os::is_darwin; then
+    _directories=$(find "$_base_path" -depth 2 -type d | sed "s#$_base_path/##g")
+  else
+    _directories=$(find "$_base_path" -mindepth 2 -maxdepth 2 -type d | sed "s#$_base_path/##g")
+  fi
+  local -r _path="$(echo "$_directories" | fzf -1 -0 --preview "bat --color=always $_base_path/{}/README.md 2>&1" | xargs -I{} echo $_base_path/{})"
+  [[ -n "$_path" ]] && cd "$_path"
+  zle reset-prompt
 }
 zle -N widget::fzf::workspace
