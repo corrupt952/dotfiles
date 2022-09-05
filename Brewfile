@@ -11,7 +11,6 @@ brew "bat"
 brew "cmake"
 brew "automake"
 brew "ctags"
-brew "cocoapods" if OS.mac?
 brew "coreutils"
 brew "curl"
 brew "direnv"
@@ -31,3 +30,8 @@ brew "wimlib"
 brew "aquaproj/aqua/aqua"
 brew "corrupt952/tmuxist/tmuxist"
 brew "kayac/tap/ecspresso"
+brew "gpg"
+
+if OS.mac?
+  brew "cocoapods"
+end
