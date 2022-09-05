@@ -33,10 +33,74 @@ os::is_darwin() {
   [ "$(uname -s)" = "Darwin" ]
 }
 os::is_ubuntu() {
-  (command::exist lsb_release) && [ "$(lsb_release -is)" = "Ubuntu" ]
+  [ "$(uname -s)" = "Linux" ] && [ -f /etc/lsb-release ] && grep -q Ubuntu /etc/lsb-release
 }
 os::is_wsl() {
   [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ]
+}
+
+##
+# Builder
+builder::execute() {
+  local cmd="$@"
+
+  logger::info "${funcstack[1]}:"
+  logger::info "  excute: $cmd"
+  eval "$cmd" 2>&1 1>/dev/null
+}
+
+builder::package() {
+  local -r name="$1"
+  local -r cmd="apt-get install  --no-install-recommends -y $name"
+
+  logger::info "${funcstack[1]}:"
+  logger::info "  execute: $cmd"
+
+  if os::is_darwin; then
+    logger::warn "  Darwin is not supported"
+    return
+  fi
+  eval $cmd 2>&1 1>/dev/null
+}
+
+builder::directory() {
+  local -r directory_path="$1"
+  logger::info "${funcstack[1]}:"
+  logger::info "  execute: mkdir -p $directory_path"
+
+  if [ -e "$directory_path" ]; then
+    logger::warn "  $directory_path already exists"
+    return
+  fi
+
+  mkdir -p "$directory_path" 2>&1 1>/dev/null
+}
+
+builder::link() {
+  local -r source_path="$1"
+  local -r destination_path="$2"
+
+  logger::info "${funcstack[1]}:"
+  logger::info "  execute: ln -sf $source_path $destination_path"
+  if [ -e "$destination_path" ]; then
+    logger::warn "  $destination_path already exists"
+    return
+  fi
+  ln -sf "$source_path" "$destination_path" 2>&1 1>/dev/null
+}
+
+builder::touch() {
+  local -r file_path="$1"
+
+  logger::info "${funcstack[1]}:"
+  logger::info "  execute: touch $file_path"
+
+  if [ -e "$file_path" ]; then
+    logger::warn "  $file_path already exists"
+    return
+  fi
+
+  touch "$file_path" 2>&1 1>/dev/null
 }
 
 ##

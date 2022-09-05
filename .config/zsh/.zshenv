@@ -66,9 +66,15 @@ export PATH=$FLUTTER_PREFIX/bin:$PATH
 # Dart
 export PATH=$HOME/.pub-cache/bin:$PATH
 
+###
+# Env for dotfiles
+export DOT_CONFIG_PATH=$HOME/.config
+export DOT_CACHE_PATH=$HOME/.cache
+export DOT_BIN_PATH=$HOME/.local/bin
+
 ##
 # Home bin path
-export PATH=$HOME/bin:$PATH
+export PATH=$HOME/bin:$DOT_BIN_PATH:$PATH
 
 ###
 # Local variables
