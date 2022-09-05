@@ -1,6 +1,7 @@
 local
 *.local
 .zsh_history
+/.config/git/profiles
 
 # Created by https://www.toptal.com/developers/gitignore/api/homebrew,visualstudiocode,git,zsh
 # Edit at https://www.toptal.com/developers/gitignore?templates=homebrew,visualstudiocode,git,zsh

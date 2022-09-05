@@ -95,7 +95,7 @@ class WorkspaceCommand
     git_path = File.join Dir.home, '.config', 'git'
 
     # $HOME/.config/git/{WORKSPACE_NAME}
-    config_path = File.join git_path, workspace_name
+    config_path = File.join git_path, 'profiles', workspace_name
     File.write config_path, <<~SHELL
     [user]
     name =
