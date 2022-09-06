@@ -51,7 +51,10 @@ builder::execute() {
 
 builder::package() {
   local -r name="$1"
-  local -r cmd="apt-get install  --no-install-recommends -y $name"
+  local cmd="apt-get install  --no-install-recommends -y $name"
+  if [ "$(whoami)" != "root" ]; then
+    cmd="sudo apt-get install  --no-install-recommends -y $name"
+  fi
 
   logger::info "${funcstack[1]}:"
   logger::info "  execute: $cmd"
