@@ -46,14 +46,13 @@ builder::execute() {
 
   logger::info "${funcstack[1]}:"
   logger::info "  excute: $cmd"
-  eval "$cmd" 2>&1 1>/dev/null
+  eval "$cmd"
 }
 
 builder::package() {
-  local -r name="$1"
-  local cmd="apt-get install  --no-install-recommends -y $name"
+  local cmd="apt-get install  --no-install-recommends -y $@"
   if [ "$(whoami)" != "root" ]; then
-    cmd="sudo apt-get install  --no-install-recommends -y $name"
+    cmd="sudo apt-get install  --no-install-recommends -y $@"
   fi
 
   logger::info "${funcstack[1]}:"
@@ -63,7 +62,7 @@ builder::package() {
     logger::warn "  Darwin is not supported"
     return
   fi
-  eval $cmd 2>&1 1>/dev/null
+  eval $cmd
 }
 
 builder::directory() {
@@ -76,7 +75,7 @@ builder::directory() {
     return
   fi
 
-  mkdir -p "$directory_path" 2>&1 1>/dev/null
+  mkdir -p "$directory_path"
 }
 
 builder::link() {
@@ -89,7 +88,7 @@ builder::link() {
     logger::warn "  $destination_path already exists"
     return
   fi
-  ln -sf "$source_path" "$destination_path" 2>&1 1>/dev/null
+  ln -sf "$source_path" "$destination_path"
 }
 
 builder::touch() {
@@ -103,7 +102,7 @@ builder::touch() {
     return
   fi
 
-  touch "$file_path" 2>&1 1>/dev/null
+  touch "$file_path"
 }
 
 ##
