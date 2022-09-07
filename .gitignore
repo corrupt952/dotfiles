@@ -1,6 +1,7 @@
 local
 *.local
 .zsh_history
+.chpwd-recent-dirs
 /.config/git/profiles
 
 # Created by https://www.toptal.com/developers/gitignore/api/homebrew,visualstudiocode,git,zsh
