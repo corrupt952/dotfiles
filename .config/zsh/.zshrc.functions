@@ -62,7 +62,7 @@ builder::package() {
     logger::warn "  Darwin is not supported"
     return
   fi
-  eval $cmd
+  eval "$cmd"
 }
 
 builder::directory() {
@@ -84,11 +84,7 @@ builder::link() {
 
   logger::info "${funcstack[1]}:"
   logger::info "  execute: ln -sf $source_path $destination_path"
-  if [ -e "$destination_path" ]; then
-    logger::warn "  $destination_path already exists"
-    return
-  fi
-  ln -sf "$source_path" "$destination_path"
+  ln -snf "$source_path" "$destination_path"
 }
 
 builder::touch() {
@@ -188,8 +184,8 @@ widget::fzf::workspace() {
   else
     _directories=$(find "$_base_path" -mindepth 2 -maxdepth 2 -type d | sed "s#$_base_path/##g")
   fi
-  local -r _path="$(echo "$_directories" | fzf -1 -0 --preview "bat --color=always $_base_path/{}/README.md 2>&1" | xargs -I{} echo $_base_path/{})"
-  [[ -n "$_path" ]] && cd "$_path"
+  local -r _path="$(echo "$_directories" | fzf -1 -0 --preview "bat --color=always $_base_path/{}/README.md 2>&1" | xargs -I{} echo "$_base_path"/{})"
+  [[ -n "$_path" ]] && cd "$_path" || exit
   zle reset-prompt
 }
 zle -N widget::fzf::workspace
