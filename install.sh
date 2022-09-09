@@ -8,7 +8,7 @@ set -Ceuo pipefail
 
 if os::is_ubuntu; then
   builder::execute sudo apt-get update
-  builder::package ca-certificates build-essential locales-all git curl wget
+  builder::package ca-certificates build-essential locales-all git curl wget x11-xkb-utils fonts-ipafont fonts-ipaexfont
 fi
 
 builder::directory $DOT_CONFIG_PATH
