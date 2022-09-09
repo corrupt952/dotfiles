@@ -3,24 +3,24 @@
 ##
 # zcompile
 if [ ! -e ${ZDOTDIR}/.zshrc.zwc -o ${ZDOTDIR}/.zshrc -nt ${ZDOTDIR}/.zshrc.zwc ]; then
-    echo 'compiling .zshrc...'
-    zcompile ${ZDOTDIR}/.zshrc
+  echo 'compiling .zshrc...'
+  zcompile ${ZDOTDIR}/.zshrc
 fi
 if [ ! -e ${ZDOTDIR}/.zshrc.local.zwc -o ${ZDOTDIR}/.zshrc.local -nt ${ZDOTDIR}/.zshrc.local.zwc ]; then
-    echo 'compiling .zshrc.local...'
-    zcompile ${ZDOTDIR}/.zshrc.local
+  echo 'compiling .zshrc.local...'
+  zcompile ${ZDOTDIR}/.zshrc.local
 fi
 if [ ! -e ${ZDOTDIR}/.zshrc.aliases.zwc -o ${ZDOTDIR}/.zshrc.aliases -nt ${ZDOTDIR}/.zshrc.aliases.zwc ]; then
-    echo 'compiling .zshrc.aliases...'
-    zcompile ${ZDOTDIR}/.zshrc.aliases
+  echo 'compiling .zshrc.aliases...'
+  zcompile ${ZDOTDIR}/.zshrc.aliases
 fi
 if [ ! -e ${ZDOTDIR}/.zshrc.prompt.zwc -o ${ZDOTDIR}/.zshrc.prompt -nt ${ZDOTDIR}/.zshrc.prompt.zwc ]; then
-    echo 'compiling .zshrc.prompt...'
-    zcompile ${ZDOTDIR}/.zshrc.prompt
+  echo 'compiling .zshrc.prompt...'
+  zcompile ${ZDOTDIR}/.zshrc.prompt
 fi
 if [ ! -e ${ZDOTDIR}/.zshrc.functions.zwc -o ${ZDOTDIR}/.zshrc.functions -nt ${ZDOTDIR}/.zshrc.functions.zwc ]; then
-    echo 'compiling .zshrc.functions...'
-    zcompile ${ZDOTDIR}/.zshrc.functions
+  echo 'compiling .zshrc.functions...'
+  zcompile ${ZDOTDIR}/.zshrc.functions
 fi
 
 ##
@@ -52,13 +52,15 @@ DEFAULT_COLOR="${reset_color}"
 # https://github.com/zplug/zplug
 export ZPLUG_HOME=${HOME}/.cache/zplug
 if [ ! -d ${ZPLUG_HOME} ]; then
-    git clone https://github.com/zplug/zplug ${ZPLUG_HOME}
+  git clone https://github.com/zplug/zplug ${ZPLUG_HOME}
 fi
 if [ ! -e ${ZPLUG_HOME}/init.zsh.zwc -o ${ZPLUG_HOME}/init.zsh -nt ${ZPLUG_HOME}/init.zsh.zwc ]; then
-    zcompile ${ZPLUG_HOME}/init.zsh
+  zcompile ${ZPLUG_HOME}/init.zsh
 fi
 source ${ZPLUG_HOME}/init.zsh
 zplug "zsh-users/zsh-completions"
+zplug "zsh-users/zsh-syntax-highlighting"
+zplug "zsh-users/zsh-autosuggestions"
 # if ! zplug check --verbose; then
 #   zplug install
 # fi
@@ -97,7 +99,8 @@ setopt hist_reduce_blanks
 
 ##
 # complement
-autoload -U compinit; compinit -d
+autoload -U compinit
+compinit -d
 zstyle ':completion:*' verbose yes
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
@@ -123,7 +126,7 @@ setopt prompt_subst
 ##
 # Linuxbrew
 if [ -d /home/linuxbrew ]; then
-    eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+  eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 fi
 
 ##
@@ -139,13 +142,13 @@ fi
 ##
 # direnv
 if command::exist direnv; then
-    eval "$(direnv hook zsh)"
+  eval "$(direnv hook zsh)"
 fi
 
 ##
 # rbenv
 if command::exist rbenv; then
-    eval "$(rbenv init - zsh)"
+  eval "$(rbenv init - zsh)"
 fi
 
 ##
