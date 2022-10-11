@@ -7,7 +7,7 @@ end
 def restrict_branches(branch_name)
   return if /\A(y|yes)\z/ =~ ENV['GIT_ALLOW_PUSH_MAIN_BRANCH']
 
-  fail "Don't push default branch!!! (master or main)" if main_branch? branch_name
+  fail "Don't push default branch!!! (master or main)\nSet 'GIT_ALLOW_PUSH_MAIN_BRANCH'" if main_branch? branch_name
 end
 
 def use_force_option?(command)
@@ -17,7 +17,7 @@ end
 def restrict_force_push(command)
   return if /\A(y|yes)\z/ =~ ENV['GIT_ALLOW_FORCE_PUSH']
 
-  fail "Don't use --force option!!!" if use_force_option? command
+  fail "Don't use --force option!!!\nSet 'GIT_ALLOW_FORCE_PUSH'" if use_force_option? command
 end
 
 def main
