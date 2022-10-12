@@ -87,3 +87,9 @@ if [[ -n "$(command -v code)" ]]; then
 else
   export EDITOR="$(printf %q "$(command -v vim)")"
 fi
+
+###
+# for Darwin
+if [[ -n "$(command -v xcode-select)" ]]; then
+  export PATH="$(xcode-select -p)/usr/bin:$PATH"
+fi
