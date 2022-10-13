@@ -1,6 +1,6 @@
 require_relative "../test_helper"
 
-load "#{git_root_path}/.config/git/hooks/pre-push"
+load "#{config_root_path}/.config/git/hooks/pre-push"
 
 describe 'Git pre-push hook' do
   describe '#main_branch?' do
