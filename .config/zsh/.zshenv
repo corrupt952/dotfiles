@@ -1,86 +1,80 @@
-setopt combiningchars
-setopt no_global_rcs
+# Locale
+export LANG=en_US.UTF-8
 
-typeset -gU PATH
-
-###
-# Terminal variables
+# Terminal
 export TERM=xterm-256color
 export GPG_TTY=$TTY
 
-###
-# Path variables
-export fpath=($HOME/.config/zsh/functions $fpath)
-export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+# XDG
+export XDG_CONFIG_HOME=$HOME/.config
+export XDG_CACHE_HOME=$HOME/.cache
+export XDG_DATA_HOME=$HOME/.local/share
+export XDG_STATE_HOME="$HOME/.local/state"
 
-###
-# Language variables
-export LANG=ja_JP.UTF-8
+# PATH
+setopt NO_GLOBAL_RCS
+typeset -gU path
+typeset -gU fpath
+path=(/usr/local/bin /usr/bin /bin /usr/sbin /sbin)
+fpath=($HOME/.config/zsh/functions "$fpath[@]")
 
-###
+# Dotfiles
+export DOT_BIN_PATH=$HOME/.local/bin
+path+=($DOT_BIN_PATH)
+
+# Home directory
+path+=($HOME/bin)
+
+# zinit
+export ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+path+=($ZINIT_HOME/bin)
+
 # for Snapd
 if [ -d /var/lib/snapd/snap ]; then
-    export PATH=/var/lib/snapd/snap/bin:$PATH
+  path+=("/var/lib/snapd/snap/bin")
 fi
 
-###
+# Homebrew or Linuxbrew
 # for Homebrew
 if [ -d $HOME/.brew ]; then
-    export fpath=($HOME/.brew/share/zsh/site-functions $fpath)
-    export PATH=$HOME/.brew/sbin:$HOME/.brew/bin:$HOME/.brew/opt/ruby/bin:$PATH
+  fpath+=($HOME/.brew/share/zsh/site-functions)
+  path+=($HOME/.brew/bin)
 fi
-
-###
-# for Linuxbrew
 if [ -d /home/linuxbrew/.linuxbrew ]; then
-    export PATH=/home/linuxbrew/.linuxbrew/sbin:/home/linuxbrew/.linuxbrew/bin:$PATH
+  fpath+=(/home/linuxbrew/.linuxbrew/share/zsh/site-functions)
+  path+=("/home/linuxbrew/.linuxbrew/bin")
 fi
 
-##
 # VSCode
 if [ -d $HOME/.vscode-server ]; then
   for vspath in "$(ls -1d $HOME/.vscode-server/bin/*)"; do
-    export PATH=$vspath/bin:$PATH
+    path+=("$vspath/bin")
   done
 fi
 
-###
 # fzf
 export FZF_DEFAULT_OPTS="--exact --cycle --ansi --height 70% --reverse"
 
-###
 # aqua
-export PATH="${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH"
+path+=("${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin")
 
-###
 # Node.js
-export N_PREFIX=$HOME/.cache/n
-export PATH=$N_PREFIX/bin:$PATH
+export N_PREFIX=$XDG_CACHE_HOME/n
+path+=($N_PREFIX/bin)
 
-###
 # Flutter
-export FLUTTER_PREFIX=$HOME/.cache/flutter
-export PATH=$FLUTTER_PREFIX/bin:$PATH
+export FLUTTER_PREFIX=$XDG_CACHE_HOME/flutter
+path+=($FLUTTER_PREFIX/bin)
 
-###
 # Dart
-export PATH=$HOME/.pub-cache/bin:$PATH
+path+=($HOME/.pub-cache/bin)
 
-###
-# Env for dotfiles
-export DOT_CONFIG_PATH=$HOME/.config
-export DOT_CACHE_PATH=$HOME/.cache
-export DOT_BIN_PATH=$HOME/.local/bin
+# zeno
+export ZENO_HOME="$XDG_CONFIG_HOME/zeno"
+export ZENO_ENABLE_SOCK=1
+export ZENO_GIT_CAT="cat"
+export ZENO_GIT_TREE="tree"
 
-##
-# Home bin path
-export PATH=$HOME/bin:$DOT_BIN_PATH:$PATH
-
-###
-# Local variables
-[ -f ${ZDOTDIR}/.zshenv.local ] && source ${ZDOTDIR}/.zshenv.local
-
-###
 # Editor
 if [[ -n "$(command -v code)" ]]; then
   export EDITOR="$(printf %q "$(command -v code)")"
@@ -88,8 +82,7 @@ else
   export EDITOR="$(printf %q "$(command -v vim)")"
 fi
 
-###
-# for Darwin
+# XCode Command Line Tools
 if [[ -n "$(command -v xcode-select)" ]]; then
-  export PATH="$(xcode-select -p)/usr/bin:$PATH"
+  path+=($(xcode-select -p)/usr/bin)
 fi

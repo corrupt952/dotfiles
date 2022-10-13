@@ -1,0 +1,102 @@
+snippets:
+- name: shutdown
+  keyword: shutdown
+  snippet: sudo shutdown
+- name: reboot
+  keyword: reboot
+  snippet: sudo reboot
+- name: clip
+  keyword: clip
+  snippet: command::clip
+- name: loop
+  keyword: loop
+  snippet: command::loop
+
+# Date
+- name: today
+  keyword: today
+  snippet: date "+%Y-%m-%d"
+  evaluate: true
+  context:
+    global: true
+- name: now
+  keyword: now
+  snippet: date "+%Y-%m-%dT%H:%M:%S%z"
+  evaluate: true
+  context:
+    global: true
+
+# grep
+- name: grep
+  keyword: gr
+  snippet: grep
+- name: global grep
+  keyword: G
+  snippet: '| grep'
+  context:
+    global: true
+
+# ls
+- name: ls
+  keyword: l
+  snippet: ls
+- name: ll
+  keyword: ll
+  snippet: ls -lh
+
+# Editors
+- name: vim
+  keyword: vi
+  snippet: vim
+- name: vim for binary
+  keyword: bvim
+  snippet: vim -b
+- name: code
+  keyword: c
+  snippet: code
+
+# Zsh
+- name: reload
+  keyword: reload
+  snippet: exec zsh -l
+
+# Git
+- name: git
+  keyword: g
+  snippet: git
+- name: select branch
+  keyword: gs
+  snippet: git fselect
+- name: delete branches
+  keyword: gd
+  snippet: git fdelete
+
+# Docker
+- name: docker
+  keyword: dk
+  snippet: docker
+- name: docker compose
+  keyword: dkc
+  snippet: docker compose
+
+# Kubernetes
+- name: kubernetes
+  keyword: k
+  snippet: kubectl
+- name: kubectx
+  keyword: kctx
+  snippet: kubectx
+- name: kubens
+  keyword: kns
+  snippet: kubens
+
+# Terraform
+- name: terraform
+  keyword: tf
+  snippet: terraform
+
+# Tmuxist
+- name: tmuxist
+  keyword: tk
+  snippet: tmuxist
+

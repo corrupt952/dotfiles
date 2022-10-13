@@ -1,19 +1,48 @@
 autoload -U promptinit; promptinit
 autoload -Uz colors
-setopt nobeep
-setopt prompt_subst
-setopt no_tify
+colors
 
-left_prompt() {
+# vcs
+autoload -Uz vcs_info
+zstyle ":vcs_info:*" enable git svn hg
+zstyle ":vcs_info:*" formats "★ %b"
+zstyle ":vcs_info:*" actionformats "[%b|%a]"
+zstyle ":vcs_info:(svn)" branchformat "%b%r"
+zstyle ":vcs_info:*" max-exports 6
+
+# Prompts
+zsh::prompt::segment() {
+  local bg fg
+  [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
+  [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
+  echo -n "%{$bg%}%{$fg%} "
+  [[ -n $3 ]] && echo -n "$3"
+}
+zsh::prompt::end() {
+  echo -n "%{%f%}"
+}
+zsh::prompt::user() {
+  zsh::prompt::segment none white "%n"
+}
+zsh::prompt::dir() {
+  zsh::prompt::segment none white "%~"
+}
+zsh::prompt::git() {
+  LANG=ja_JP.UTF-8 vcs_info
+  zsh::prompt::segment none red "${vcs_info_msg_0_}%f"
+}
+zsh::prompt::exit_code() {
+  zsh::prompt::segment none white "%?"
+}
+zsh::prompt::left() {
   zsh::prompt::dir
   zsh::prompt::end
 }
-right_prompt() {
+zsh::prompt::right() {
   zsh::prompt::git
   zsh::prompt::end
 }
-
-PROMPT="\$(left_prompt)
-%{${GREEN}%}\$%{${DEFAULT_COLOR}%} "
-RPROMPT="\$(right_prompt)"
-PROMPT2='[%n]> '
+export PROMPT="\$(zsh::prompt::left)
+%{${fg[cyan]}%}\$%{${reset_color}%} "
+export RPROMPT="\$(zsh::prompt::right)"
+export PROMPT2='[%n]> '

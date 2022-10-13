@@ -11,29 +11,6 @@ if os::is_ubuntu; then
   builder::package ca-certificates build-essential locales-all git curl wget x11-xkb-utils fonts-ipafont fonts-ipaexfont
 fi
 
-builder::directory $DOT_CONFIG_PATH
-builder::directory $DOT_CACHE_PATH
-builder::directory $HOME/bin
-builder::directory $HOME/.local
-builder::link $PWD/bin $DOT_BIN_PATH
-
-# Zsh
-builder::link $PWD/.zshenv $HOME/.zshenv
-builder::link $PWD/.config/zsh $DOT_CONFIG_PATH/zsh
-builder::touch $DOT_CONFIG_PATH/zsh/.zshrc.local
-# tmux
-builder::link $PWD/.tmux.conf $HOME/.tmux.conf
-builder::link $PWD/.config/tmux $DOT_CONFIG_PATH/tmux
-# Git
-builder::link $PWD/.gitconfig $HOME/.gitconfig
-builder::link $PWD/.config/git $DOT_CONFIG_PATH/git
-builder::touch $DOT_CONFIG_PATH/git/local
-# Direnv
-builder::link $PWD/.direnvrc $HOME/.direnvrc
-# Ruby
-builder::link $PWD/.gemrc $HOME/.gemrc
-builder::link $PWD/.irbrc $HOME/.irbrc
-
 # Homebrew or Linuxbrew
 local BREW_PATH
 if os::is_darwin; then
@@ -48,7 +25,33 @@ elif os::is_ubuntu; then
     builder::execute 'bash <(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)'
   fi
 fi
-builder::execute "$BREW_PATH/bin/brew bundle --file=$PWD/Brewfile"
+builder::execute "$BREW_PATH/bin/brew bundle --file=$PWD/Brewfile --cleanup"
+
+builder::directory $XDG_CONFIG_HOME
+builder::directory $XDG_CACHE_HOME
+builder::directory $HOME/bin
+builder::directory $HOME/.local
+builder::link $PWD/bin $DOT_BIN_PATH
+
+# Zsh
+builder::link $PWD/.zshenv $HOME/.zshenv
+builder::link $PWD/.config/zsh $XDG_CONFIG_HOME/zsh
+builder::touch $XDG_CONFIG_HOME/zsh/.zshrc.local
+builder::git https://github.com/zdharma-continuum/zinit $ZINIT_HOME
+# zeno
+builder::link $PWD/.config/zeno $XDG_CONFIG_HOME/zeno
+# tmux
+builder::link $PWD/.tmux.conf $HOME/.tmux.conf
+builder::link $PWD/.config/tmux $XDG_CONFIG_HOME/tmux
+# Git
+builder::link $PWD/.gitconfig $HOME/.gitconfig
+builder::link $PWD/.config/git $XDG_CONFIG_HOME/git
+builder::touch $XDG_CONFIG_HOME/git/local
+# Direnv
+builder::link $PWD/.direnvrc $HOME/.direnvrc
+# Ruby
+builder::link $PWD/.gemrc $HOME/.gemrc
+builder::link $PWD/.irbrc $HOME/.irbrc
 
 # win32yanc
 if os::is_wsl; then
