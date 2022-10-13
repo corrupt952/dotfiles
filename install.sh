@@ -1,8 +1,10 @@
 #!/usr/bin/env zsh
 
+CONFIG_PATH="$PWD/config"
+
 # Load functions
-source "$(dirname "$(dirname "$0")")/.config/zsh/.zshenv"
-source "$(dirname "$(dirname "$0")")/.config/zsh/.zshrc.functions"
+source "$CONFIG_PATH/.config/zsh/.zshenv"
+source "$CONFIG_PATH/.config/zsh/.zshrc.functions"
 
 set -Ceuo pipefail
 
@@ -31,27 +33,27 @@ builder::directory $XDG_CONFIG_HOME
 builder::directory $XDG_CACHE_HOME
 builder::directory $HOME/bin
 builder::directory $HOME/.local
-builder::link $PWD/bin $DOT_BIN_PATH
+builder::link $CONFIG_PATH/bin $DOT_BIN_PATH
 
 # Zsh
-builder::link $PWD/.zshenv $HOME/.zshenv
-builder::link $PWD/.config/zsh $XDG_CONFIG_HOME/zsh
+builder::link $CONFIG_PATH/.zshenv $HOME/.zshenv
+builder::link $CONFIG_PATH/.config/zsh $XDG_CONFIG_HOME/zsh
 builder::touch $XDG_CONFIG_HOME/zsh/.zshrc.local
 builder::git https://github.com/zdharma-continuum/zinit $ZINIT_HOME
 # zeno
-builder::link $PWD/.config/zeno $XDG_CONFIG_HOME/zeno
+builder::link $CONFIG_PATH/.config/zeno $XDG_CONFIG_HOME/zeno
 # tmux
-builder::link $PWD/.tmux.conf $HOME/.tmux.conf
-builder::link $PWD/.config/tmux $XDG_CONFIG_HOME/tmux
+builder::link $CONFIG_PATH/.tmux.conf $HOME/.tmux.conf
+builder::link $CONFIG_PATH/.config/tmux $XDG_CONFIG_HOME/tmux
 # Git
-builder::link $PWD/.gitconfig $HOME/.gitconfig
-builder::link $PWD/.config/git $XDG_CONFIG_HOME/git
+builder::link $CONFIG_PATH/.gitconfig $HOME/.gitconfig
+builder::link $CONFIG_PATH/.config/git $XDG_CONFIG_HOME/git
 builder::touch $XDG_CONFIG_HOME/git/local
 # Direnv
-builder::link $PWD/.direnvrc $HOME/.direnvrc
+builder::link $CONFIG_PATH/.direnvrc $HOME/.direnvrc
 # Ruby
-builder::link $PWD/.gemrc $HOME/.gemrc
-builder::link $PWD/.irbrc $HOME/.irbrc
+builder::link $CONFIG_PATH/.gemrc $HOME/.gemrc
+builder::link $CONFIG_PATH/.irbrc $HOME/.irbrc
 
 # win32yanc
 if os::is_wsl; then
