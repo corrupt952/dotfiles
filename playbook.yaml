@@ -1,0 +1,232 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  vars:
+    dotfiles_path: '{{ ansible_env.HOME }}/Workspace/corrupt952/dotfiles'
+    dotfiles_config_path: '{{ dotfiles_path }}/config'
+  tasks:
+  - name: Apt
+    when: ansible_distribution == 'Ubuntu'
+    block:
+    - name: apt update
+      apt:
+        update_cache: yes
+    - name: Install packages via apt
+      apt:
+        state: latest
+        pkg:
+        - locales-all
+        - ca-certificates
+        - build-essential
+        - fonts-ipafont
+        - fonts-ipaexfont
+        - x11-xkb-utils
+
+  - name: Homebrew
+    block:
+    - name: brew update
+      homebrew:
+        update_homebrew: yes
+    - name: Install packages via Homebrew
+      homebrew:
+        name: '{{ item }}'
+        state: latest
+      with_items:
+      - ansible
+      - automake
+      - bat
+      - cmake
+      - coreutils
+      - curl
+      - direnv
+      - deno
+      - fzf
+      - grep
+      - gpg
+      - gnu-sed
+      - jq
+      - libtool
+      - ripgrep
+      - tig
+      - tmux
+      - tree
+      - wget
+      - wimlib
+      - aquaproj/aqua/aqua
+      - corrupt952/tmuxist/tmuxist
+
+  - name: dotfiles
+    block:
+    - name: Check for dotfiles
+      register: check_dotfiles
+      ansible.builtin.stat:
+        path: '{{ dotfiles_path }}'
+    - name: Clone dotfiles
+      when: not check_dotfiles.stat.isdir
+      ansible.builtin.git:
+        repo: git@github.com:corrupt952/dotfiles.git
+        dest: '{{ dotfiles_path }}'
+    # TODO: 
+    - name: Make $XDG_CONFIG_HOME
+      file:
+        path: '{{ ansible_env.XDG_CONFIG_HOME }}'
+        state: directory
+    - name: Make $XDG_CACHE_HOME
+      file:
+        path: '{{ ansible_env.XDG_CACHE_HOME }}'
+        state: directory
+    - name: Make $XDG_DATA_HOME
+      file:
+        path: '{{ ansible_env.XDG_DATA_HOME }}'
+        state: directory
+    - name: Make $XDG_STATE_HOME
+      file:
+        path: '{{ ansible_env.XDG_STATE_HOME }}'
+        state: directory
+    - name: Create a symbolic link to $HOME/.local/bin
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/bin'
+        dest: '{{ ansible_env.HOME }}/.local/bin'
+
+  - name: Zsh
+    block:
+    - name: Create a symbolic link to $HOME/.zshenv
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/.zshenv'
+        dest: '{{ ansible_env.HOME }}/.zshenv'
+    - name: Create a symbolic link to $ZDOTDIR
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/.config/zsh'
+        dest: '{{ ansible_env.ZDOTDIR }}'
+    - name: touch $ZDOTDIR/.zshrc.local
+      file:
+        state: touch
+        path: '{{ ansible_env.ZDOTDIR }}/.zshrc.local'
+    - name: Check for zinit
+      register: check_zinit
+      ansible.builtin.stat:
+        path: '{{ ansible_env.ZINIT_HOME }}'
+    - name: Clone zinit
+      when: not check_zinit.stat.isdir
+      ansible.builtin.git:
+        repo: git@github.com:zdharma-continuum/zinit.git
+        dest: '{{ ansible_env.ZINIT_HOME }}'
+    - name: Create a symbolic link to $XDG_CONFIG_HOME/zeno
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/.config/zeno'
+        dest: '{{ ansible_env.XDG_CONFIG_HOME }}/zeno'
+
+  - name: Tmux
+    block:
+    - name: Create a symbolic link to $HOME/.tmux.conf
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/.tmux.conf'
+        dest: '{{ ansible_env.HOME }}/.tmux.conf'
+    - name: Create a symbolic link to $XDG_CONFIG_HOME/tmux
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/.config/tmux'
+        dest: '{{ ansible_env.XDG_CONFIG_HOME }}/tmux'
+
+  - name: Git
+    block:
+    - name: Create a symbolic link to $HOME/.gitconfig
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/.gitconfig'
+        dest: '{{ ansible_env.HOME }}/.gitconfig'
+    - name: Create a symbolic link to $XDG_CONFIG_HOME/git
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/.config/git'
+        dest: '{{ ansible_env.XDG_CONFIG_HOME }}/git'
+    - name: touch $XDG_CONFIG_HOME/git/local
+      file:
+        state: touch
+        path: '{{ ansible_env.XDG_CONFIG_HOME }}/git/local'
+
+  - name: direnv
+    block:
+    - name: Create a symbolic link to $HOME/.direnvrc
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/.direnvrc'
+        dest: '{{ ansible_env.HOME }}/.direnvrc'
+
+  - name: Ruby
+    block:
+    - name: Create a symbolic link to $HOME/.gemrc
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/.gemrc'
+        dest: '{{ ansible_env.HOME }}/.gemrc'
+    - name: Create a symbolic link to $HOME/.irbrc
+      file:
+        state: link
+        src: '{{ dotfiles_config_path }}/.irbrc'
+        dest: '{{ ansible_env.HOME }}/.irbrc'
+
+  # Darwin
+  - name: Darwin
+    when: ansible_os_family == 'Darwin'
+    block:
+    - name: Install packages for Darwin via Homebrew
+      homebrew:
+        name: '{{ item }}'
+        state: latest
+      with_items:
+      - mas
+      - cocoapods
+    - name: Install app via AppStore
+      command: 'mas install {{ item }}'
+      with_items:
+      - 409183694 # Keynote
+      - 409201541 # Pages
+      - 409203825 # Numbers
+      - 408981434 # iMovie
+      - 441258766 # Magnet
+      - 682658836 # GarageBand
+      - 1295203466 # Microsoft Remote Desktop
+      - 1246969117 # Steam Link
+
+  # WSL
+  - name: Check for WSLInterop
+    register: check_wsl_interop
+    ansible.builtin.stat:
+      path: /proc/sys/fs/binfmt_misc/WSLInterop
+  - name: WSL
+    when: check_wsl_interop.stat.exists
+    block:
+    - name: Check for win32yank
+      register: check_win32yank
+      ansible.builtin.stat:
+        path: '{{ ansible_env.HOME }}/.local/bin/win32yank.exe'
+    - name: Download win32yank.zip
+      when: not check_win32yank.stat.exists
+      get_url:
+        url: https://github.com/equalsraf/win32yank/releases/download/v0.0.4/win32yank-x64.zip
+        dest: '{{ ansible_env.PWD }}/win32yank.zip'
+    - name: Unarchive win32yank.zip
+      when: not check_win32yank.stat.exists
+      unarchive:
+        src: win32yank.zip
+        dest: '{{ ansible_env.HOME }}/.local/bin'
+        copy: no
+    - name: Chmod $HOME/.local/bin/win32yank.exe
+      file:
+        state: touch
+        path: $HOME/.local/bin/win32yank.exe
+        mode: a+x
+    - name: Delete unused win32yank files
+      file:
+        state: absent
+        path: '{{ item }}'
+      with_items:
+      - win32yank.zip
+      - '{{ ansible_env.HOME }}/.local/bin/LICENSE'
+      - '{{ ansible_env.HOME }}/.local/bin/README.md'
