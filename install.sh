@@ -24,4 +24,5 @@ elif [ "$(uname -s)" = "Linux" ]; then
 fi
 
 brew install git ansible
+ansible-galaxy collection install community.general
 ansible-playbook playbook.yaml

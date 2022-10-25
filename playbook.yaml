@@ -182,7 +182,28 @@
       with_items:
       - mas
       - cocoapods
-    - name: Install app via AppStore
+    - name: Install apps via Homebrew
+      environment:
+        HOMEBREW_CASK_OPTS: "--appdir=/Applications"
+      community.general.homebrew_cask:
+        name: '{{ item }}'
+      with_items:
+      # Browsers
+      - google-chrome
+      - firefox
+      - brave-browser
+      # Utilities
+      - zoom
+      - 1password
+      - karabiner-elements
+      - stats
+      # Development
+      - visual-studio-code
+      - flutter
+      - responsively
+      # Entertainment
+      - steam
+    - name: Install apps via AppStore
       command: 'mas install {{ item }}'
       with_items:
       - 409183694 # Keynote
