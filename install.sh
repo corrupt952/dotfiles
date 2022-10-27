@@ -25,4 +25,4 @@ fi
 
 brew install git ansible
 ansible-galaxy collection install community.general
-ansible-playbook playbook.yaml
+ansible-playbook playbook.yaml --ask-become-pass
