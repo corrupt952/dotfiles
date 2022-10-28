@@ -22,6 +22,8 @@
         - fonts-ipafont
         - fonts-ipaexfont
         - x11-xkb-utils
+        - zsh
+        - vim
 
   - name: Homebrew
     block:
@@ -63,11 +65,10 @@
       ansible.builtin.stat:
         path: '{{ dotfiles_path }}'
     - name: Clone dotfiles
-      when: not check_dotfiles.stat.isdir
+      when: not check_dotfiles.stat.exists
       ansible.builtin.git:
-        repo: git@github.com:corrupt952/dotfiles.git
+        repo: https://github.com/corrupt952/dotfiles.git
         dest: '{{ dotfiles_path }}'
-    # TODO: 
     - name: Make $XDG_CONFIG_HOME
       file:
         path: '{{ ansible_env.XDG_CONFIG_HOME }}'
@@ -111,9 +112,9 @@
       ansible.builtin.stat:
         path: '{{ ansible_env.ZINIT_HOME }}'
     - name: Clone zinit
-      when: not check_zinit.stat.isdir
+      when: not check_zinit.stat.exists
       ansible.builtin.git:
-        repo: git@github.com:zdharma-continuum/zinit.git
+        repo: https://github.com/zdharma-continuum/zinit.git
         dest: '{{ ansible_env.ZINIT_HOME }}'
     - name: Create a symbolic link to $XDG_CONFIG_HOME/zeno
       file:

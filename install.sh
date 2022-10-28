@@ -2,6 +2,7 @@
 
 set -Ceuo pipefail
 
+# TODO: load from .zshenv
 export XDG_CONFIG_HOME=$HOME/.config
 export XDG_CACHE_HOME=$HOME/.cache
 export XDG_DATA_HOME=$HOME/.local/share
@@ -17,11 +18,16 @@ if [ "$(uname -s)" = "Darwin" ]; then
     curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C "$BREW_PATH"
   fi
 elif [ "$(uname -s)" = "Linux" ]; then
+  [ -z "$(dpkg --get-selections | grep sudo)" ] && apt-get install -y sudo
+  [ -z "$(dpkg --get-selections | grep curl)" ] && sudo apt-get install -y curl
+  [ -z "$(dpkg --get-selections | grep git)" ] && sudo apt-get install -y git
+
   BREW_PATH=/home/linuxbrew/.linuxbrew
   if [ ! -d $BREW_PATH ]; then
     bash <(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)
   fi
 fi
+export PATH="$BREW_PATH/bin:$PATH"
 
 brew install git ansible
 ansible-galaxy collection install community.general
