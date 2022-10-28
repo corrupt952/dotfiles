@@ -63,7 +63,7 @@ class WorkspaceCommand
 
     # Remove git configuration
     # $HOME/.config/git/{WORKSPACE_NAME}
-    config_path = File.join(Dir.home, '.config', 'git', workspace_name)
+    config_path = File.join(Dir.home, '.config', 'git', 'profiles', workspace_name)
     FileUtils.remove_entry_secure config_path
     # Ignore workspace config by $HOME/.config/git/local
     local_path = File.join(Dir.home, '.config', 'git', 'local')
