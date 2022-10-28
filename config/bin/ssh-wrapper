@@ -20,7 +20,7 @@ main() {
       ;;
 
     * )
-      if [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ]; then
+      if [ -e "/proc/sys/fs/binfmt_misc/WSLInterop" ] && [ -n "$USE_1PASSWORD_SSH_KEY" ]; then
         # WSL
         /mnt/c/Windows/System32/OpenSSH/ssh.exe -F $config $*
       else
