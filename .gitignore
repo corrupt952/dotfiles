@@ -2,6 +2,7 @@ local
 *.local
 .zsh_history
 .chpwd-recent-dirs
+/config/.config/git/local
 /config/.config/git/profiles
 /config/bin/win32yank.exe
 
