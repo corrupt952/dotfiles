@@ -57,6 +57,7 @@
       - wimlib
       - aquaproj/aqua/aqua
       - corrupt952/tmuxist/tmuxist
+      - arp-scan
 
   - name: dotfiles
     block:
