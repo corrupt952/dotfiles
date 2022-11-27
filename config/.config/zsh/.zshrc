@@ -86,7 +86,6 @@ alias cp='cp -i'
 alias mv='mv -iv'
 alias rm='rm -i'
 alias ls="ls -AG"
-alias grep="rg"
 alias docker='docker-wrapper'
 alias ssh='ssh-wrapper'
 command::exist compdef && compdef ssh-wrapper='ssh'
