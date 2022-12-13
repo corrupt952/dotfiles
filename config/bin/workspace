@@ -35,11 +35,9 @@ class WorkspaceCommand
   def create(workspace_name)
     abort "Please set workspace_name" if workspace_name.empty?
 
-    workspace_path = File.join Dir.home, 'Workspace', workspace_name
-    abort "Already exist: #{workspace_name}"if Dir.exist? workspace_path
-
     # Make workspace and configurations
-    FileUtils.mkdir_p workspace_path, mode: 0o755
+    workspace_path = File.join Dir.home, 'Workspace', workspace_name
+    FileUtils.mkdir_p workspace_path, mode: 0o755 if Dir.exist? workspace_path
     make_ssh_config workspace_path
     make_aws_config workspace_path
     make_direnv_config workspace_path
@@ -93,6 +91,7 @@ class WorkspaceCommand
   # @param workspace_name
   def make_git_config(workspace_name, workspace_path)
     git_path = File.join Dir.home, '.config', 'git'
+    return if Dir.exist? git_path
 
     # $HOME/.config/git/{WORKSPACE_NAME}
     config_path = File.join git_path, 'profiles', workspace_name
@@ -118,6 +117,7 @@ class WorkspaceCommand
   # @param workspace_path
   def make_ssh_config(workspace_path)
     ssh_path = File.join(workspace_path, '.ssh')
+    return if Dir.exist? ssh_path
 
     FileUtils.mkdir_p ssh_path, mode: 0o700
     touch File.join(ssh_path, 'config'), 0o600
@@ -137,6 +137,7 @@ class WorkspaceCommand
   # @param workspace_path
   def make_aws_config(workspace_path)
     aws_path = File.join(workspace_path, '.aws')
+    return if Dir.exist? aws_path
 
     FileUtils.mkdir_p aws_path, mode: 0o755
     touch File.join(aws_path, 'config'), 0o755
@@ -149,6 +150,8 @@ class WorkspaceCommand
   # @param workspace_path
   def make_direnv_config(workspace_path)
     envrc_path = File.join(workspace_path, '.envrc')
+    return if File.exist? envrc_path
+
     File.write envrc_path, <<~SHELL
     export WORKSPACE_PATH="#{workspace_path}"
 
