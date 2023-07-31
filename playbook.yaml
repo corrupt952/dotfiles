@@ -196,9 +196,7 @@
       - firefox
       - brave-browser
       # Utilities
-      - zoom
       - 1password
-      - karabiner-elements
       - stats
       # Development
       - visual-studio-code
