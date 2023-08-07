@@ -39,6 +39,7 @@ fi
 if [ -d $HOME/.brew ]; then
   fpath+=($HOME/.brew/share/zsh/site-functions)
   path+=($HOME/.brew/bin)
+  path+=($HOME/.brew/sbin)
 fi
 if [ -d /home/linuxbrew/.linuxbrew ]; then
   fpath+=(/home/linuxbrew/.linuxbrew/share/zsh/site-functions)
