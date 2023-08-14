@@ -91,10 +91,10 @@ class WorkspaceCommand
   # @param workspace_name
   def make_git_config(workspace_name, workspace_path)
     git_path = File.join Dir.home, '.config', 'git'
-    return if Dir.exist? git_path
 
     # $HOME/.config/git/{WORKSPACE_NAME}
     config_path = File.join git_path, 'profiles', workspace_name
+    return if File.exist? config_path
     File.write config_path, <<~SHELL
     [user]
     name =
