@@ -55,6 +55,9 @@ if command::exist brew; then
     source $FZF_PATH/shell/key-bindings.zsh
   fi
 fi
+if command::exist asdf; then
+  source $(brew --prefix asdf)/libexec/asdf.sh
+fi
 
 # zinit
 source $ZINIT_HOME/zinit.zsh

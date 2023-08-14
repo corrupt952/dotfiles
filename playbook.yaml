@@ -33,7 +33,7 @@
     - name: Install packages via Homebrew
       homebrew:
         name: '{{ item }}'
-        state: latest
+        state: present
       with_items:
       - ansible
       - automake
@@ -58,6 +58,7 @@
       - aquaproj/aqua/aqua
       - corrupt952/tmuxist/tmuxist
       - arp-scan
+      - asdf
 
   - name: dotfiles
     block:
