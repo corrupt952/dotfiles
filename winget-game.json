@@ -1,0 +1,29 @@
+{
+  "$schema": "https://aka.ms/winget-packages.schema.2.0.json",
+  "WinGetVersion": "1.5.2201",
+  "CreationDate": "2023-09-16T00:00:00Z",
+  "Sources": [
+    {
+      "SourceDetails": {
+        "Argument": "https://cdn.winget.microsoft.com/cache",
+        "Identifier": "Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "Name": "winget",
+        "Type": "Microsoft.PreIndexed.Package"
+      },
+      "Packages": [
+        {
+          "PackageIdentifier": "Valve.Steam"
+        },
+        {
+          "PackageIdentifier": "GOG.Galaxy"
+        },
+        {
+          "PackageIdentifier": "EpicGames.EpicGamesLauncher"
+        },
+        {
+          "PackageIdentifier": "Ubisoft.Connect"
+        }
+      ]
+    }
+  ]
+}
