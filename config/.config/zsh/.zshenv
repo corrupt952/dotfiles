@@ -37,13 +37,12 @@ fi
 # Homebrew or Linuxbrew
 # for Homebrew
 if [ -d $HOME/.brew ]; then
-  fpath+=($HOME/.brew/share/zsh/site-functions)
-  path+=($HOME/.brew/bin)
-  path+=($HOME/.brew/sbin)
+  fpath=(/usr/local/share/zsh/site-functions $fpath)
+  path=($HOME/.brew/bin $HOME/.brew/sbin $path)
 fi
 if [ -d /home/linuxbrew/.linuxbrew ]; then
-  fpath+=(/home/linuxbrew/.linuxbrew/share/zsh/site-functions)
-  path+=("/home/linuxbrew/.linuxbrew/bin")
+  fpath=(/home/linuxbrew/.linuxbrew/share/zsh/site-functions $fpath)
+  path=("/home/linuxbrew/.linuxbrew/bin" "/home/linuxbrew/.linuxbrew/sbin" $path)
 fi
 
 # VSCode
@@ -57,18 +56,18 @@ fi
 export FZF_DEFAULT_OPTS="--exact --cycle --ansi --height 70% --reverse"
 
 # aqua
-path+=("${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin")
+path=("${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin" $path)
 
 # Node.js
 export N_PREFIX=$XDG_CACHE_HOME/n
-path+=($N_PREFIX/bin)
+path=($N_PREFIX/bin $path)
 
 # Flutter
 export FLUTTER_PREFIX=$XDG_CACHE_HOME/flutter
-path+=($FLUTTER_PREFIX/bin)
+path=($FLUTTER_PREFIX/bin $path)
 
 # Dart
-path+=($HOME/.pub-cache/bin)
+path=($HOME/.dart-sdk/bin $path)
 
 # zeno
 export ZENO_HOME="$XDG_CONFIG_HOME/zeno"
