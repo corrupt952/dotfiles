@@ -75,6 +75,9 @@ export ZENO_ENABLE_SOCK=1
 export ZENO_GIT_CAT="cat"
 export ZENO_GIT_TREE="tree"
 
+# krew
+path+=("$HOME/.krew/bin")
+
 # Editor
 if [[ -n "$(command -v code)" ]]; then
   export EDITOR="$(printf %q "$(command -v code)")"
