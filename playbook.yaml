@@ -59,6 +59,7 @@
       - corrupt952/tmuxist/tmuxist
       - arp-scan
       - asdf
+      - ruby
 
   - name: dotfiles
     block:
