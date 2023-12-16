@@ -49,6 +49,7 @@ fi
 if [ -d $HOME/.vscode-server ]; then
   for vspath in "$(ls -1d $HOME/.vscode-server/bin/*)"; do
     path+=("$vspath/bin")
+    path+=("$vspath/bin/remote-cli")
   done
 fi
 
