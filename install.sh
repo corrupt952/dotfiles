@@ -21,14 +21,15 @@ elif [ "$(uname -s)" = "Linux" ]; then
   [ -z "$(dpkg --get-selections | grep sudo)" ] && apt-get install -y sudo
   [ -z "$(dpkg --get-selections | grep curl)" ] && sudo apt-get install -y curl
   [ -z "$(dpkg --get-selections | grep git)" ] && sudo apt-get install -y git
+  [ -z "$(dpkg --get-selections | grep g++)" ] && sudo apt-get install -y build-essential
 
   BREW_PATH=/home/linuxbrew/.linuxbrew
   if [ ! -d $BREW_PATH ]; then
     bash <(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)
   fi
 fi
-export PATH="$BREW_PATH/bin:$PATH"
 
-brew install git ansible
-ansible-galaxy collection install community.general
-ansible-playbook playbook.yaml --ask-become-pass
+export PATH="$HOME/.local/share/aquaproj-aqua/bin:$BREW_PATH/bin:$PATH"
+brew install aquaproj/aqua/aqua
+aqua i
+mitamae local recipe.rb
