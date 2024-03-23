@@ -121,6 +121,8 @@ end
 
 # Configure dotfiles
 git 'corrupt952/dotfiles' do
+  not_if { File.exist?(DOTFILES_PATH) }
+
   repository DOTFILES_REPO
   destination DOTFILES_PATH
 end
