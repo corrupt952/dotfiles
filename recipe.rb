@@ -139,8 +139,12 @@ directory XDG_STATE_HOME do
   action :create
 end
 
-directory File.join(HOME_PATH, '.local', 'bin') do
-  action :create
+# .local/bin
+link '$HOME/.local/bin' do
+  not_if { File.exist?(File.join(HOME_PATH, '.local', 'bin')) }
+
+  source File.join(DOTFILES_CONFIG_PATH, '.local', 'bin')
+  destination File.join(HOME_PATH, '.local', 'bin')
 end
 
 # Zsh
