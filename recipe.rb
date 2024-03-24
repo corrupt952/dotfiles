@@ -173,7 +173,45 @@ symlink File.join(HOME_PATH, '.gemrc') do
 end
 
 # # Darwin
-# # TODO:
+result = run_command('[ "$(uname -s)" = "Darwin" ]', error: false)
+if result.success?
+  %w(mas cocoapods).each do |package|
+    brew package do
+      action :install
+    end
+  end
+
+  %w(
+    # Browsers
+    google-chrome firefox brave-browser microsoft-edge
+    # Utilities
+    1password stats
+    # Development
+    visual-studio-code flutter
+    # Entertainment
+    steam
+  ).each do |package|
+    brew package do
+      action :install
+      options ['--cask', '--appdir=/Applications']
+    end
+  end
+
+  %w(
+    409183694 # Keynote
+    409201541 # Pages
+    409203825 # Numbers
+    408981434 # iMovie
+    441258766 # Magnet
+    682658836 # GarageBand
+    1295203466 # Microsoft Remote Desktop
+    1246969117 # Steam Link
+  ).each do |id|
+    execute "mas install #{id}" do
+      command "mas install #{id}"
+    end
+  end
+end
 
 # # WSL
 # # TODO:

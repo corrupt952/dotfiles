@@ -24,7 +24,7 @@ class ::MItamae::Plugin::ResourceExecutor::Brew < ::MItamae::ResourceExecutor::B
     return if exist?(desired.name)
 
     MItamae.logger.info "#{@resource.resource_type}[#{desired.name}] installed will change from 'false' to 'true'"
-    @runner.run_command(['brew', 'install', desired.name])
+    @runner.run_command(['brew', 'install', *desired.options, desired.name])
   end
 
   def uninstall!
