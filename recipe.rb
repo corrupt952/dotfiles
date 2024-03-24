@@ -11,29 +11,6 @@ XDG_STATE_HOME = ENV.fetch('XDG_STATE_HOME', File.join(HOME_PATH, '.local', 'sta
 ZDOTDIR = ENV.fetch('ZDOTDIR', File.join(HOME_PATH, '.config', 'zsh'))
 ZINIT_HOME = ENV.fetch('ZINIT_HOME', File.join(HOME_PATH, '.zinit'))
 
-define :install_apt_packages, packages: [] do
-  packages = params[:packages]
-  execute "Install #{packages.join(',')}" do
-    command "sudo apt install -y --no-install-recommends #{packages.join(' ')}"
-  end
-end
-
-define :install_brew_packages, packages: [], options: [] do
-  packages = params[:packages]
-  options = params[:options]
-  execute "Install #{packages.join(',')}" do
-    command "brew install #{options.join(' ')} #{packages.join(' ')}"
-  end
-end
-
-define :link, source: nil, destination: nil do
-  source_path = File.expand_path(params[:source])
-  destination_path = File.expand_path(params[:destination])
-  execute "link #{source_path} to #{destination_path}" do
-    command "ln -s #{source_path} #{destination_path}"
-  end
-end
-
 define :touch, path: nil do
   path = File.expand_path(params[:path])
   execute "touch #{path}" do
@@ -48,12 +25,15 @@ if result.success?
     command 'sudo apt update'
   end
 
-  install_apt_packages 'apt install' do
-    packages %w(
-      locales-all ca-certificates build-essential
-      fonts-ipafont fonts-ipaexfont x11-xkb-utils
-      zsh vim wget
-    )
+  %w(
+    locales-all ca-certificates build-essential
+    fonts-ipafont fonts-ipaexfont x11-xkb-utils
+    zsh vim wget
+  ).each do |package|
+    package package do
+      user 'root'
+      action :install
+    end
   end
 
   # Docker
@@ -77,8 +57,11 @@ if result.success?
   execute 'apt update' do
     command 'sudo apt update'
   end
-  install_apt_packages 'apt install docker' do
-    packages %w(docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin)
+  %w(docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin).each do |package|
+    package package do
+      user 'root'
+      action :install
+    end
   end
 
   execute 'apt autoremove' do
@@ -91,32 +74,13 @@ execute 'brew update' do
   command 'brew update'
 end
 
-install_brew_packages 'brew install' do
-  packages %w(
-    automake
-    bat
-    cmake
-    coreutils
-    curl
-    direnv
-    deno
-    fzf
-    grep
-    gpg
-    gnu-sed
-    jq
-    libtool
-    ripgrep
-    tig
-    tmux
-    tree
-    wget
-    wimlib
-    arp-scan
-    asdf
-    aquaproj/aqua/aqua
-    corrupt952/tmuxist/tmuxist
-  )
+%w(
+  automake bat cmake coreutils curl direnv deno fzf grep gpg gnu-sed jq libtool
+  ripgrep tig tmux tree wget wimlib arp-scan asdf aquaproj/aqua/aqua corrupt952/tmuxist/tmuxist
+).each do |package|
+  brew package do
+    action :install
+  end
 end
 
 # Configure dotfiles
@@ -142,25 +106,22 @@ directory XDG_STATE_HOME do
 end
 
 # .local/bin
-link '$HOME/.local/bin' do
-  not_if { File.exist?(File.join(HOME_PATH, '.local', 'bin')) }
-
+directory File.join(HOME_PATH, '.local') do
+  action :create
+end
+symlink File.join(HOME_PATH, '.local', 'bin') do
   source File.join(DOTFILES_CONFIG_PATH, '.local', 'bin')
-  destination File.join(HOME_PATH, '.local', 'bin')
+  force true
 end
 
-# Zsh
-link '$HOME/.zshenv' do
-  not_if { File.exist?(File.join(HOME_PATH, '.zshenv'))}
-
+# # Zsh
+symlink File.join(HOME_PATH, '.zshenv') do
   source File.join(DOTFILES_CONFIG_PATH, '.zshenv')
-  destination File.join(HOME_PATH, '.zshenv')
+  force true
 end
-link '$ZDOTDIR' do
-  not_if { File.exist?(ZDOTDIR) }
-
+symlink ZDOTDIR do
   source File.join(DOTFILES_CONFIG_PATH, '.config', 'zsh')
-  destination ZDOTDIR
+  force true
 end
 touch '.zshrc.local' do
   path File.join(ZDOTDIR, '.zshrc.local')
@@ -171,67 +132,53 @@ git 'zinit' do
   repository 'https://github.com/zdharma-continuum/zinit.git'
   destination ZINIT_HOME
 end
-link '$XDG_CONFIG_HOME/zeno' do
-  not_if { File.exist?(File.join(XDG_CONFIG_HOME, 'zeno')) }
-
+symlink File.join(XDG_CONFIG_HOME, 'zeno') do
   source File.join(DOTFILES_CONFIG_PATH, '.config', 'zeno')
-  destination File.join(XDG_CONFIG_HOME, 'zeno')
+  force true
 end
 
-# Tmux
-link '$HOME/.tmux.conf' do
-  not_if { File.exist?(File.join(HOME_PATH, '.tmux.conf')) }
-
+# # Tmux
+symlink File.join(HOME_PATH, '.tmux.conf') do
   source File.join(DOTFILES_CONFIG_PATH, '.tmux.conf')
-  destination File.join(HOME_PATH, '.tmux.conf')
+  force true
 end
-link '$XDG_CONFIG_HOME/tmux' do
-  not_if { File.exist?(File.join(XDG_CONFIG_HOME, 'tmux')) }
-
+symlink File.join(XDG_CONFIG_HOME, 'tmux') do
   source File.join(DOTFILES_CONFIG_PATH, '.config', 'tmux')
-  destination File.join(XDG_CONFIG_HOME, 'tmux')
+  force true
 end
 
-# Git
-link '$HOME/.gitconfig' do
-  not_if { File.exist?(File.join(HOME_PATH, '.gitconfig')) }
-
+# # Git
+symlink File.join(HOME_PATH, '.gitconfig') do
   source File.join(DOTFILES_CONFIG_PATH, '.gitconfig')
-  destination File.join(HOME_PATH, '.gitconfig')
+  force true
 end
-link "$XDG_CONFIG_HOME/git" do
-  not_if { File.exist?(File.join(XDG_CONFIG_HOME, 'git')) }
-
+symlink File.join(XDG_CONFIG_HOME, 'git') do
   source File.join(DOTFILES_CONFIG_PATH, '.config', 'git')
-  destination File.join(XDG_CONFIG_HOME, 'git')
+  force true
 end
 touch '$XDG_CONFIG_HOME/git/local' do
   path File.join(XDG_CONFIG_HOME, 'git', 'local')
 end
 
-# direnv
-link '$HOME/.direnvrc' do
-  not_if { File.exist?(File.join(HOME_PATH, '.direnvrc')) }
-
+# # direnv
+symlink File.join(HOME_PATH, '.direnvrc') do
   source File.join(DOTFILES_CONFIG_PATH, '.direnvrc')
-  destination File.join(HOME_PATH, '.direnvrc')
+  force true
 end
 
-# Ruby
-link '$HOME/.gemrc' do
-  not_if { File.exist?(File.join(HOME_PATH, '.gemrc')) }
-
+# # Ruby
+symlink File.join(HOME_PATH, '.gemrc') do
   source File.join(DOTFILES_CONFIG_PATH, '.gemrc')
-  destination File.join(HOME_PATH, '.gemrc')
+  force true
 end
 
-# Darwin
-# TODO:
+# # Darwin
+# # TODO:
 
-# WSL
-# TODO: 
+# # WSL
+# # TODO:
 
-# asdf
+# # asdf
 execute 'asdf plugin add ruby' do
   command 'asdf plugin add ruby'
 end
