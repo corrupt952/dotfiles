@@ -181,16 +181,16 @@ if result.success?
     end
   end
 
-  %w(
+  [
     # Browsers
-    google-chrome firefox brave-browser microsoft-edge
+    'google-chrome', 'firefox', 'brave-browser', 'microsoft-edge',
     # Utilities
-    1password stats
+    '1password', 'stats', 'raycast',
     # Development
-    visual-studio-code flutter
+    'visual-studio-code', 'flutter',
     # Entertainment
-    steam
-  ).each do |package|
+    'steam',
+  ].each do |package|
     brew package do
       action :install
       options ['--cask', '--appdir=/Applications']
