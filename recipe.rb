@@ -197,18 +197,22 @@ if result.success?
     end
   end
 
-  %w(
-    409183694 # Keynote
-    409201541 # Pages
-    409203825 # Numbers
-    408981434 # iMovie
-    441258766 # Magnet
-    682658836 # GarageBand
-    1295203466 # Microsoft Remote Desktop
-    1246969117 # Steam Link
-  ).each do |id|
-    execute "mas install #{id}" do
-      command "mas install #{id}"
+  # App Storeからインストールするかを確認ししてから実行
+  print 'Do you want to install apps from the App Store? [y/N]: '
+  if $stdin.tty? && $stdin.gets.chomp.start_with?('y')
+    [
+      409183694, # Keynote
+      409201541, # Pages
+      409203825, # Numbers
+      408981434, # iMovie
+      441258766, # Magnet
+      682658836, # GarageBand
+      1295203466, # Microsoft Remote Desktop
+      1246969117, # Steam Link
+    ].each do |id|
+      execute "mas install #{id}" do
+        command "mas install #{id}"
+      end
     end
   end
 end
