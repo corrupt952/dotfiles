@@ -187,7 +187,7 @@ if result.success?
     # Utilities
     '1password', 'stats', 'raycast',
     # Development
-    'visual-studio-code', 'flutter',
+    'visual-studio-code', 'flutter', 'docker', 'sequel-ace',
     # Entertainment
     'steam',
   ].each do |package|
