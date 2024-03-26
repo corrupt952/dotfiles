@@ -197,7 +197,6 @@ if result.success?
     end
   end
 
-  # App Storeからインストールするかを確認ししてから実行
   print 'Do you want to install apps from the App Store? [y/N]: '
   if $stdin.tty? && $stdin.gets.chomp.start_with?('y')
     [
