@@ -56,7 +56,7 @@ command::clip() {
   if os::is_darwin; then
     pbcopy <"$1"
   elif os::is_wsl; then
-    win32yank.exe -i <"$1"
+    /mnt/c/windows/system32/clip.exe <"$1"
   else
     logger::error "This function works only on macOS or WSL"
   fi
