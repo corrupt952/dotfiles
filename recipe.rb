@@ -216,27 +216,8 @@ if result.success?
   end
 end
 
-# WSL
-if File.exist?('/proc/sys/fs/binfmt_misc/WSLInterop')
-  # win32yank
-  unless File.exist?(File.join(HOME_PATH, '.local', 'bin', 'win32yank.exe'))
-    url = 'https://github.com/equalsraf/win32yank/releases/download/v0.0.4/win32yank-x64.zip'
-    execute 'download win32yank' do
-      command "wget -O /tmp/win32yank-x64.zip #{url}"
-    end
-    execute 'unzip win32yank' do
-      command "unzip /tmp/win32yank-x64.zip -d #{File.join(HOME_PATH, '.local', 'bin')}"
-    end
-    execute 'chmod win32yank' do
-      command "chmod +x #{File.join(HOME_PATH, '.local', 'bin', 'win32yank.exe')}"
-    end
-    execute 'rm win32yank' do
-      command 'rm /tmp/win32yank-x64.zip'
-    end
-  end
-end
 
-# # asdf
+# asdf
 execute 'asdf plugin add ruby' do
   command 'asdf plugin add ruby'
 end
