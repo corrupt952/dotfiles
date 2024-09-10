@@ -56,10 +56,9 @@ fi
 # fzf
 export FZF_DEFAULT_OPTS="--exact --cycle --ansi --height 70% --reverse"
 
-# aqua
-path=("${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin" $path)
-
 # Node.js
+export NPM_CONFIG_PREFIX="${XDG_DATA_HOME:-$HOME/.local/share}/npm-global"
+path=($NPM_CONFIG_PREFIX/bin $path)
 export N_PREFIX=$XDG_CACHE_HOME/n
 path=($N_PREFIX/bin $path)
 
