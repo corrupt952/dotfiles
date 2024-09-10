@@ -1,6 +1,6 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["github>corrupt952/.github:default.json5"],
-  schedule: ["every monday at 9:00"],
-  minimumReleaseAge: "5 days",
+  extends: [
+    "github>corrupt952/.github:default.json5",
+  ],
 }
