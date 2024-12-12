@@ -12,12 +12,6 @@
       },
       "Packages": [
         {
-          "PackageIdentifier": "Google.JapaneseIME"
-        },
-        {
-          "PackageIdentifier": "Google.GoogleDrive"
-        },
-        {
           "PackageIdentifier": "AgileBits.1Password"
         },
         {
@@ -36,13 +30,10 @@
           "PackageIdentifier": "Microsoft.VisualStudioCode"
         },
         {
-          "PackageIdentifier": "Canonical.Ubuntu.2204"
+          "PackageIdentifier": "JetBrains.Toolbox"
         },
         {
-          "PackageIdentifier": "OBSProject.OBSStudio"
-        },
-        {
-          "PackageIdentifier": "OpenSCAD.OpenSCAD"
+          "PackageIdentifier": "Docker.DockerDesktop"
         }
       ]
     }
