@@ -33,7 +33,7 @@
           "PackageIdentifier": "JetBrains.Toolbox"
         },
         {
-          "PackageIdentifier": "Docker.DockerDesktop"
+          "PackageIdentifier": "Canonical.Ubuntu.2204"
         }
       ]
     }
