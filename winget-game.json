@@ -19,9 +19,6 @@
         },
         {
           "PackageIdentifier": "EpicGames.EpicGamesLauncher"
-        },
-        {
-          "PackageIdentifier": "Ubisoft.Connect"
         }
       ]
     }
