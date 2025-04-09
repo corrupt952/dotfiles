@@ -183,11 +183,13 @@ if result.success?
 
   [
     # Browsers
-    'google-chrome', 'firefox', 'brave-browser', 'microsoft-edge',
+    'google-chrome', 'firefox',
     # Utilities
     '1password', 'stats', 'raycast',
     # Development
-    'visual-studio-code', 'flutter', 'docker', 'sequel-ace',
+    'visual-studio-code', 'cursor', 'flutter', 'orbstack', 'unity-hub', 'jetbrains-toolbox',
+    # Communication
+    "discord",
     # Entertainment
     'steam',
   ].each do |package|
@@ -204,7 +206,6 @@ if result.success?
       409201541, # Pages
       409203825, # Numbers
       408981434, # iMovie
-      441258766, # Magnet
       682658836, # GarageBand
       1295203466, # Microsoft Remote Desktop
       1246969117, # Steam Link
