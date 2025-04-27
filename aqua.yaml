@@ -10,4 +10,4 @@ registries:
 - type: standard
   ref: v4.353.0 # renovate: depName=aquaproj/aqua-registry
 packages:
-- name: itamae-kitchen/mitamae@v1.14.2
+- name: itamae-kitchen/mitamae@v1.14.3
