@@ -94,6 +94,7 @@ alias rm='rm -i'
 alias ls="ls -AG"
 alias docker='docker-wrapper'
 alias ssh='ssh-wrapper'
+alias claude='SHELL=/bin/bash claude'
 command::exist compdef && compdef ssh-wrapper='ssh'
 
 # Hooks
