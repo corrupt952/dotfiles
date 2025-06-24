@@ -84,3 +84,6 @@ node_modules/
 
 # Serverless Framework
 .serverless/
+
+# Claude Code
+.claude/settings.local.json
