@@ -190,6 +190,116 @@ if result.success?
     end
   end
 
+  # macOS defaults settings
+  # NSGlobalDomain
+  execute 'Set dark mode' do
+    command 'defaults write NSGlobalDomain AppleInterfaceStyle Dark'
+  end
+  execute 'Enable swipe navigation' do
+    command 'defaults write NSGlobalDomain AppleEnableSwipeNavigateWithScrolls -bool true'
+  end
+  execute 'Set natural scrolling' do
+    command 'defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false'
+  end
+
+  # Menu bar clock
+  execute 'Set 24-hour time format' do
+    command 'defaults write com.apple.menuextra.clock Show24Hour -bool true'
+  end
+  execute 'Hide day of week in clock' do
+    command 'defaults write com.apple.menuextra.clock ShowDayOfWeek -bool false'
+  end
+  execute 'Hide seconds in clock' do
+    command 'defaults write com.apple.menuextra.clock ShowSeconds -bool false'
+  end
+
+  # Control Center
+  execute 'Hide Focus Modes in Control Center' do
+    command 'defaults write com.apple.controlcenter "NSStatusItem Visible FocusModes" -bool false'
+  end
+  execute 'Hide Battery percentage in Control Center' do
+    command 'defaults write com.apple.controlcenter "NSStatusItem Visible BatteryShowPercentage" -bool false'
+  end
+  execute 'Hide Now Playing in Control Center' do
+    command 'defaults write com.apple.controlcenter "NSStatusItem Visible NowPlaying" -bool false'
+  end
+  execute 'Hide Sound in Control Center' do
+    command 'defaults write com.apple.controlcenter "NSStatusItem Visible Sound" -bool false'
+  end
+  execute 'Hide Bluetooth in Control Center' do
+    command 'defaults write com.apple.controlcenter "NSStatusItem Visible Bluetooth" -bool false'
+  end
+  execute 'Hide AirDrop in Control Center' do
+    command 'defaults write com.apple.controlcenter "NSStatusItem Visible AirDrop" -bool false'
+  end
+
+  # Trackpad
+  execute 'Enable tap to click' do
+    command 'defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true'
+  end
+
+  # Dock
+  execute 'Auto-hide Dock' do
+    command 'defaults write com.apple.dock autohide -bool true'
+  end
+  execute 'Hide recent apps in Dock' do
+    command 'defaults write com.apple.dock show-recents -bool false'
+  end
+  execute 'Disable Dock magnification' do
+    command 'defaults write com.apple.dock magnification -bool false'
+  end
+  execute 'Set Dock icon size' do
+    command 'defaults write com.apple.dock tilesize -int 64'
+  end
+  execute 'Set Dock large size' do
+    command 'defaults write com.apple.dock largesize -int 64'
+  end
+  execute 'Set Dock position' do
+    command 'defaults write com.apple.dock orientation bottom'
+  end
+  execute 'Set minimize effect' do
+    command 'defaults write com.apple.dock mineffect scale'
+  end
+  execute 'Disable launch animation' do
+    command 'defaults write com.apple.dock launchanim -bool false'
+  end
+
+  # Finder
+  execute 'Show all file extensions' do
+    command 'defaults write com.apple.finder AppleShowAllExtensions -bool true'
+  end
+  execute 'Show hidden files' do
+    command 'defaults write com.apple.finder AppleShowAllFiles -bool true'
+  end
+  execute 'Hide desktop icons' do
+    command 'defaults write com.apple.finder CreateDesktop -bool false'
+  end
+  execute 'Disable extension change warning' do
+    command 'defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false'
+  end
+  execute 'Show path bar in Finder' do
+    command 'defaults write com.apple.finder ShowPathbar -bool true'
+  end
+  execute 'Show status bar in Finder' do
+    command 'defaults write com.apple.finder ShowStatusBar -bool true'
+  end
+
+  # Keyboard remapping (CapsLock to Control)
+  execute 'Remap CapsLock to Control' do
+    command 'hidutil property --set \'{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}]}\''
+  end
+
+  # Apply changes
+  execute 'Restart Dock' do
+    command 'killall Dock'
+  end
+  execute 'Restart Finder' do
+    command 'killall Finder'
+  end
+  execute 'Restart SystemUIServer' do
+    command 'killall SystemUIServer'
+  end
+
   [
     # Browsers
     'google-chrome', 'firefox',
