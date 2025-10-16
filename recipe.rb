@@ -238,6 +238,11 @@ if result.success?
     command 'defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true'
   end
 
+  # Mission Control
+  execute 'Disable automatic space rearrangement' do
+    command 'defaults write com.apple.dock mru-spaces -bool false'
+  end
+
   # Dock
   execute 'Auto-hide Dock' do
     command 'defaults write com.apple.dock autohide -bool true'
