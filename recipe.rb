@@ -156,6 +156,12 @@ symlink File.join(XDG_CONFIG_HOME, 'tmux') do
   force true
 end
 
+# # WezTerm
+symlink File.join(XDG_CONFIG_HOME, 'wezterm') do
+  source File.join(DOTFILES_CONFIG_PATH, '.config', 'wezterm')
+  force true
+end
+
 # # Git
 symlink File.join(HOME_PATH, '.gitconfig') do
   source File.join(DOTFILES_CONFIG_PATH, '.gitconfig')
@@ -311,7 +317,7 @@ if result.success?
     # Utilities
     '1password', 'stats', 'raycast',
     # Development
-    'visual-studio-code', 'cursor', 'flutter', 'orbstack', 'unity-hub', 'jetbrains-toolbox',
+    'visual-studio-code', 'cursor', 'flutter', 'orbstack', 'unity-hub', 'jetbrains-toolbox', 'wezterm',
     # Communication
     "discord",
     # Entertainment
