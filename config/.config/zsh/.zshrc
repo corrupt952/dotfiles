@@ -62,7 +62,7 @@ if command::exist aqua; then
   path=("${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin" $path)
 fi
 if command::exist mise; then
-  eval "$(mise activate bash)"
+  eval "$(mise activate zsh)"
 fi
 
 # zinit
