@@ -91,6 +91,74 @@ local function build_project_choices()
   return choices, projects
 end
 
+-- ============================================
+-- Temporal Workspace (limbus::)
+-- ============================================
+local temporal_tabs = {
+  { name = 'claude', cmd = 'claude' },
+  { name = 'shell' },
+}
+
+local function setup_temporal_tabs(workspace_name, cwd)
+  wezterm.time.call_after(0.3, function()
+    local workspace_windows = {}
+    for _, win in ipairs(mux.all_windows()) do
+      if win:get_workspace() == workspace_name then
+        table.insert(workspace_windows, win)
+      end
+    end
+
+    if #workspace_windows == 0 then return end
+    local mux_win = workspace_windows[1]
+
+    for i, tab_config in ipairs(temporal_tabs) do
+      local tab, pane
+      if i == 1 then
+        tab = mux_win:active_tab()
+        pane = tab:active_pane()
+        pane:send_text('cd ' .. cwd .. '\n')
+      else
+        tab, pane = mux_win:spawn_tab { cwd = cwd }
+        pane:send_text('cd ' .. cwd .. '\n')
+      end
+
+      if tab_config.cmd then
+        pane:send_text(tab_config.cmd .. '\n')
+      end
+    end
+
+    local first_tab = mux_win:tabs()[1]
+    if first_tab then
+      first_tab:activate()
+    end
+  end)
+end
+
+local function create_temporal_workspace(window, pane)
+  local cwd_url = pane:get_current_working_dir()
+  if not cwd_url then
+    window:toast_notification('WezTerm', 'Could not get current directory', nil, 3000)
+    return
+  end
+
+  local cwd = cwd_url.file_path
+  local dir_name = cwd:match('([^/]+)/?$') or 'unnamed'
+  local workspace_name = 'limbus::' .. dir_name
+
+  window:perform_action(
+    act.SwitchToWorkspace {
+      name = workspace_name,
+      spawn = { cwd = cwd },
+    },
+    pane
+  )
+
+  setup_temporal_tabs(workspace_name, cwd)
+end
+
+-- ============================================
+-- Project Workspace System
+-- ============================================
 local function setup_project_tabs(project)
   wezterm.time.call_after(0.3, function()
     local workspace_windows = {}
@@ -234,6 +302,7 @@ M.keys = {
   }},
 
   -- Workspace / Project
+  { key = 'Enter', mods = 'LEADER', action = wezterm.action_callback(create_temporal_workspace) }, -- temporal workspace (limbus::)
   { key = 'f', mods = 'LEADER', action = wezterm.action_callback(function(window, pane) -- project launcher
     local choices, _ = build_project_choices()
 
