@@ -92,12 +92,72 @@ local function build_project_choices()
 end
 
 -- ============================================
--- Temporal Workspace (limbus::)
+-- Ephemeral Workspace Tabs (shared by limbus:: and specter::)
 -- ============================================
-local temporal_tabs = {
+local ephemeral_tabs = {
   { name = 'claude', cmd = 'claude' },
   { name = 'shell' },
 }
+
+-- ============================================
+-- Specter Workspace (specter::) - Truly ephemeral
+-- ============================================
+local specter_dir = wezterm.home_dir .. '/.specter'
+
+local function create_specter_workspace(window, pane)
+  local timestamp = os.date('%m%d-%H%M')
+  local workspace_name = 'specter::' .. timestamp
+  local cwd = specter_dir .. '/' .. timestamp
+
+  -- Create directory
+  os.execute('mkdir -p "' .. cwd .. '"')
+
+  window:perform_action(
+    act.SwitchToWorkspace {
+      name = workspace_name,
+      spawn = { cwd = cwd },
+    },
+    pane
+  )
+
+  -- Setup tabs (reuse the same pattern as limbus)
+  wezterm.time.call_after(0.3, function()
+    local workspace_windows = {}
+    for _, win in ipairs(mux.all_windows()) do
+      if win:get_workspace() == workspace_name then
+        table.insert(workspace_windows, win)
+      end
+    end
+
+    if #workspace_windows == 0 then return end
+    local mux_win = workspace_windows[1]
+
+    for i, tab_config in ipairs(ephemeral_tabs) do
+      local tab, tab_pane
+      if i == 1 then
+        tab = mux_win:active_tab()
+        tab_pane = tab:active_pane()
+        tab_pane:send_text('cd ' .. cwd .. '\n')
+      else
+        tab, tab_pane = mux_win:spawn_tab { cwd = cwd }
+        tab_pane:send_text('cd ' .. cwd .. '\n')
+      end
+
+      if tab_config.cmd then
+        tab_pane:send_text(tab_config.cmd .. '\n')
+      end
+    end
+
+    local first_tab = mux_win:tabs()[1]
+    if first_tab then
+      first_tab:activate()
+    end
+  end)
+end
+
+-- ============================================
+-- Temporal Workspace (limbus::)
+-- ============================================
 
 local function setup_temporal_tabs(workspace_name, cwd)
   wezterm.time.call_after(0.3, function()
@@ -111,7 +171,7 @@ local function setup_temporal_tabs(workspace_name, cwd)
     if #workspace_windows == 0 then return end
     local mux_win = workspace_windows[1]
 
-    for i, tab_config in ipairs(temporal_tabs) do
+    for i, tab_config in ipairs(ephemeral_tabs) do
       local tab, pane
       if i == 1 then
         tab = mux_win:active_tab()
@@ -303,6 +363,7 @@ M.keys = {
 
   -- Workspace / Project
   { key = 'Enter', mods = 'LEADER', action = wezterm.action_callback(create_temporal_workspace) }, -- temporal workspace (limbus::)
+  { key = 'Enter', mods = 'LEADER|SHIFT', action = wezterm.action_callback(create_specter_workspace) }, -- ephemeral workspace (specter::)
   { key = 'f', mods = 'LEADER', action = wezterm.action_callback(function(window, pane) -- project launcher
     local choices, _ = build_project_choices()
 
