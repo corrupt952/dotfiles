@@ -56,6 +56,10 @@ M.colors = {
 -- ============================================
 -- Fonts
 -- ============================================
+M.font = wezterm.font_with_fallback {
+  'JetBrains Mono',
+  'Hiragino Sans',
+}
 M.font_size = 18
 
 -- ============================================
@@ -78,6 +82,7 @@ function M.apply(config)
   config.colors = M.colors
 
   -- Fonts
+  config.font = M.font
   config.font_size = M.font_size
 
   -- Tab title format (UTF-8 safe)
