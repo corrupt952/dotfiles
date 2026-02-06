@@ -5,11 +5,18 @@ local mux = wezterm.mux
 local M = {}
 
 -- ============================================
+-- Default Tabs
+-- ============================================
+local ephemeral_tabs = {
+  { name = 'claude', cmd = 'claude' },
+  { name = 'shell' },
+}
+
+-- ============================================
 -- Project Workspace System
 -- ============================================
 local projects_dir = wezterm.home_dir .. '/.config/wezterm-projects'
 
--- Expand ~ to home directory
 local function expand_path(path)
   if path and path:sub(1, 1) == '~' then
     return wezterm.home_dir .. path:sub(2)
@@ -19,20 +26,42 @@ end
 
 local function load_projects()
   local projects = {}
-  local handle = io.popen('ls -1 "' .. projects_dir .. '"/*.lua 2>/dev/null')
+
+  -- Auto-discover from ~/Workspace/<owner>/<repo>
+  local workspace_dir = wezterm.home_dir .. '/Workspace'
+  local handle = io.popen(
+    'find "' .. workspace_dir .. '" -maxdepth 2 -mindepth 2 -type d -not -name ".*" 2>/dev/null'
+  )
   if handle then
-    for file in handle:lines() do
-      local name = file:match('([^/]+)%.lua$')
+    for path in handle:lines() do
+      local name = path:match('([^/]+)$')
       if name then
-        local ok, project = pcall(dofile, file)
-        if ok and project and project.workspace then
-          project.cwd = expand_path(project.cwd)
-          projects[project.workspace] = project
-        end
+        projects[name] = {
+          workspace = name,
+          cwd = path,
+          tabs = ephemeral_tabs,
+        }
       end
     end
     handle:close()
   end
+
+  -- Override with explicit project files (for custom tabs, etc.)
+  local override_handle = io.popen('ls -1 "' .. projects_dir .. '"/*.lua 2>/dev/null')
+  if override_handle then
+    for file in override_handle:lines() do
+      local ok, project = pcall(dofile, file)
+      if ok and project and project.workspace then
+        project.cwd = expand_path(project.cwd)
+        if not project.tabs then
+          project.tabs = ephemeral_tabs
+        end
+        projects[project.workspace] = project
+      end
+    end
+    override_handle:close()
+  end
+
   return projects
 end
 
@@ -92,35 +121,9 @@ local function build_project_choices()
 end
 
 -- ============================================
--- Ephemeral Workspace Tabs (shared by limbus:: and specter::)
+-- Workspace Tab Setup (shared by all workspace types)
 -- ============================================
-local ephemeral_tabs = {
-  { name = 'claude', cmd = 'claude' },
-  { name = 'shell' },
-}
-
--- ============================================
--- Specter Workspace (specter::) - Truly ephemeral
--- ============================================
-local specter_dir = wezterm.home_dir .. '/.specter'
-
-local function create_specter_workspace(window, pane)
-  local timestamp = os.date('%m%d-%H%M')
-  local workspace_name = 'specter::' .. timestamp
-  local cwd = specter_dir .. '/' .. timestamp
-
-  -- Create directory
-  os.execute('mkdir -p "' .. cwd .. '"')
-
-  window:perform_action(
-    act.SwitchToWorkspace {
-      name = workspace_name,
-      spawn = { cwd = cwd },
-    },
-    pane
-  )
-
-  -- Setup tabs (reuse the same pattern as limbus)
+local function setup_workspace_tabs(workspace_name, cwd, tabs)
   wezterm.time.call_after(0.3, function()
     local workspace_windows = {}
     for _, win in ipairs(mux.all_windows()) do
@@ -132,46 +135,7 @@ local function create_specter_workspace(window, pane)
     if #workspace_windows == 0 then return end
     local mux_win = workspace_windows[1]
 
-    for i, tab_config in ipairs(ephemeral_tabs) do
-      local tab, tab_pane
-      if i == 1 then
-        tab = mux_win:active_tab()
-        tab_pane = tab:active_pane()
-        tab_pane:send_text('cd ' .. cwd .. '\n')
-      else
-        tab, tab_pane = mux_win:spawn_tab { cwd = cwd }
-        tab_pane:send_text('cd ' .. cwd .. '\n')
-      end
-
-      if tab_config.cmd then
-        tab_pane:send_text(tab_config.cmd .. '\n')
-      end
-    end
-
-    local first_tab = mux_win:tabs()[1]
-    if first_tab then
-      first_tab:activate()
-    end
-  end)
-end
-
--- ============================================
--- Temporal Workspace (limbus::)
--- ============================================
-
-local function setup_temporal_tabs(workspace_name, cwd)
-  wezterm.time.call_after(0.3, function()
-    local workspace_windows = {}
-    for _, win in ipairs(mux.all_windows()) do
-      if win:get_workspace() == workspace_name then
-        table.insert(workspace_windows, win)
-      end
-    end
-
-    if #workspace_windows == 0 then return end
-    local mux_win = workspace_windows[1]
-
-    for i, tab_config in ipairs(ephemeral_tabs) do
+    for i, tab_config in ipairs(tabs) do
       local tab, pane
       if i == 1 then
         tab = mux_win:active_tab()
@@ -194,6 +158,32 @@ local function setup_temporal_tabs(workspace_name, cwd)
   end)
 end
 
+-- ============================================
+-- Specter Workspace (specter::) - Truly ephemeral
+-- ============================================
+local specter_dir = wezterm.home_dir .. '/.specter'
+
+local function create_specter_workspace(window, pane)
+  local timestamp = os.date('%m%d-%H%M')
+  local workspace_name = 'specter::' .. timestamp
+  local cwd = specter_dir .. '/' .. timestamp
+
+  os.execute('mkdir -p "' .. cwd .. '"')
+
+  window:perform_action(
+    act.SwitchToWorkspace {
+      name = workspace_name,
+      spawn = { cwd = cwd },
+    },
+    pane
+  )
+
+  setup_workspace_tabs(workspace_name, cwd, ephemeral_tabs)
+end
+
+-- ============================================
+-- Temporal Workspace (limbus::)
+-- ============================================
 local function create_temporal_workspace(window, pane)
   local cwd_url = pane:get_current_working_dir()
   if not cwd_url then
@@ -213,53 +203,13 @@ local function create_temporal_workspace(window, pane)
     pane
   )
 
-  setup_temporal_tabs(workspace_name, cwd)
+  setup_workspace_tabs(workspace_name, cwd, ephemeral_tabs)
 end
 
 -- ============================================
--- Project Workspace System
+-- Project Workspace Switcher
 -- ============================================
-local function setup_project_tabs(project)
-  wezterm.time.call_after(0.3, function()
-    local workspace_windows = {}
-    for _, win in ipairs(mux.all_windows()) do
-      if win:get_workspace() == project.workspace then
-        table.insert(workspace_windows, win)
-      end
-    end
-
-    if #workspace_windows == 0 then return end
-    local mux_win = workspace_windows[1]
-
-    local tabs = project.tabs or {}
-    for i, tab_config in ipairs(tabs) do
-      local tab, pane
-      if i == 1 then
-        tab = mux_win:active_tab()
-        pane = tab:active_pane()
-        if project.cwd then
-          pane:send_text('cd ' .. project.cwd .. '\n')
-        end
-      else
-        tab, pane = mux_win:spawn_tab { cwd = project.cwd }
-        if project.cwd then
-          pane:send_text('cd ' .. project.cwd .. '\n')
-        end
-      end
-
-      if tab_config.cmd then
-        pane:send_text(tab_config.cmd .. '\n')
-      end
-    end
-
-    local first_tab = mux_win:tabs()[1]
-    if first_tab then
-      first_tab:activate()
-    end
-  end)
-end
-
-local function switch_or_start_project(window, pane, id)
+local function switch_or_start_project(window, pane, id, projects)
   local ws_name = id:match('^workspace:(.+)$')
   if ws_name then
     window:perform_action(act.SwitchToWorkspace { name = ws_name }, pane)
@@ -270,23 +220,22 @@ local function switch_or_start_project(window, pane, id)
   if not name then return end
 
   local active = get_active_workspaces()
-  local projects = load_projects()
   local project = projects[name]
 
   if active[name] then
     window:perform_action(act.SwitchToWorkspace { name = name }, pane)
   else
+    local cwd = project and project.cwd or wezterm.home_dir
     window:perform_action(
       act.SwitchToWorkspace {
         name = name,
-        spawn = { cwd = project and project.cwd or wezterm.home_dir },
+        spawn = { cwd = cwd },
       },
       pane
     )
 
-    if project and project.tabs then
-      setup_project_tabs(project)
-    end
+    local tabs = project and project.tabs or ephemeral_tabs
+    setup_workspace_tabs(name, cwd, tabs)
   end
 end
 
@@ -365,10 +314,10 @@ M.keys = {
   { key = 'Enter', mods = 'LEADER', action = wezterm.action_callback(create_temporal_workspace) }, -- temporal workspace (limbus::)
   { key = 'Enter', mods = 'LEADER|SHIFT', action = wezterm.action_callback(create_specter_workspace) }, -- ephemeral workspace (specter::)
   { key = 'f', mods = 'LEADER', action = wezterm.action_callback(function(window, pane) -- project launcher
-    local choices, _ = build_project_choices()
+    local choices, projects = build_project_choices()
 
     if #choices == 0 then
-      window:toast_notification('WezTerm', 'No projects found in ' .. projects_dir, nil, 3000)
+      window:toast_notification('WezTerm', 'No projects found in ~/Workspace', nil, 3000)
       return
     end
 
@@ -379,7 +328,7 @@ M.keys = {
         fuzzy = true,
         action = wezterm.action_callback(function(inner_window, inner_pane, id, label)
           if id then
-            switch_or_start_project(inner_window, inner_pane, id)
+            switch_or_start_project(inner_window, inner_pane, id, projects)
           end
         end),
       },
