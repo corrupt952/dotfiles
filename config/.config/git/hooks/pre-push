@@ -21,12 +21,22 @@ def restrict_force_push(command)
 end
 
 def main
-  _, _, remote_ref, _ = (STDIN.gets || '').chomp.split
-  branch_name = remote_ref.gsub('refs/heads/', '')
+  input = STDIN.read
   command = `ps -o command= -p #{Process.ppid}`.chomp
 
-  restrict_branches branch_name
   restrict_force_push command
+
+  input.each_line do |line|
+    _, _, remote_ref, _ = line.chomp.split
+    next if remote_ref.nil? || remote_ref.empty?
+
+    branch_name = remote_ref.gsub('refs/heads/', '')
+    restrict_branches branch_name
+  end
+
+  if system('command -v git-lfs > /dev/null 2>&1')
+    IO.popen(['git', 'lfs', 'pre-push', *ARGV], 'w') { |io| io.write(input) }
+  end
 rescue => e
   STDERR.puts e.message
   exit 1
