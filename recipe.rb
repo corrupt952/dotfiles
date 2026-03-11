@@ -315,7 +315,7 @@ if result.success?
     # Browsers
     'google-chrome', 'firefox',
     # Utilities
-    '1password', 'stats', 'raycast',
+    '1password', 'stats', 'raycast', 'obsidian',
     # Development
     'visual-studio-code', 'cursor', 'flutter', 'orbstack', 'unity-hub', 'jetbrains-toolbox', 'wezterm',
     # Communication
@@ -337,7 +337,6 @@ if result.success?
       409203825, # Numbers
       408981434, # iMovie
       682658836, # GarageBand
-      1295203466, # Microsoft Remote Desktop
       1246969117, # Steam Link
     ].each do |id|
       execute "mas install #{id}" do
