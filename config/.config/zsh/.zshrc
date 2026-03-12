@@ -55,9 +55,6 @@ if command::exist brew; then
     source $FZF_PATH/shell/key-bindings.zsh
   fi
 fi
-if command::exist asdf; then
-  source $(brew --prefix asdf)/libexec/asdf.sh
-fi
 if command::exist aqua; then
   path=("${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin" $path)
 fi

@@ -76,7 +76,7 @@ end
 
 %w(
   automake bat cmake coreutils curl direnv deno fzf grep gpg gnu-sed jq libtool
-  ripgrep tig tmux tree wget wimlib arp-scan asdf aquaproj/aqua/aqua corrupt952/tmuxist/tmuxist
+  ripgrep tig tmux tree wget wimlib arp-scan gh htop mise aquaproj/aqua/aqua corrupt952/tmuxist/tmuxist
 ).each do |package|
   brew package do
     action :install
@@ -295,11 +295,6 @@ if result.success?
     command 'defaults write com.apple.finder ShowStatusBar -bool true'
   end
 
-  # Keyboard remapping (CapsLock to Control)
-  execute 'Remap CapsLock to Control' do
-    command 'hidutil property --set \'{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}]}\''
-  end
-
   # Apply changes
   execute 'Restart Dock' do
     command 'killall Dock'
@@ -317,7 +312,7 @@ if result.success?
     # Utilities
     '1password', 'stats', 'raycast', 'obsidian',
     # Development
-    'visual-studio-code', 'cursor', 'flutter', 'orbstack', 'unity-hub', 'jetbrains-toolbox', 'wezterm',
+    'visual-studio-code', 'cursor', 'codex', 'flutter', 'orbstack', 'unity-hub', 'jetbrains-toolbox', 'wezterm',
     # Communication
     "discord",
     # Entertainment
@@ -338,28 +333,18 @@ if result.success?
       408981434, # iMovie
       682658836, # GarageBand
       1246969117, # Steam Link
+      497799835, # Xcode
+      640199958, # Developer
+      899247664, # TestFlight
+      1631624924, # Final Cut Pro
+      1615087040, # Logic Pro
+      6746516157, # Compressor
+      6746637089, # MainStage
+      6746637149, # Motion
     ].each do |id|
       execute "mas install #{id}" do
         command "mas install #{id}"
       end
     end
   end
-end
-
-
-# asdf
-execute 'asdf plugin add ruby' do
-  command 'asdf plugin add ruby'
-end
-execute 'asdf plugin add nodejs' do
-  command 'asdf plugin add nodejs'
-end
-execute 'asdf plugin add python' do
-  command 'asdf plugin add python'
-end
-execute 'asdf plugin add golang' do
-  command 'asdf plugin add golang'
-end
-execute 'asdf plugin add rust' do
-  command 'asdf plugin add rust'
 end
