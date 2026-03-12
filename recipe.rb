@@ -310,7 +310,7 @@ if result.success?
     # Browsers
     'google-chrome', 'firefox',
     # Utilities
-    '1password', 'stats', 'raycast', 'obsidian',
+    '1password', 'stats', 'raycast', 'obsidian', 'tailscale',
     # Development
     'visual-studio-code', 'cursor', 'codex', 'flutter', 'orbstack', 'unity-hub', 'jetbrains-toolbox', 'wezterm',
     # Communication
