@@ -34,8 +34,9 @@ local function load_projects()
   )
   if handle then
     for path in handle:lines() do
-      local name = path:match('([^/]+)$')
-      if name then
+      local owner, repo = path:match('([^/]+)/([^/]+)$')
+      if owner and repo then
+        local name = owner .. '/' .. repo
         projects[name] = {
           workspace = name,
           cwd = path,
