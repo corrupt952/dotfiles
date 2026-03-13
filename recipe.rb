@@ -76,7 +76,7 @@ end
 
 %w(
   automake bat cmake coreutils curl direnv deno fzf grep gpg gnu-sed jq libtool
-  ripgrep tig tmux tree wget wimlib arp-scan gh htop mise aquaproj/aqua/aqua corrupt952/tmuxist/tmuxist
+  ripgrep tig tmux tree wget wimlib arp-scan gh htop mise ollama aquaproj/aqua/aqua corrupt952/tmuxist/tmuxist
 ).each do |package|
   brew package do
     action :install
@@ -315,6 +315,8 @@ if result.success?
     'visual-studio-code', 'cursor', 'codex', 'flutter', 'orbstack', 'unity-hub', 'jetbrains-toolbox', 'wezterm',
     # Communication
     "discord",
+    # AI
+    'comfyui',
     # Entertainment
     'steam',
   ].each do |package|
@@ -335,7 +337,7 @@ if result.success?
       1246969117, # Steam Link
       497799835, # Xcode
       640199958, # Developer
-      899247664, # TestFlight
+      # 899247664, # TestFlight
       1631624924, # Final Cut Pro
       1615087040, # Logic Pro
       6746516157, # Compressor
