@@ -70,6 +70,8 @@ puts "Cleared Dock"
 # Apps (Finder is system-pinned, no need to add)
 add_app_to_dock '/System/Applications/System Settings.app'
 add_app_to_dock '/Applications/1Password.app'
+add_app_to_dock '/System/Applications/iPhone Mirroring.app'
+add_app_to_dock '/Applications/Discord.app'
 add_app_to_dock '/Applications/Obsidian.app'
 add_app_to_dock '/Applications/Google Chrome.app'
 add_app_to_dock '/Applications/WezTerm.app'
