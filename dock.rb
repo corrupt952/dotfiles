@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
 
-def add_app_to_dock(path)
-  path = File.expand_path(path)
-  unless File.exist?(path)
-    puts "SKIP: #{path} not found"
+def add_app_to_dock(paths)
+  paths = Array(paths)
+  path = paths.map { |p| File.expand_path(p) }.find { |p| File.exist?(p) }
+  unless path
+    puts "SKIP: #{paths.join(', ')} not found"
     return
   end
 
@@ -73,6 +74,7 @@ add_app_to_dock '/Applications/1Password.app'
 add_app_to_dock '/System/Applications/iPhone Mirroring.app'
 add_app_to_dock '/Applications/Discord.app'
 add_app_to_dock '/Applications/Obsidian.app'
+add_app_to_dock ['/Applications/Vigilare.app', '~/Applications/Vigilare.app']
 add_app_to_dock '/Applications/Google Chrome.app'
 add_app_to_dock '/Applications/WezTerm.app'
 add_app_to_dock '/Applications/Xcode.app'
