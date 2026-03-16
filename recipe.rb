@@ -109,10 +109,6 @@ end
 directory File.join(HOME_PATH, '.claude') do
   action :create
 end
-symlink File.join(HOME_PATH, '.claude', 'commands') do
-  source File.join(DOTFILES_CONFIG_PATH, '.claude', 'commands')
-  force true
-end
 
 # .local/bin
 directory File.join(HOME_PATH, '.local') do
