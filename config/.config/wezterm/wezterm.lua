@@ -4,6 +4,7 @@ local config = wezterm.config_builder()
 -- Load modules
 local appearance = require 'appearance'
 local tmux = require 'tmux'
+local smart_paste = require 'smart_paste'
 
 -- Misc
 config.automatically_reload_config = true
@@ -14,6 +15,9 @@ appearance.apply(config)
 
 -- Tmux-like keybinds (loaded from module)
 tmux.apply(config)
+
+-- Smart paste: Cmd+V detects clipboard images and pastes file path
+smart_paste.apply(config)
 
 -- Additional keybinds (non-tmux style)
 table.insert(config.keys, {
