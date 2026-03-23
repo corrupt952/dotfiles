@@ -10,5 +10,5 @@ def git_root_path
 end
 
 def config_root_path
-  File.join(git_root_path, 'config')
+  File.join(git_root_path, 'home')
 end

@@ -3,7 +3,7 @@ HOME_PATH = File.expand_path('~')
 CURRENT_PATH = Dir.pwd
 DOTFILES_REPO = 'https://github.com/corrupt952/dotfiles'
 DOTFILES_PATH = File.join(HOME_PATH, 'Workspace', 'corrupt952', 'dotfiles')
-DOTFILES_CONFIG_PATH = File.join(DOTFILES_PATH, 'config')
+DOTFILES_CONFIG_PATH = File.join(DOTFILES_PATH, 'home')
 XDG_CONFIG_HOME = ENV.fetch('XDG_CONFIG_HOME', File.join(HOME_PATH, '.config'))
 XDG_CACHE_HOME = ENV.fetch('XDG_CACHE_HOME', File.join(HOME_PATH, '.cache'))
 XDG_DATA_HOME = ENV.fetch('XDG_DATA_HOME', File.join(HOME_PATH, '.local', 'share'))
@@ -108,6 +108,14 @@ end
 # Claude Code
 directory File.join(HOME_PATH, '.claude') do
   action :create
+end
+symlink File.join(HOME_PATH, '.claude', 'CLAUDE.md') do
+  source File.join(DOTFILES_CONFIG_PATH, '.claude', 'CLAUDE.md')
+  force true
+end
+symlink File.join(HOME_PATH, '.claude', 'rules') do
+  source File.join(DOTFILES_CONFIG_PATH, '.claude', 'rules')
+  force true
 end
 
 # .local/bin

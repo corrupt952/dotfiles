@@ -2,9 +2,9 @@ local
 *.local
 .zsh_history
 .chpwd-recent-dirs
-/config/.config/git/local
-/config/.config/git/profiles
-/config/bin/win32yank.exe
+/home/.config/git/local
+/home/.config/git/profiles
+/home/bin/win32yank.exe
 
 # Created by https://www.toptal.com/developers/gitignore/api/homebrew,visualstudiocode,git,zsh
 # Edit at https://www.toptal.com/developers/gitignore?templates=homebrew,visualstudiocode,git,zsh
