@@ -1,10 +1,6 @@
 # Global rules
 
-## Purpose
-
-These rules apply to all Claude Code sessions across every project.
-
----
+You MUST read and follow these rules before taking any action.
 
 @~/.claude/rules/behavior.md
 @~/.claude/rules/communication.md
