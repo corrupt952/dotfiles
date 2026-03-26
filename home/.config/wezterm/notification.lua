@@ -202,8 +202,20 @@ function M.apply(config)
       return
     end
 
-    local choices = {}
+    -- Sort: unread first, then by timestamp (newest first)
+    local sorted = {}
     for _, n in ipairs(notifications) do
+      table.insert(sorted, n)
+    end
+    table.sort(sorted, function(a, b)
+      if a.read ~= b.read then
+        return not a.read
+      end
+      return a.timestamp > b.timestamp
+    end)
+
+    local choices = {}
+    for _, n in ipairs(sorted) do
       local status_text = STATUS_LABELS[n.status] or '???'
       local status_color = STATUS_COLORS[n.status] or '#c6c6c6'
       local ws = n.workspace or '?'
