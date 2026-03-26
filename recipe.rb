@@ -117,6 +117,10 @@ symlink File.join(HOME_PATH, '.claude', 'rules') do
   source File.join(DOTFILES_CONFIG_PATH, '.claude', 'rules')
   force true
 end
+symlink File.join(HOME_PATH, '.claude', 'hooks') do
+  source File.join(DOTFILES_CONFIG_PATH, '.claude', 'hooks')
+  force true
+end
 
 # .local/bin
 directory File.join(HOME_PATH, '.local') do

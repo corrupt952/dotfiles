@@ -311,6 +311,16 @@ M.keys = {
     end),
   }},
 
+  -- Notifications
+  { key = 'U', mods = 'LEADER|SHIFT', action = wezterm.action_callback(function(window, pane) -- notification list
+    local notification = require 'notification'
+    window:perform_action(notification.notification_list_action, pane)
+  end)},
+  { key = 'N', mods = 'LEADER|SHIFT', action = wezterm.action_callback(function(window, pane) -- jump to latest unread
+    local notification = require 'notification'
+    window:perform_action(notification.jump_to_latest_action, pane)
+  end)},
+
   -- Workspace / Project
   { key = 'Enter', mods = 'LEADER', action = wezterm.action_callback(create_temporal_workspace) }, -- temporal workspace (limbus::)
   { key = 'Enter', mods = 'LEADER|SHIFT', action = wezterm.action_callback(create_specter_workspace) }, -- ephemeral workspace (specter::)
