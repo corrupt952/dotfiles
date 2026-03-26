@@ -5,6 +5,7 @@ local config = wezterm.config_builder()
 local appearance = require 'appearance'
 local tmux = require 'tmux'
 local smart_paste = require 'smart_paste'
+local notification = require 'notification'
 
 -- Misc
 config.automatically_reload_config = true
@@ -18,6 +19,9 @@ tmux.apply(config)
 
 -- Smart paste: Cmd+V detects clipboard images and pastes file path
 smart_paste.apply(config)
+
+-- Notification system (agent status tracking + jump-to-pane)
+notification.apply(config)
 
 -- Additional keybinds (non-tmux style)
 table.insert(config.keys, {

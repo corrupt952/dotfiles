@@ -85,7 +85,8 @@ function M.apply(config)
   config.font = M.font
   config.font_size = M.font_size
 
-  -- Tab title format (UTF-8 safe)
+  -- Tab title format (UTF-8 safe, with notification indicator)
+  local notification = require 'notification'
   wezterm.on('format-tab-title', function(tab, tabs, panes, cfg, hover, max_width)
     local index = tab.tab_index + 1
     local title = tab.active_pane.title
@@ -95,11 +96,20 @@ function M.apply(config)
       local byte_pos = utf8.offset(title, max_chars - 1) or #title
       title = title:sub(1, byte_pos - 1) .. '..'
     end
+
+    local indicator = notification.get_status_indicator(tab.active_pane.pane_id)
+    if indicator ~= '' then
+      return string.format(' [%s] %d:%s ', indicator, index, title)
+    end
     return string.format(' %d:%s ', index, title)
   end)
 
-  -- Status bar
+  -- Status bar (single handler: workspace, unread count, datetime)
+  local notification_mod = require 'notification'
   wezterm.on('update-status', function(window, pane)
+    pcall(notification_mod.ingest)
+    pcall(notification_mod.mark_active_pane_read, pane)
+
     local workspace = window:active_workspace()
     local date = wezterm.strftime('%Y/%m/%d %H:%M:%S')
 
@@ -109,10 +119,18 @@ function M.apply(config)
       { Text = '  ' .. workspace .. ' ' },
     })
 
-    window:set_right_status(wezterm.format {
-      { Foreground = { Color = '#c6c6c6' } },
-      { Text = ' ' .. date .. ' ' },
-    })
+    local unread = 0
+    ok, unread = pcall(notification_mod.get_unread_count)
+    if not ok then unread = 0 end
+
+    local right_items = {}
+    local notif_color = unread > 0 and '#f7768e' or '#565f89'
+    table.insert(right_items, { Foreground = { Color = notif_color } })
+    table.insert(right_items, { Text = ' [' .. unread .. '] ' })
+    table.insert(right_items, { Foreground = { Color = '#c6c6c6' } })
+    table.insert(right_items, { Text = ' ' .. date .. ' ' })
+
+    window:set_right_status(wezterm.format(right_items))
   end)
 end
 
