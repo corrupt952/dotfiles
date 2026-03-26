@@ -40,19 +40,6 @@ local function save_to_global()
   end
 end
 
-local function resolve_workspace(pane_id)
-  for _, win in ipairs(mux.all_windows()) do
-    for _, tab in ipairs(win:tabs()) do
-      for _, p in ipairs(tab:panes()) do
-        if p:pane_id() == pane_id then
-          return win:get_workspace()
-        end
-      end
-    end
-  end
-  return '?'
-end
-
 local function add_notification(pane_id, status)
   for i = #notifications, 1, -1 do
     if notifications[i].pane_id == pane_id then
@@ -63,7 +50,6 @@ local function add_notification(pane_id, status)
   table.insert(notifications, {
     pane_id = pane_id,
     status = status,
-    workspace = resolve_workspace(pane_id),
     timestamp = os.time(),
     read = false,
   })
@@ -218,7 +204,6 @@ function M.apply(config)
     for _, n in ipairs(sorted) do
       local status_text = STATUS_LABELS[n.status] or '???'
       local status_color = STATUS_COLORS[n.status] or '#c6c6c6'
-      local ws = n.workspace or '?'
       local age = os.time() - n.timestamp
       local age_str
       if age < 60 then
@@ -227,6 +212,18 @@ function M.apply(config)
         age_str = math.floor(age / 60) .. 'm'
       else
         age_str = math.floor(age / 3600) .. 'h'
+      end
+
+      -- Resolve workspace and pane title at display time
+      local ws = '?'
+      local pane_title = ''
+      local ok, target = pcall(mux.get_pane, n.pane_id)
+      if ok and target then
+        local tw = target:window()
+        if tw then
+          ws = tw:get_workspace()
+        end
+        pane_title = target:get_title()
       end
 
       local read_mark = n.read and ' ' or '*'
@@ -244,6 +241,7 @@ function M.apply(config)
           { Foreground = { Color = read_color } },
           { Text = '  ' .. ws },
           { Foreground = { Color = '#565f89' } },
+          { Text = '  pane:' .. n.pane_id .. ' ' .. pane_title },
           { Text = '  ' .. age_str .. ' ago' },
         },
       })
