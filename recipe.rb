@@ -319,8 +319,12 @@ if result.success?
     'google-chrome', 'firefox',
     # Utilities
     '1password', '1password-cli', 'stats', 'raycast', 'obsidian', 'tailscale',
+    # Editors & IDEs
+    'visual-studio-code', 'cursor', 'codex', 'jetbrains-toolbox',
     # Development
-    'visual-studio-code', 'cursor', 'codex', 'flutter', 'orbstack', 'unity-hub', 'jetbrains-toolbox', 'wezterm',
+    'flutter', 'orbstack', 'wezterm',
+    # Game Development
+    'unity-hub', 'godot',
     # Communication
     "discord",
     # AI
