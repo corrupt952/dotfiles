@@ -85,7 +85,21 @@ node_modules/
 # Serverless Framework
 .serverless/
 
+# AI Coding Assistants
+.cursor/
+.cursorignore
+.cursorindexingignore
+.windsurf/
+.aider*
+.continue/
+.roo/
+
 # Claude Code
 .claude/settings.local.json
-
 **/.claude/settings.local.json
+.claude/todos/
+
+# Bun / pnpm / Deno
+bun.lockb
+.pnpm-store/
+deno.lock
