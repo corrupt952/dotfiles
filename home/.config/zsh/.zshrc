@@ -5,7 +5,12 @@
 [ -f ${ZDOTDIR}/.zshrc.prompt ] && source ${ZDOTDIR}/.zshrc.prompt
 
 # complement
-autoload -U compinit && compinit
+autoload -Uz compinit
+if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
+  compinit
+else
+  compinit -C
+fi
 zstyle ':completion:*' verbose yes
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 setopt MAGIC_EQUAL_SUBST
@@ -48,12 +53,8 @@ setopt HIST_IGNORE_ALL_DUPS
 if [ -d /home/linuxbrew ]; then
   eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 fi
-if command::exist brew; then
-  FZF_PATH=$(brew --prefix fzf)
-  if [ -e $FZF_PATH ]; then
-    source $FZF_PATH/shell/completion.zsh
-    source $FZF_PATH/shell/key-bindings.zsh
-  fi
+if command::exist fzf; then
+  source <(fzf --zsh)
 fi
 if command::exist aqua; then
   path=("${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin" $path)

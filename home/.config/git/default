@@ -22,6 +22,20 @@
 
 [push]
   default = nothing
+  autoSetupRemote = true
+
+[fetch]
+  prune = true
+
+[rerere]
+  enabled = true
+  autoupdate = true
+
+[rebase]
+  autoSquash = true
+
+[merge]
+  conflictstyle = zdiff3
 
 [diff]
   algorithm = patience
