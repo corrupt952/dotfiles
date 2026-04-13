@@ -99,7 +99,7 @@ function M.apply(config)
 
     local indicator = notification.get_status_indicator(tab.active_pane.pane_id)
     if indicator ~= '' then
-      return string.format(' [%s] %d:%s ', indicator, index, title)
+      return string.format('%s %d:%s ', indicator, index, title)
     end
     return string.format(' %d:%s ', index, title)
   end)
