@@ -7,9 +7,9 @@ local M = {}
 local NOTIFY_DIR = '/tmp/wezterm-notifications'
 
 local STATUS_LABELS = {
-  waiting = 'WAIT',
-  done    = 'DONE',
-  error   = 'ERR',
+  waiting = '✋',
+  done    = '✅',
+  error   = '❗',
 }
 
 local STATUS_COLORS = {
