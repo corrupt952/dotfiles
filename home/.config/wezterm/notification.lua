@@ -7,12 +7,14 @@ local M = {}
 local NOTIFY_DIR = '/tmp/wezterm-notifications'
 
 local STATUS_LABELS = {
+  initial = '⚡',
   waiting = '✋',
   done    = '✅',
   error   = '❗',
 }
 
 local STATUS_COLORS = {
+  initial = '#7aa2f7',
   waiting = '#e0af68',
   done    = '#9ece6a',
   error   = '#f7768e',
@@ -65,6 +67,15 @@ local function mark_read(pane_id)
   save_to_global()
 end
 
+local function remove_notification(pane_id)
+  for i = #notifications, 1, -1 do
+    if notifications[i].pane_id == pane_id then
+      table.remove(notifications, i)
+    end
+  end
+  save_to_global()
+end
+
 local function prune_stale()
   local live = {}
   for _, n in ipairs(notifications) do
@@ -96,7 +107,11 @@ local function ingest_notification_files()
 
         local ok, data = pcall(wezterm.json_parse, content)
         if ok and data then
-          add_notification(pane_id, data.status)
+          if data.status == 'idle' or data.status == '' then
+            remove_notification(pane_id)
+          else
+            add_notification(pane_id, data.status)
+          end
         end
       end
     end
@@ -171,7 +186,9 @@ function M.apply(config)
   wezterm.on('user-var-changed', function(window, pane, name, value)
     if name == 'agent_status' then
       local pane_id = pane:pane_id()
-      if value == '' or value == 'idle' or value == 'running' then
+      if value == '' or value == 'idle' then
+        remove_notification(pane_id)
+      elseif value == 'running' then
         mark_read(pane_id)
       else
         add_notification(pane_id, value)

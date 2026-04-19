@@ -170,6 +170,15 @@ symlink File.join(XDG_CONFIG_HOME, 'wezterm') do
   force true
 end
 
+# # OpenCode
+directory File.join(XDG_CONFIG_HOME, 'opencode', 'plugins') do
+  action :create
+end
+symlink File.join(XDG_CONFIG_HOME, 'opencode', 'plugins', 'wezterm-notify.ts') do
+  source File.join(DOTFILES_CONFIG_PATH, '.config', 'opencode', 'plugins', 'wezterm-notify.ts')
+  force true
+end
+
 # # Git
 symlink File.join(HOME_PATH, '.gitconfig') do
   source File.join(DOTFILES_CONFIG_PATH, '.gitconfig')
