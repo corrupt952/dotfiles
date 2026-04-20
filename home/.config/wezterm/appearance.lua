@@ -92,6 +92,10 @@ function M.apply(config)
     if not title or #title == 0 then
       title = tab.active_pane.title
     end
+    if not title or #title == 0 then
+      local name = tab.active_pane.foreground_process_name or ''
+      title = name:match('([^/]+)$') or '?'
+    end
 
     local max_chars = 12
     local char_len = utf8.len(title) or 0
