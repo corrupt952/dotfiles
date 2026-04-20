@@ -85,12 +85,15 @@ function M.apply(config)
   config.font = M.font
   config.font_size = M.font_size
 
-  -- Tab title format (UTF-8 safe, with notification indicator)
+  -- Tab title format (with notification indicator)
   local notification = require 'notification'
   wezterm.on('format-tab-title', function(tab, tabs, panes, cfg, hover, max_width)
-    local index = tab.tab_index + 1
-    local title = tab.active_pane.title
-    local max_chars = 20
+    local title = tab.tab_title
+    if not title or #title == 0 then
+      title = tab.active_pane.title
+    end
+
+    local max_chars = 12
     local char_len = utf8.len(title) or 0
     if char_len > max_chars then
       local byte_pos = utf8.offset(title, max_chars - 1) or #title
@@ -99,9 +102,26 @@ function M.apply(config)
 
     local indicator = notification.get_status_indicator(tab.active_pane.pane_id)
     if indicator ~= '' then
-      return string.format('%s %d:%s ', indicator, index, title)
+      title = indicator .. title
     end
-    return string.format(' %d:%s ', index, title)
+
+    if not tab.is_active then
+      local before_active = true
+      for i = 1, tab.tab_index do
+        if tabs[i].is_active then
+          before_active = false
+          break
+        end
+      end
+
+      if before_active then
+        title = title .. ' | '
+      else
+        title = ' | ' .. title
+      end
+    end
+
+    return title
   end)
 
   -- Status bar (single handler: workspace, unread count, datetime)
