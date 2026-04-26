@@ -341,6 +341,10 @@ if result.success?
     # Entertainment
     'steam',
   ].each do |package|
+    artifacts = JSON.parse(`brew info --cask --json=v2 #{package} 2>/dev/null`).dig('casks', 0, 'artifacts') rescue []
+    apps = (artifacts || []).flat_map { |a| Array(a['app']).map { |i| i.is_a?(Array) ? i.first : i } }
+    next if apps.any? { |t| File.exist?("/Applications/#{t}") }
+
     brew package do
       action :install
       options ['--cask', '--appdir=/Applications']
