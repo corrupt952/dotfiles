@@ -103,3 +103,9 @@ command::exist direnv && eval "$(direnv hook zsh)"
 
 # local
 [ -f ${ZDOTDIR}/.zshrc.local ] && source ${ZDOTDIR}/.zshrc.local
+
+# opencode
+export PATH=$HOME/.opencode/bin:$PATH
+
+# csharp
+export PATH="$PATH:$HOME/.dotnet/tools"
