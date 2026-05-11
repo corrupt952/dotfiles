@@ -117,11 +117,15 @@ symlink File.join(HOME_PATH, '.claude', 'output-styles') do
   source File.join(DOTFILES_CONFIG_PATH, '.claude', 'output-styles')
   force true
 end
+symlink File.join(HOME_PATH, '.claude', 'settings.json') do
+  source File.join(DOTFILES_CONFIG_PATH, '.claude', 'settings.json')
+  force true
+end
 
-# Merge dotfile-managed defaults into ~/.claude/settings.json (existing values win)
-execute 'merge .claude/settings.json with base' do
-  base = File.join(DOTFILES_CONFIG_PATH, '.claude', 'settings.base.json')
-  target = File.join(HOME_PATH, '.claude', 'settings.json')
+# Merge dotfile-managed defaults into ~/.claude.json (volatile state preserved, base values fill in)
+execute 'merge ~/.claude.json with base' do
+  base = File.join(DOTFILES_CONFIG_PATH, '.claude.base.json')
+  target = File.join(HOME_PATH, '.claude.json')
   command "if [ -f '#{target}' ]; then jq -s '.[0] * .[1]' '#{base}' '#{target}' > '#{target}.tmp' && mv '#{target}.tmp' '#{target}'; else cp '#{base}' '#{target}'; fi"
 end
 

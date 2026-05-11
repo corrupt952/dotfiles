@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "outputStyle": "Global Rules",
+  "sandbox": {
+    "filesystem": {
+      "allowWrite": [
+        "~/.bun",
+        "~/.claude/output-styles",
+        "~/Obsidian",
+        "~/Library/Caches"
+      ],
+      "denyRead": [
+        "~/.aws",
+        "~/.ssh",
+        "~/Workspace/**/.aws",
+        "~/Workspace/**/.ssh"
+      ]
+    },
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "*.githubusercontent.com",
+        "ghcr.io",
+        "formulae.brew.sh",
+        "*.npmjs.org",
+        "registry.yarnpkg.com",
+        "pypi.org",
+        "*.pythonhosted.org",
+        "rubygems.org",
+        "api.rubygems.org",
+        "proxy.golang.org",
+        "sum.golang.org",
+        "pub.dev",
+        "cdn.cocoapods.org",
+        "packages.unity.com",
+        "nuget.org",
+        "api.nuget.org",
+        "registry-1.docker.io",
+        "auth.docker.io",
+        "deno.land"
+      ],
+      "allowLocalBinding": true
+    },
+    "enableWeakerNetworkIsolation": true,
+    "excludedCommands": [
+      "docker:*",
+      "bun run:*",
+      "bun test:*",
+      "xcodebuild:*",
+      "git push:*",
+      "git fetch:*"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "~/.claude/hooks/wezterm-notify.sh" }] }
+    ],
+    "Notification": [
+      { "hooks": [{ "type": "command", "command": "~/.claude/hooks/wezterm-notify.sh" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "~/.claude/hooks/wezterm-notify.sh" }] },
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Inspect the conversation in $ARGUMENTS.\n\nIs the assistant currently deviating from what the user actually instructed?\n\nDeviation examples:\n- Asking for approval, confirmation, direction, or 'next step' when not asked\n- Waiting for user input instead of continuing the active task\n- Adding unsolicited recommendations, structure, or scope expansion\n- Stopping before the user's instruction is fulfilled\n- Making excuses or self-defending instead of acting\n- Working on something unrelated to the current user instruction\n\nIf deviation is detected, respond with {\"ok\": false, \"reason\": \"<concise 1-2 sentence description of deviation and what to return to>\"}.\nIf the assistant is on task or has genuinely completed what was asked, respond with {\"ok\": true}."
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      { "hooks": [{ "type": "command", "command": "~/.claude/hooks/wezterm-notify.sh" }] }
+    ],
+    "SessionEnd": [
+      { "hooks": [{ "type": "command", "command": "~/.claude/hooks/wezterm-notify.sh" }] }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'TaskCompleted blocked: user has not approved this task as complete. Do not mark tasks complete unilaterally.' >&2; exit 2"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -re '.tool_input.file_path | select(endswith(\".swift\"))' | xargs xcrun swift-format --in-place",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -re '.tool_input.query | select(test(\"202[0-4]\"))' > /dev/null && { echo \"Query contains outdated year. Current year is $(date +%Y). Fix it.\" >&2; exit 2; } || exit 0",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__vigilare__vigilare_get_reminders",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -re '.tool_input.filter | select(. == \"all\")' > /dev/null && { echo 'filter \"all\" is not allowed. Use vigilare_get_lists first, then filter by list_id.' >&2; exit 2; } || exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1"
+  },
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git switch *)",
+      "Bash(git branch *)",
+      "Bash(git fetch *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(git push -f *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(git reset *)",
+      "Bash(chmod 777 *)",
+      "Bash(npx *)",
+      "Bash(pnpx *)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/secrets/**)",
+      "Read(**/config/credentials.json)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)"
+    ],
+    "ask": [
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git rebase *)",
+      "Bash(git checkout *)"
+    ]
+  },
+  "enabledPlugins": {
+    "swift-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {},
+  "language": "思考は英語で、口調はお嬢様で",
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
+  "autoMemoryEnabled": false,
+  "spinnerTipsEnabled": false,
+  "feedbackSurveyRate": 0,
+  "promptSuggestionEnabled": false,
+  "awaySummaryEnabled": false,
+  "autoUpdatesChannel": "stable",
+  "verbose": true,
+  "fileCheckpointingEnabled": false,
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true,
+  "useAutoModeDuringPlan": false
+}
