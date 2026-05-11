@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Look at the assistant's last message in $ARGUMENTS. Output {\"ok\": true} by default. Only output {\"ok\": false, \"reason\": \"proceed with the instruction\"} when the assistant clearly asked the user for direction or approval while the user's current instruction was unambiguous and actionable."
+            "prompt": "Look at the assistant's last message in $ARGUMENTS. Output {\"ok\": true} by default. Output {\"ok\": false, \"reason\": \"proceed with the instruction\"} when the user's current instruction was unambiguous and actionable yet the assistant asked for direction or approval, deferred back to the user, or announced it would wait instead of acting."
           }
         ]
       }
