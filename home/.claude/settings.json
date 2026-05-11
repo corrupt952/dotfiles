@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Inspect the conversation in $ARGUMENTS.\n\nIs the assistant currently deviating from what the user actually instructed?\n\nDeviation examples:\n- Asking for approval, confirmation, direction, or 'next step' when not asked\n- Waiting for user input instead of continuing the active task\n- Adding unsolicited recommendations, structure, or scope expansion\n- Stopping before the user's instruction is fulfilled\n- Making excuses or self-defending instead of acting\n- Working on something unrelated to the current user instruction\n\nIf deviation is detected, respond with {\"ok\": false, \"reason\": \"<concise 1-2 sentence description of deviation and what to return to>\"}.\nIf the assistant is on task or has genuinely completed what was asked, respond with {\"ok\": true}."
+            "prompt": "Look at the assistant's last message in $ARGUMENTS. Output {\"ok\": true} by default. Only output {\"ok\": false, \"reason\": \"proceed with the instruction\"} when the assistant clearly asked the user for direction or approval while the user's current instruction was unambiguous and actionable."
           }
         ]
       }
