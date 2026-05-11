@@ -4,7 +4,38 @@ local mux = wezterm.mux
 
 local M = {}
 
-local NOTIFY_DIR = '/tmp/wezterm-notifications'
+-- Per-instance notification dir. The hook writes to
+--   /tmp/wezterm-notifications/<basename(WEZTERM_UNIX_SOCKET)>/<pane_id>.json
+-- per the wezterm official ExecDomain pattern:
+-- https://wezterm.org/config/lua/ExecDomain.html
+-- The wezterm-gui process carries the same WEZTERM_UNIX_SOCKET in its env
+-- (verified via `ps eww`). A child shell spawned via io.popen inherits it,
+-- which avoids any uncertainty about whether wezterm exposes that env to
+-- os.getenv at module load.
+local NOTIFY_ROOT = '/tmp/wezterm-notifications'
+
+local function basename(s)
+  return (s:gsub('(.*[/\\])(.*)', '%2'))
+end
+
+local function detect_socket_path()
+  local s = os.getenv('WEZTERM_UNIX_SOCKET')
+  if s and s ~= '' then return s end
+  local handle = io.popen('printf %s "${WEZTERM_UNIX_SOCKET:-}" 2>/dev/null')
+  if not handle then return nil end
+  local val = handle:read('*a')
+  handle:close()
+  if val and val ~= '' then return val end
+  return nil
+end
+
+local function current_notify_dir()
+  local s = detect_socket_path()
+  if not s or s == '' then
+    return NOTIFY_ROOT .. '/__no_socket__'
+  end
+  return NOTIFY_ROOT .. '/' .. basename(s)
+end
 
 local STATUS_LABELS = {
   initial = '⚡',
@@ -92,7 +123,7 @@ end
 -- File-based Notification Ingestion
 -- ============================================
 local function ingest_notification_files()
-  local handle = io.popen('ls -1 "' .. NOTIFY_DIR .. '"/*.json 2>/dev/null')
+  local handle = io.popen('ls -1 "' .. current_notify_dir() .. '"/*.json 2>/dev/null')
   if not handle then return end
 
   for file in handle:lines() do
