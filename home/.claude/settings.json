@@ -64,6 +64,12 @@
     "PermissionRequest": [
       { "hooks": [{ "type": "command", "command": "~/.claude/hooks/wezterm-notify.sh" }] }
     ],
+    "Elicitation": [
+      { "hooks": [{ "type": "command", "command": "~/.claude/hooks/wezterm-notify.sh" }] }
+    ],
+    "SubagentStop": [
+      { "hooks": [{ "type": "command", "command": "~/.claude/hooks/wezterm-notify.sh" }] }
+    ],
     "Stop": [
       { "hooks": [{ "type": "command", "command": "~/.claude/hooks/wezterm-notify.sh" }] },
       {
