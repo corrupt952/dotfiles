@@ -1,6 +1,6 @@
 #!/bin/bash
 # Claude Code hook: Write status to /tmp/wezterm-notifications for WezTerm tab indicators
-# Used by: SessionStart, Notification, Stop, StopFailure, SessionEnd
+# Used by: SessionStart, Notification, PermissionRequest, Elicitation, SubagentStop, Stop, StopFailure, SessionEnd
 #
 # Notification files are namespaced by basename of $WEZTERM_UNIX_SOCKET so
 # concurrent wezterm-gui processes never collide on per-mux pane_id.
@@ -20,12 +20,15 @@ PAYLOAD=$(cat)
 EVENT=$(echo "$PAYLOAD" | jq -r '.hook_event_name // "unknown"' 2>/dev/null || echo "unknown")
 
 case "$EVENT" in
-  SessionStart)  STATUS="initial" ;;
-  Notification)  STATUS="waiting" ;;
-  Stop)          STATUS="done"    ;;
-  StopFailure)   STATUS="error"   ;;
-  SessionEnd)    STATUS="idle"    ;;
-  *)             exit 0           ;;
+  SessionStart)      STATUS="initial" ;;
+  Notification)      STATUS="waiting" ;;
+  PermissionRequest) STATUS="waiting" ;;
+  Elicitation)       STATUS="waiting" ;;
+  SubagentStop)      STATUS="done"    ;;
+  Stop)              STATUS="done"    ;;
+  StopFailure)       STATUS="error"   ;;
+  SessionEnd)        STATUS="idle"    ;;
+  *)                 exit 0           ;;
 esac
 
 NOTIFY_DIR="/tmp/wezterm-notifications/$NAMESPACE"
