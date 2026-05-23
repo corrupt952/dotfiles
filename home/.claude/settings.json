@@ -128,16 +128,6 @@
         ]
       }
     ],
-    "TaskCompleted": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo 'TaskCompleted blocked: user has not approved this task as complete. Do not mark tasks complete unilaterally.' >&2; exit 2"
-          }
-        ]
-      }
-    ],
     "UserPromptSubmit": [],
     "PostToolUse": [
       {
