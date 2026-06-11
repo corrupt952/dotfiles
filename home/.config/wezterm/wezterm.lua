@@ -33,6 +33,15 @@ table.insert(config.keys, {
   end),
 })
 
+-- Hyperlink rules: keep defaults, but make the catch-all rule stop before ')'
+-- so Markdown-style [text](url) links don't include the closing paren
+config.hyperlink_rules = wezterm.default_hyperlink_rules()
+for _, rule in ipairs(config.hyperlink_rules) do
+  if rule.regex == '\\b\\w+://\\S+[)/a-zA-Z0-9-]+' then
+    rule.regex = '\\b\\w+://\\S+[/a-zA-Z0-9-]+'
+  end
+end
+
 -- Audio
 config.audible_bell = "Disabled"
 
