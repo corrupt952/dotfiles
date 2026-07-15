@@ -202,8 +202,9 @@ link "$DOTFILES_HOME/.claude/output-styles" "$HOME/.claude/output-styles"
 link "$DOTFILES_HOME/.claude/settings.json" "$HOME/.claude/settings.json"
 
 # .local/bin
-directory "$HOME/.local"
-link "$DOTFILES_HOME/.local/bin" "$HOME/.local/bin"
+directory "$HOME/.local/bin"
+link "$DOTFILES_HOME/.local/bin/tmux-kubectl" "$HOME/.local/bin/tmux-kubectl"
+link "$DOTFILES_HOME/.local/bin/workspace"    "$HOME/.local/bin/workspace"
 
 # Zsh
 link "$DOTFILES_HOME/.zshenv"     "$HOME/.zshenv"
