@@ -64,6 +64,6 @@
 	# git-now
 	n = now --stat
 	# customize command
-	fselect = !git-select-branch
-	fdelete = !git-delete-branch
+	fselect = !$HOME/.config/git/scripts/git-select-branch
+	fdelete = !$HOME/.config/git/scripts/git-delete-branch
 	env = "! git config --get-regexp '^user.'"
