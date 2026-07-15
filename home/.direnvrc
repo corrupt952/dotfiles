@@ -1,7 +1,0 @@
-aws() {
-  export AWS_PROFILE=$1
-}
-
-use_bin() {
-  export PATH=$PWD/bin:$PATH
-}
