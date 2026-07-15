@@ -85,10 +85,9 @@ in
         defaultMode = "default";
       };
 
-      model = "claude-fable-5[1m]";
+      model = "claude-sonnet-5";
       fallbackModel = [
         "claude-opus-4-8"
-        "claude-sonnet-4-6"
       ];
 
       hooks = {
