@@ -169,6 +169,13 @@ in
       };
 
       extraKnownMarketplaces = {
+        labee-standards = {
+          source = {
+            source = "github";
+            repo = "LabeeHive/standards";
+          };
+          autoUpdate = true;
+        };
       };
 
       outputStyle = "Global Rules";
