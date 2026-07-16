@@ -6,11 +6,30 @@ let
   head = lib.getExe' pkgs.coreutils "head";
   tree = lib.getExe pkgs.tree;
 
-  filesCommand = "${fd} --type f --hidden --follow --exclude .git --strip-cwd-prefix";
-  directoriesCommand = "${fd} --type d --hidden --follow --exclude .git --strip-cwd-prefix";
+  filesCommand = "${fd} --type f --hidden --follow --strip-cwd-prefix";
+  directoriesCommand = "${fd} --type d --hidden --follow --strip-cwd-prefix";
 in
 {
   home.packages = [ pkgs.fd ];
+
+  # Global fd ignore: every fd invocation (including fzf's defaultCommand) reads
+  # this file, so exclusions live here once instead of inline per command.
+  # --hidden stays in the fzf command: it is a traversal flag, not an ignore rule.
+  xdg.configFile."fd/ignore".text = ''
+    .git/
+    node_modules/
+  '';
+
+  # ripgrep does not auto-discover a config; programs.ripgrep writes the file and
+  # sets RIPGREP_CONFIG_PATH for us. CLI flags still override these.
+  programs.ripgrep = {
+    enable = true;
+    arguments = [
+      "--smart-case"
+      "--hidden"
+      "--glob=!.git/"
+    ];
+  };
 
   programs.fzf = {
     enable = true;
