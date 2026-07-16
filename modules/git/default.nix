@@ -168,15 +168,16 @@ in
         whitespace = "-indent-with-non-tab,trailing-space,cr-at-eol";
       };
 
-      diff.algorithm = "patience";
+      commit.verbose = true;
+      diff.algorithm = "histogram";
+      help.autocorrect = "prompt";
       fetch.prune = true;
       init.defaultBranch = "main";
       merge.conflictstyle = "zdiff3";
-      push = {
-        autoSetupRemote = true;
-        default = "nothing";
-      };
+      push.default = "nothing";
       rebase.autoSquash = true;
+      rebase.autoStash = true;
+      rebase.missingCommitsCheck = "warn";
       rerere = {
         autoupdate = true;
         enabled = true;
