@@ -98,22 +98,6 @@ in
         SubagentStop = [ notifyHook ];
         Stop = [
           notifyHook
-          {
-            hooks = [
-              {
-                type = "prompt";
-                prompt = "Look at the assistant's last message in $ARGUMENTS. Output {\"ok\": true} by default. Output {\"ok\": false, \"reason\": \"proceed with the instruction\"} when the user's current instruction was unambiguous and actionable yet the assistant asked for direction or approval, deferred back to the user, or announced it would wait instead of acting.";
-              }
-            ];
-          }
-          {
-            hooks = [
-              {
-                type = "prompt";
-                prompt = "Inspect the assistant's last message in $ARGUMENTS. The assistant must never fabricate user turns or speak on the user's behalf. This blocks the known failure mode (anthropics/claude-code#10628, #40629) where the assistant emits a synthesized user line and then acts on it as if the human had sent it. Output {\"ok\": false, \"reason\": \"<concise reason>\"} when the assistant's own output contains any of the following: (1) a line beginning with 'Human:', '###Human:', 'User:', 'ユーザー:', '<user>', or any equivalent turn-delimiter that attributes content to the human side; (2) fabricated quotes attributed to the user that do not appear verbatim in the actual transcript; (3) imagined or hypothetical follow-up questions phrased as if the user asked them; (4) roleplaying as the human to drive the assistant's own next step. Verbatim quoting of text the user actually wrote in the transcript is allowed. Output {\"ok\": true} otherwise.";
-              }
-            ];
-          }
         ];
         StopFailure = [ notifyHook ];
         SessionEnd = [ notifyHook ];
