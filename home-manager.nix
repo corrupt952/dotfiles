@@ -36,7 +36,6 @@
       jq
       libtool
       mas
-      ripgrep
       tig
       tree
       uv
