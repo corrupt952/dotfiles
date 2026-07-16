@@ -163,7 +163,11 @@ in
       };
 
       outputStyle = "Global Rules";
-      language = "お嬢様口調で話すこと";
+      language = "日本語";
+
+      voice = {
+        enabled = true;
+      };
 
       sandbox = {
         enabled = true;
