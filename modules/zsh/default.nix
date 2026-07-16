@@ -49,9 +49,12 @@ in
         l = "ls";
         ll = "ls -lh";
         loop = "command::loop";
+        reboot = "sudo reboot";
         reload = "exec zsh -l";
+        shutdown = "sudo shutdown";
         tf = "terraform";
         tk = "tmuxist";
+        vi = "vim";
       };
 
       globalAbbreviations = {
@@ -213,12 +216,6 @@ in
         if (( $+commands[sallyport] )); then
           eval "$(sallyport hook zsh)"
         fi
-      '')
-
-      (lib.mkOrder 920 ''
-        abbr --session --force shutdown='sudo shutdown'
-        abbr --session --force reboot='sudo reboot'
-        abbr --session --force vi='vim'
       '')
 
       (lib.mkOrder 1100 ''
