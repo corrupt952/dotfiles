@@ -98,6 +98,7 @@ in
       "AUTO_MENU"
       "AUTO_PUSHD"
       "BANG_HIST"
+      "HIST_FCNTL_LOCK"
       "HIST_NO_STORE"
       "HIST_REDUCE_BLANKS"
       "HIST_VERIFY"
