@@ -15,13 +15,28 @@
     };
 
     xckit = {
-      url = "github:corrupt952/xckit";
+      url = "github:corrupt952/xckit/v0.2.1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    closest = {
+      url = "github:corrupt952/closest/v1.2.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    tmuxist = {
+      url = "github:corrupt952/tmuxist/1.3.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    sallyport = {
+      url = "git+ssh://git@github.com/corrupt952/sallyport?ref=refs/tags/v0.1.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
   outputs =
-    { nixpkgs, nix-darwin, home-manager, xckit, ... }:
+    { nixpkgs, nix-darwin, home-manager, xckit, closest, tmuxist, sallyport, ... }:
     let
       readIdentity = path:
         nixpkgs.lib.removeSuffix "\n" (builtins.readFile path);
@@ -47,6 +62,9 @@
         config = { inherit allowUnfreePredicate; };
       };
       xckitPackage = xckit.packages.${system}.default;
+      closestPackage = closest.packages.${system}.default;
+      tmuxistPackage = tmuxist.packages.${system}.default;
+      sallyportPackage = sallyport.packages.${system}.default;
     in
     {
       darwinConfigurations.workstation = nix-darwin.lib.darwinSystem {
@@ -58,7 +76,7 @@
             nixpkgs.config = { inherit allowUnfreePredicate; };
 
             home-manager = {
-              extraSpecialArgs = { inherit identity workspaceIdentities xckitPackage; };
+              extraSpecialArgs = { inherit identity workspaceIdentities xckitPackage closestPackage tmuxistPackage sallyportPackage; };
               useGlobalPkgs = true;
               useUserPackages = true;
               backupFileExtension = "backup";
@@ -71,7 +89,7 @@
       # Keep a standalone output for evaluation and recovery without darwin-rebuild.
       homeConfigurations.workstation = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-        extraSpecialArgs = { inherit identity workspaceIdentities xckitPackage; };
+        extraSpecialArgs = { inherit identity workspaceIdentities xckitPackage closestPackage tmuxistPackage sallyportPackage; };
         modules = [
           ./home-manager.nix
           {

@@ -1,4 +1,4 @@
-{ identity, pkgs, workspaceIdentities, xckitPackage, ... }:
+{ identity, pkgs, workspaceIdentities, xckitPackage, closestPackage, tmuxistPackage, sallyportPackage, ... }:
 
 {
   imports = [
@@ -41,6 +41,9 @@
       uv
       wget
       xckitPackage
+      closestPackage
+      tmuxistPackage
+      sallyportPackage
     ];
   };
 
