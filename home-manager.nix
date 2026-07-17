@@ -19,6 +19,7 @@
 
     packages = with pkgs; [
       _1password-cli
+      actionlint
       arp-scan
       automake
       bat
@@ -36,10 +37,14 @@
       jq
       libtool
       mas
+      shellcheck
+      statix
+      swiftlint
       tig
       tree
       uv
       wget
+      zizmor
       xckitPackage
       closestPackage
       tmuxistPackage
