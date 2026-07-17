@@ -3,7 +3,8 @@
 set -Ceuo pipefail
 
 readonly CONFIG_NAME="workstation"
-readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
 readonly MACHINE_LOCAL_DIR="$SCRIPT_DIR/machine-local"
 readonly MACHINE_IDENTITIES_FILE="$MACHINE_LOCAL_DIR/identities.nix"
 readonly NIX_FEATURES="nix-command flakes"
@@ -91,7 +92,7 @@ resolve_home_directory() {
     /usr/bin/dscl . -read "/Users/$1" NFSHomeDirectory 2>/dev/null
   )"; then
     home_directory="${account_record#NFSHomeDirectory:}"
-    home_directory="${home_directory#${home_directory%%[![:space:]]*}}"
+    home_directory="${home_directory#"${home_directory%%[![:space:]]*}"}"
     printf '%s\n' "$home_directory"
     return
   fi
