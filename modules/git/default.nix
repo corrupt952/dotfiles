@@ -175,9 +175,11 @@ in
       init.defaultBranch = "main";
       merge.conflictstyle = "zdiff3";
       push.default = "nothing";
-      rebase.autoSquash = true;
-      rebase.autoStash = true;
-      rebase.missingCommitsCheck = "warn";
+      rebase = {
+        autoSquash = true;
+        autoStash = true;
+        missingCommitsCheck = "warn";
+      };
       rerere = {
         autoupdate = true;
         enabled = true;

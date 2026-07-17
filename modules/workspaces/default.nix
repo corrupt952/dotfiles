@@ -63,14 +63,14 @@ let
 
   gitProfileSettings = workspace:
     let
-      git = workspace.git;
+      inherit (workspace) git;
       signingEnabled = git.signingKey != null;
     in
     {
       user = {
         inherit (git) email name;
       } // lib.optionalAttrs signingEnabled {
-        signingKey = git.signingKey;
+        inherit (git) signingKey;
       };
     } // lib.optionalAttrs signingEnabled {
       commit.gpgSign = true;
