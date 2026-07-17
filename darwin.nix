@@ -38,6 +38,11 @@ in
 
   nixpkgs.hostPlatform = "aarch64-darwin";
 
+  # `libexec` isn't linked into per-user profiles by default, which breaks
+  # `container`'s plugin discovery (apiserver crash-loops on
+  # "cannot find any plugins with type network"). See nixpkgs#445648.
+  environment.pathsToLink = [ "/libexec" ];
+
   security.pam.services.sudo_local.touchIdAuth = true;
 
   users.users.${identity.username} = {
