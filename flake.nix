@@ -13,10 +13,15 @@
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    xckit = {
+      url = "github:corrupt952/xckit";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    { nixpkgs, nix-darwin, home-manager, ... }:
+    { nixpkgs, nix-darwin, home-manager, xckit, ... }:
     let
       readIdentity = path:
         nixpkgs.lib.removeSuffix "\n" (builtins.readFile path);
@@ -41,6 +46,7 @@
         # Keep unfree access limited to packages explicitly accepted here.
         config = { inherit allowUnfreePredicate; };
       };
+      xckitPackage = xckit.packages.${system}.default;
     in
     {
       darwinConfigurations.workstation = nix-darwin.lib.darwinSystem {
@@ -52,7 +58,7 @@
             nixpkgs.config = { inherit allowUnfreePredicate; };
 
             home-manager = {
-              extraSpecialArgs = { inherit identity workspaceIdentities; };
+              extraSpecialArgs = { inherit identity workspaceIdentities xckitPackage; };
               useGlobalPkgs = true;
               useUserPackages = true;
               backupFileExtension = "backup";
@@ -65,7 +71,7 @@
       # Keep a standalone output for evaluation and recovery without darwin-rebuild.
       homeConfigurations.workstation = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-        extraSpecialArgs = { inherit identity workspaceIdentities; };
+        extraSpecialArgs = { inherit identity workspaceIdentities xckitPackage; };
         modules = [
           ./home-manager.nix
           {

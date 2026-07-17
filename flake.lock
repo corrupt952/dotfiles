@@ -62,7 +62,28 @@
       "inputs": {
         "home-manager": "home-manager",
         "nix-darwin": "nix-darwin",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "xckit": "xckit"
+      }
+    },
+    "xckit": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1784283982,
+        "narHash": "sha256-aICTWGEAFM9kKartW3liRfbwnmgo+UqcKhbljPY+KlA=",
+        "owner": "corrupt952",
+        "repo": "xckit",
+        "rev": "d77ff06999163fa8b9a9b366c63ac840456e96b2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "corrupt952",
+        "repo": "xckit",
+        "type": "github"
       }
     }
   },

@@ -1,4 +1,4 @@
-{ identity, pkgs, workspaceIdentities, ... }:
+{ identity, pkgs, workspaceIdentities, xckitPackage, ... }:
 
 {
   imports = [
@@ -40,6 +40,7 @@
       tree
       uv
       wget
+      xckitPackage
     ];
   };
 
