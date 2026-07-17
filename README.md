@@ -38,10 +38,10 @@ Re-run `./setup.sh` any time to reapply the configuration after editing it.
 
 ```
 flake.nix           # inputs (nixpkgs, nix-darwin, home-manager, ...) and outputs
-darwin.nix           # system-level (nix-darwin) configuration
-home-manager.nix      # top-level home-manager configuration
-modules/             # one directory per home-manager module
-machine-local/        # gitignored; machine-specific identity, created by setup.sh
+darwin.nix          # system-level (nix-darwin) configuration
+home-manager.nix    # top-level home-manager configuration
+modules/            # one directory per home-manager module
+machine-local/      # gitignored; machine-specific identity, created by setup.sh
 ```
 
 ## CI
