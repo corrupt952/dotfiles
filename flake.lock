@@ -97,18 +97,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1784285639,
-        "narHash": "sha256-6hYCk3LLLuqxOOpOJQjY93MDecdBSG0LtFGt+EBgmiQ=",
-        "ref": "refs/tags/v0.1.0",
-        "rev": "91cf3c469719affdf889cd2f2a85936ede19156a",
-        "revCount": 32,
-        "type": "git",
-        "url": "ssh://git@github.com/corrupt952/sallyport"
+        "lastModified": 1784302241,
+        "narHash": "sha256-dzNf83sJpyZ8aOir2jMUWml2zppa8dZ1aC1GsV6xO4U=",
+        "owner": "corrupt952",
+        "repo": "sallyport",
+        "rev": "47d3ded9b5e3bea6dc4e2f180949c52d34186522",
+        "type": "github"
       },
       "original": {
-        "ref": "refs/tags/v0.1.0",
-        "type": "git",
-        "url": "ssh://git@github.com/corrupt952/sallyport"
+        "owner": "corrupt952",
+        "ref": "v0.1.1",
+        "repo": "sallyport",
+        "type": "github"
       }
     },
     "tmuxist": {

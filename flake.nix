@@ -30,7 +30,7 @@
     };
 
     sallyport = {
-      url = "git+ssh://git@github.com/corrupt952/sallyport?ref=refs/tags/v0.1.0";
+      url = "github:corrupt952/sallyport/v0.1.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
