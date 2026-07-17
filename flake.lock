@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "closest": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1784285619,
+        "narHash": "sha256-iGxYDymPtZXSXEWGvpw6vrbfjuIPVDzvloHqkxOOLm4=",
+        "owner": "corrupt952",
+        "repo": "closest",
+        "rev": "e19060ae44818d9b5c52a08c8cf4b70e2f155b74",
+        "type": "github"
+      },
+      "original": {
+        "owner": "corrupt952",
+        "ref": "v1.2.0",
+        "repo": "closest",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -60,10 +81,55 @@
     },
     "root": {
       "inputs": {
+        "closest": "closest",
         "home-manager": "home-manager",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
+        "sallyport": "sallyport",
+        "tmuxist": "tmuxist",
         "xckit": "xckit"
+      }
+    },
+    "sallyport": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1784285639,
+        "narHash": "sha256-6hYCk3LLLuqxOOpOJQjY93MDecdBSG0LtFGt+EBgmiQ=",
+        "ref": "refs/tags/v0.1.0",
+        "rev": "91cf3c469719affdf889cd2f2a85936ede19156a",
+        "revCount": 32,
+        "type": "git",
+        "url": "ssh://git@github.com/corrupt952/sallyport"
+      },
+      "original": {
+        "ref": "refs/tags/v0.1.0",
+        "type": "git",
+        "url": "ssh://git@github.com/corrupt952/sallyport"
+      }
+    },
+    "tmuxist": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1784285622,
+        "narHash": "sha256-smWDnfHUuzvor+BbqdEqekmCWgRcPDA2e7JOR2VymjQ=",
+        "owner": "corrupt952",
+        "repo": "tmuxist",
+        "rev": "5feebbbc7ff2ded8f0e9f828e00bd09e02bff636",
+        "type": "github"
+      },
+      "original": {
+        "owner": "corrupt952",
+        "ref": "1.3.0",
+        "repo": "tmuxist",
+        "type": "github"
       }
     },
     "xckit": {
@@ -73,15 +139,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1784283982,
-        "narHash": "sha256-aICTWGEAFM9kKartW3liRfbwnmgo+UqcKhbljPY+KlA=",
+        "lastModified": 1784282872,
+        "narHash": "sha256-Zx/mMReiB/YeWHxQp6wX7J7VPtFDa3WU13fK4/k5zQI=",
         "owner": "corrupt952",
         "repo": "xckit",
-        "rev": "d77ff06999163fa8b9a9b366c63ac840456e96b2",
+        "rev": "b1f3d671166c2c8d20d5f8eeeb6a52a3b8916897",
         "type": "github"
       },
       "original": {
         "owner": "corrupt952",
+        "ref": "v0.2.1",
         "repo": "xckit",
         "type": "github"
       }
