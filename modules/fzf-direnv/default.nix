@@ -20,57 +20,59 @@ in
     node_modules/
   '';
 
-  # ripgrep does not auto-discover a config; programs.ripgrep writes the file and
-  # sets RIPGREP_CONFIG_PATH for us. CLI flags still override these.
-  programs.ripgrep = {
-    enable = true;
-    arguments = [
-      "--smart-case"
-      "--hidden"
-      "--glob=!.git/"
-    ];
-  };
+  programs = {
+    # ripgrep does not auto-discover a config; programs.ripgrep writes the file
+    # and sets RIPGREP_CONFIG_PATH for us. CLI flags still override these.
+    ripgrep = {
+      enable = true;
+      arguments = [
+        "--smart-case"
+        "--hidden"
+        "--glob=!.git/"
+      ];
+    };
 
-  programs.fzf = {
-    enable = true;
-    enableZshIntegration = true;
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
 
-    defaultCommand = filesCommand;
-    defaultOptions = [
-      "--exact"
-      "--cycle"
-      "--ansi"
-      "--height=70%"
-      "--layout=reverse"
-      "--border"
-    ];
+      defaultCommand = filesCommand;
+      defaultOptions = [
+        "--exact"
+        "--cycle"
+        "--ansi"
+        "--height=70%"
+        "--layout=reverse"
+        "--border"
+      ];
 
-    fileWidgetCommand = filesCommand;
-    fileWidgetOptions = [
-      "--preview '${bat} --color=always --style=numbers --line-range=:200 -- {}'"
-    ];
+      fileWidgetCommand = filesCommand;
+      fileWidgetOptions = [
+        "--preview '${bat} --color=always --style=numbers --line-range=:200 -- {}'"
+      ];
 
-    changeDirWidgetCommand = directoriesCommand;
-    changeDirWidgetOptions = [
-      "--preview '${tree} -C -L 2 -- {} | ${head} -n 200'"
-    ];
+      changeDirWidgetCommand = directoriesCommand;
+      changeDirWidgetOptions = [
+        "--preview '${tree} -C -L 2 -- {} | ${head} -n 200'"
+      ];
 
-    historyWidgetOptions = [ "--sort" ];
-  };
+      historyWidgetOptions = [ "--sort" ];
+    };
 
-  programs.direnv = {
-    enable = true;
-    enableZshIntegration = true;
-    nix-direnv.enable = true;
+    direnv = {
+      enable = true;
+      enableZshIntegration = true;
+      nix-direnv.enable = true;
 
-    stdlib = ''
-      aws() {
-        export AWS_PROFILE="$1"
-      }
+      stdlib = ''
+        aws() {
+          export AWS_PROFILE="$1"
+        }
 
-      use_bin() {
-        PATH_add "$PWD/bin"
-      }
-    '';
+        use_bin() {
+          PATH_add "$PWD/bin"
+        }
+      '';
+    };
   };
 }
