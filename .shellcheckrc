@@ -1,0 +1,4 @@
+# modules/**/*.sh are Nix-embedded fragments with no shebang of their own —
+# they're wrapped by pkgs.writeShellApplication or a Nix template. Default to
+# bash so shellcheck can analyze them without a shebang.
+shell=bash
