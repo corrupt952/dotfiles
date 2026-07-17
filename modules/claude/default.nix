@@ -149,7 +149,9 @@ in
 
       enabledPlugins = {
         "swift-lsp@claude-plugins-official" = true;
+        "frontend-design@claude-plugins-official" = true;
         "labee-standards@labee-standards" = true;
+        "document-skills@anthropic-agent-skills" = true;
       };
 
       extraKnownMarketplaces = {
@@ -157,6 +159,13 @@ in
           source = {
             source = "github";
             repo = "LabeeHive/standards";
+          };
+          autoUpdate = true;
+        };
+        anthropic-agent-skills = {
+          source = {
+            source = "github";
+            repo = "anthropics/skills";
           };
           autoUpdate = true;
         };
