@@ -178,6 +178,10 @@ in
         enabled = true;
       };
 
+      worktree = {
+        baseRef = "head";
+      };
+
       sandbox = {
         enabled = true;
         autoAllowBashIfSandboxed = true;
