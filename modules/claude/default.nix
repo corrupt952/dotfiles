@@ -253,4 +253,18 @@ in
       useAutoModeDuringPlan = false;
     };
   };
+
+  # Claude Code rewrites settings.json at runtime (e.g. worktree.baseRef
+  # changes, periodic partial rewrites), but home.file links it as a
+  # read-only symlink into the Nix store. Materialize it into a writable
+  # copy after each activation so Claude Code can mutate it between
+  # switches; the next switch resets it back to the Nix-managed content.
+  home.activation.claudeSettingsWritable = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    settingsPath="${configDir}/settings.json"
+    if [ -L "$settingsPath" ]; then
+      resolvedPath="$(readlink -f "$settingsPath")"
+      run rm -f "$settingsPath"
+      run install -m 644 "$resolvedPath" "$settingsPath"
+    fi
+  '';
 }
