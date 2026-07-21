@@ -8,7 +8,18 @@ if [[ -z "$pane_id" || -z "$socket" ]]; then
   exit 0
 fi
 
-payload="$(</dev/stdin)"
+# Manual/interactive invocation with no piped input would otherwise block
+# forever waiting for stdin EOF.
+if [[ -t 0 ]]; then
+  exit 0
+fi
+
+# Read with a bounded timeout: a known Claude Code client bug intermittently
+# leaves the hook's stdin pipe open (never sends EOF), which would otherwise
+# block this read forever and freeze the whole session
+# (https://github.com/anthropics/claude-code/issues/78756).
+payload=""
+IFS= read -r -t 0.5 -d '' payload || true
 event="$(
   printf '%s' "$payload" | @jq@ -r '.hook_event_name // "unknown"' 2>/dev/null ||
     printf 'unknown'
