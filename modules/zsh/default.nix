@@ -183,10 +183,55 @@ in
         }
 
         zsh::prompt::right() {
-          LANG=ja_JP.UTF-8 vcs_info
-          zsh::prompt::segment "" red "''${vcs_info_msg_0_}%f"
+          zsh::prompt::segment "" red "''${_vcs_prompt_msg}%f"
           print -n -- "%{%k%}%{%f%}"
         }
+
+        # vcs_info shells out to git, which costs 15-30ms per prompt in this
+        # repo. Run it in the background via process substitution and only
+        # repaint (zle reset-prompt) once the result is in, so it never
+        # blocks the next keystroke. $target is captured per-job so a slow
+        # job from a directory we've since cd'd away from can't clobber the
+        # prompt with a stale branch.
+        #
+        # Discarding a stale job only closes our fd and deregisters the zle
+        # handler; process substitution gives no PID ($! is 0), so the old
+        # git invocation itself isn't killed and keeps running to
+        # completion in the background. Harmless for a lightweight vcs_info
+        # call; accepted as-is rather than worked around.
+        typeset -g _vcs_prompt_msg=""
+        typeset -g _vcs_prompt_fd=""
+        typeset -g _vcs_prompt_dir=""
+
+        zsh::prompt::vcs_async_start() {
+          if [[ -n "$_vcs_prompt_fd" ]]; then
+            zle -F "$_vcs_prompt_fd"
+            exec {_vcs_prompt_fd}<&-
+            _vcs_prompt_fd=""
+          fi
+
+          local target=$PWD
+          exec {_vcs_prompt_fd}< <(
+            cd -q -- "$target" 2>/dev/null || exit
+            LANG=ja_JP.UTF-8 vcs_info 2>/dev/null
+            print -r -- "''${vcs_info_msg_0_}"
+          )
+          _vcs_prompt_dir=$target
+          zle -F "$_vcs_prompt_fd" zsh::prompt::vcs_async_done
+        }
+
+        zsh::prompt::vcs_async_done() {
+          local fd=$1 line
+          read -r -u $fd line
+          zle -F "$fd"
+          exec {fd}<&-
+          [[ "$fd" == "$_vcs_prompt_fd" ]] || return
+          _vcs_prompt_fd=""
+          [[ "$_vcs_prompt_dir" == "$PWD" ]] && _vcs_prompt_msg=$line
+          zle && zle reset-prompt
+        }
+
+        add-zsh-hook precmd zsh::prompt::vcs_async_start
 
         PROMPT='$(zsh::prompt::left)
         %{''${fg[cyan]}%}$%{''${reset_color}%} '
