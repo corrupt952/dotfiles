@@ -68,13 +68,12 @@ in
     defaultKeymap = "emacs";
     enableCompletion = true;
 
+    # -C always skips compaudit and trusts the existing dump. Safe here
+    # because home.activation.zshCompdumpReset (below) is the only thing
+    # that ever invalidates .zcompdump, right when a switch changes fpath.
     completionInit = ''
       autoload -Uz compinit
-      if [[ -n ''${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
-        compinit
-      else
-        compinit -C
-      fi
+      compinit -C
     '';
 
     autosuggestion.enable = true;
@@ -234,4 +233,14 @@ in
       '')
     ];
   };
+
+  # The nix store is immutable within a generation, so the completion
+  # security audit (compaudit) only ever needs to re-run right after a
+  # switch changes what's on fpath. Dropping .zcompdump here is what makes
+  # completionInit's unconditional `compinit -C` safe: it forces one full
+  # rebuild (without compaudit) on the first shell after a switch, and
+  # every shell after that just sources the cached dump.
+  home.activation.zshCompdumpReset = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run rm -f $VERBOSE_ARG -- "${config.xdg.configHome}/zsh/.zcompdump"*
+  '';
 }
