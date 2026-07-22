@@ -158,10 +158,6 @@ in
           return 127
         }
 
-        zsh::clean_zcompdump() {
-          rm -f -- "$ZDOTDIR"/.zcompdump*
-        }
-
         autoload -Uz add-zsh-hook chpwd_recent_dirs cdr
         add-zsh-hook chpwd chpwd_recent_dirs
 
