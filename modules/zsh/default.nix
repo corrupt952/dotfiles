@@ -68,12 +68,10 @@ in
     defaultKeymap = "emacs";
     enableCompletion = true;
 
-    # home.activation.zshCompdumpReset (below) is the only thing that ever
-    # removes .zcompdump, right when a switch changes fpath. So its mere
-    # presence is exactly the signal for "nothing changed since the last
-    # switch": run the cheap `-C` (skips compaudit) whenever it's there,
-    # and pay for a real compinit (compaudit + rebuild) only on the one
-    # shell that starts right after a switch.
+    # .zcompdump only exists between switches (home.activation.zshCompdumpReset
+    # below removes it on every switch), so its presence means fpath hasn't
+    # changed: skip compaudit via `-C`. Its absence means the first shell
+    # after a switch, which pays for a real compaudit + rebuild.
     completionInit = ''
       autoload -Uz compinit
       if [[ -f "''${ZDOTDIR}/.zcompdump" ]]; then
@@ -187,18 +185,13 @@ in
           print -n -- "%{%k%}%{%f%}"
         }
 
-        # vcs_info shells out to git, which costs 15-30ms per prompt in this
-        # repo. Run it in the background via process substitution and only
-        # repaint (zle reset-prompt) once the result is in, so it never
-        # blocks the next keystroke. $target is captured per-job so a slow
-        # job from a directory we've since cd'd away from can't clobber the
-        # prompt with a stale branch.
-        #
-        # Discarding a stale job only closes our fd and deregisters the zle
-        # handler; process substitution gives no PID ($! is 0), so the old
-        # git invocation itself isn't killed and keeps running to
-        # completion in the background. Harmless for a lightweight vcs_info
-        # call; accepted as-is rather than worked around.
+        # vcs_info shells out to git (15-30ms/prompt here), so it runs in the
+        # background via process substitution and only repaints via zle
+        # reset-prompt once done. $target/_vcs_prompt_dir guard against a
+        # slow job finishing after we've already cd'd elsewhere. Discarding
+        # a stale job only drops our fd/handler, not the git process itself
+        # (process substitution has no PID to kill) — harmless here since
+        # vcs_info is cheap, so left as-is rather than worked around.
         typeset -g _vcs_prompt_msg=""
         typeset -g _vcs_prompt_fd=""
         typeset -g _vcs_prompt_dir=""
@@ -282,12 +275,8 @@ in
     ];
   };
 
-  # The nix store is immutable within a generation, so the completion
-  # security audit (compaudit) only ever needs to re-run right after a
-  # switch changes what's on fpath. Dropping .zcompdump here is what makes
-  # completionInit's existence check into an accurate signal: the first
-  # shell after a switch pays for a real compaudit + rebuild, and every
-  # shell after that just sources the cached dump via `compinit -C`.
+  # The nix store is immutable within a generation, so fpath only ever
+  # changes right after a switch — see completionInit's use of this file.
   home.activation.zshCompdumpReset = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run rm -f $VERBOSE_ARG -- "${config.xdg.configHome}/zsh/.zcompdump"*
   '';

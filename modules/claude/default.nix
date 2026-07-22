@@ -255,11 +255,9 @@ in
     };
   };
 
-  # claudeSettingsWritable (below) always leaves settings.json as a plain
-  # writable file instead of a symlink, so every switch's checkLinkTargets
-  # step tries to back it up before re-linking it. Drop any backup left
-  # over from the previous switch first, or checkLinkTargets hard-fails
-  # ("would be clobbered") on the second switch onward.
+  # claudeSettingsWritable (below) leaves settings.json as a plain file, so
+  # every switch's checkLinkTargets tries to back it up before re-linking.
+  # Clear last switch's backup first, or it hard-fails on the second switch.
   home.activation.claudeSettingsBackupCleanup = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
     run rm -f -- "${configDir}/settings.json.backup"
   '';
