@@ -255,6 +255,15 @@ in
     };
   };
 
+  # claudeSettingsWritable (below) always leaves settings.json as a plain
+  # writable file instead of a symlink, so every switch's checkLinkTargets
+  # step tries to back it up before re-linking it. Drop any backup left
+  # over from the previous switch first, or checkLinkTargets hard-fails
+  # ("would be clobbered") on the second switch onward.
+  home.activation.claudeSettingsBackupCleanup = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    run rm -f -- "${configDir}/settings.json.backup"
+  '';
+
   # Claude Code rewrites settings.json at runtime (e.g. worktree.baseRef
   # changes, periodic partial rewrites), but home.file links it as a
   # read-only symlink into the Nix store. Materialize it into a writable
