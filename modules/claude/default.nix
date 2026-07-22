@@ -217,6 +217,7 @@ in
             "${configDir}/output-styles"
             "~/Obsidian"
             "~/Library/Caches"
+            "/tmp/wezterm-notifications"
           ];
           denyRead = [
             "~/.aws"
