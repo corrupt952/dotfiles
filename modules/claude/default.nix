@@ -86,9 +86,9 @@ in
         defaultMode = "default";
       };
 
-      model = "claude-sonnet-5";
+      model = "claude-opus-5";
       fallbackModel = [
-        "claude-opus-4-8"
+        "claude-sonnet-5"
       ];
 
       hooks = {
