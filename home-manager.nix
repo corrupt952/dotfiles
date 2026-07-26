@@ -36,6 +36,7 @@
       gnused
       jq
       libtool
+      markdownlint-cli2
       mas
       shellcheck
       statix
