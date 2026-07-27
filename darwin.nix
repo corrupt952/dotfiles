@@ -59,6 +59,12 @@ in
         AppleInterfaceStyle = "Dark";
         AppleEnableSwipeNavigateWithScrolls = true;
         ApplePressAndHoldEnabled = false;
+        NSAutomaticCapitalizationEnabled = false;
+        NSAutomaticDashSubstitutionEnabled = false;
+        NSAutomaticInlinePredictionEnabled = false;
+        NSAutomaticPeriodSubstitutionEnabled = false;
+        NSAutomaticQuoteSubstitutionEnabled = false;
+        NSAutomaticSpellingCorrectionEnabled = false;
         "com.apple.swipescrolldirection" = false;
       };
 
@@ -105,6 +111,21 @@ in
       };
 
       WindowManager.EnableTiledWindowMargins = false;
+
+      CustomUserPreferences = {
+        # "Show suggested replies". No typed nix-darwin option exists for it,
+        # unlike the rest of the autocorrect toggles in NSGlobalDomain above.
+        NSGlobalDomain.NSSmartReplyEnabled = false;
+
+        # `Kotoeri` is still the preference domain for the built-in Japanese
+        # IME, long after the name disappeared from the UI. macOS itself stores
+        # these flags as integers rather than booleans, so mirror that encoding.
+        "com.apple.inputmethod.Kotoeri" = {
+          JIMPrefAutocorrectionKey = 0;
+          JIMPrefLiveConversionKey = 0;
+          JIMPrefPredictiveCandidateKey = 0;
+        };
+      };
     };
 
     activationScripts.postActivation.text = ''
@@ -113,6 +134,9 @@ in
       /usr/bin/mdutil -a -d || true
       /usr/bin/killall -qu ${user} Finder || true
       /usr/bin/killall -qu ${user} SystemUIServer || true
+      # The Japanese IME reads its prefs once at launch, so the writes above
+      # stay invisible until it restarts.
+      /usr/bin/killall -qu ${user} JapaneseIM-RomajiTyping || true
     '';
   };
 }
