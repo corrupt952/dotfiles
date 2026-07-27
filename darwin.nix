@@ -118,6 +118,14 @@ in
         # unlike the rest of the autocorrect toggles in NSGlobalDomain above.
         NSGlobalDomain.NSSmartReplyEnabled = false;
 
+        # Universal Control is on by default and keeps scanning for nearby
+        # Macs/iPads to hand the pointer off to. Nothing here to hand off to.
+        "com.apple.universalcontrol" = {
+          Disable = true;
+          DisableMagicEdges = true;
+          DisableNearbyInteraction = true;
+        };
+
         # `Kotoeri` is still the preference domain for the built-in Japanese
         # IME, long after the name disappeared from the UI. macOS itself stores
         # these flags as integers rather than booleans, so mirror that encoding.
