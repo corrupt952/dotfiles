@@ -108,6 +108,9 @@ in
     };
 
     activationScripts.postActivation.text = ''
+      # Spotlight indexing (mds_stores) can saturate disk I/O badly enough to
+      # take down foreground apps; keep it fully off (search + indexing).
+      /usr/bin/mdutil -a -d || true
       /usr/bin/killall -qu ${user} Finder || true
       /usr/bin/killall -qu ${user} SystemUIServer || true
     '';
