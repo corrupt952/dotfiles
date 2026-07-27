@@ -65,6 +65,7 @@ in
         NSAutomaticPeriodSubstitutionEnabled = false;
         NSAutomaticQuoteSubstitutionEnabled = false;
         NSAutomaticSpellingCorrectionEnabled = false;
+        NSAutomaticWindowAnimationsEnabled = false;
         "com.apple.swipescrolldirection" = false;
       };
 
