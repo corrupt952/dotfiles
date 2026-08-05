@@ -19,6 +19,7 @@ in
     enable = true;
     package = null;
     inherit configDir;
+    context = ../agent-rules.md;
 
     outputStyles."Global Rules" = ./global-rules.md;
 

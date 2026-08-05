@@ -38,6 +38,7 @@ in
   programs.codex = {
     enable = true;
     package = null;
+    context = ../agent-rules.md;
   };
 
   home.file."${codexHomeRelative}/hooks.json".source =
