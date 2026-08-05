@@ -1,26 +1,9 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 
 let
   configDir = "${config.xdg.configHome}/claude";
 
-  weztermNotifyHook = builtins.replaceStrings
-    [
-      "@bash@"
-      "@date@"
-      "@jq@"
-      "@mkdir@"
-      "@mv@"
-    ]
-    [
-      (lib.getExe pkgs.bash)
-      (lib.getExe' pkgs.coreutils "date")
-      (lib.getExe pkgs.jq)
-      (lib.getExe' pkgs.coreutils "mkdir")
-      (lib.getExe' pkgs.coreutils "mv")
-    ]
-    (builtins.readFile ./wezterm-notify.sh);
-
-  weztermNotifyCommand = "${configDir}/hooks/wezterm-notify.sh";
+  weztermNotifyCommand = "${config.home.homeDirectory}/.local/libexec/wezterm-notify-hook";
 
   notifyHook = {
     hooks = [
@@ -37,7 +20,6 @@ in
     package = null;
     inherit configDir;
 
-    hooks."wezterm-notify.sh" = weztermNotifyHook;
     outputStyles."Global Rules" = ./global-rules.md;
 
     settings = {

@@ -30,7 +30,7 @@ Re-run `./setup.sh` any time to reapply the configuration after editing it.
 ## What's managed
 
 - **macOS defaults** (`darwin.nix`) — Dock, Finder, trackpad, menu bar clock, Touch ID for `sudo`, scheduled Nix GC/store optimisation
-- **Shell & tools** (`modules/`) — zsh, tmux, WezTerm, git (aliases, delta, per-workspace identities), fzf/ripgrep/direnv, Ruby, opencode, and Claude Code settings/hooks
+- **Shell & tools** (`modules/`) — zsh, tmux, WezTerm, git (aliases, delta, per-workspace identities), fzf/ripgrep/direnv, Ruby, Codex, OpenCode, and Claude Code settings/hooks
 - **Workspace identities** (`modules/workspaces`) — per-directory Git identity and [sallyport](https://github.com/corrupt952/sallyport)-managed environment variables, driven by `machine-local/identities.nix`
 - A few of my own tools, pulled in as flake inputs: [xckit](https://github.com/corrupt952/xckit), [closest](https://github.com/corrupt952/closest), [tmuxist](https://github.com/corrupt952/tmuxist), [sallyport](https://github.com/corrupt952/sallyport)
 

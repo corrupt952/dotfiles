@@ -3,6 +3,7 @@
 {
   imports = [
     ./modules/claude
+    ./modules/codex
     ./modules/fzf-direnv
     ./modules/git
     ./modules/opencode

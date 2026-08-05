@@ -26,7 +26,7 @@ event="$(
 )"
 
 case "$event" in
-  SessionStart) status="initial" ;;
+  SessionStart | UserPromptSubmit) status="initial" ;;
   Notification | PermissionRequest | Elicitation) status="waiting" ;;
   SubagentStop | Stop) status="done" ;;
   StopFailure) status="error" ;;
