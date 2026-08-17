@@ -141,6 +141,7 @@ in
             hooks = [
               {
                 type = "prompt";
+                continueOnBlock = true;
                 prompt = "The assistant is about to call vigilare_add_comment. Tool call payload is in $ARGUMENTS. vigilare_add_comment appends to a task's append-only conversation log (comments section). The alternative vigilare_update_reminder(notes=...) replaces the task's notes field (persistent task body). Based on the comment content in the payload and the recent conversation context, judge whether add_comment matches the user's actual intent, or whether the assistant likely meant to update the task notes. Output {\"ok\": true} when add_comment is appropriate (e.g., progress log, status update, conversation entry). Output {\"ok\": false, \"reason\": \"<one-sentence reason>, use vigilare_update_reminder(notes=...) instead\"} when the content reads like a body/notes edit (e.g., revising the task description, fixing requirements, restructuring the task definition).";
               }
             ];
