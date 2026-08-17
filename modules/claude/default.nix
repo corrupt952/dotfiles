@@ -31,6 +31,7 @@ in
         CLAUDE_CODE_DISABLE_AUTO_MEMORY = "1";
         DISABLE_NON_ESSENTIAL_MODEL_CALLS = "1";
         CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION = "5000";
+        CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
       };
 
       permissions = {
