@@ -8,6 +8,11 @@ if [[ -z "$pane_id" || -z "$socket" ]]; then
   exit 0
 fi
 
+# The id goes into SQL unquoted, so refuse anything that is not a plain number.
+if [[ ! "$pane_id" =~ ^[0-9]+$ ]]; then
+  exit 0
+fi
+
 # Manual/interactive invocation with no piped input would otherwise block
 # forever waiting for stdin EOF.
 if [[ -t 0 ]]; then
@@ -35,37 +40,39 @@ case "$event" in
 esac
 
 namespace="${socket##*/}"
-notify_dir="/tmp/wezterm-notifications/$namespace"
-notify_path="$notify_dir/$pane_id.json"
-lock_dir="$notify_path.lock"
+notify_root="/tmp/wezterm-notifications"
+db="$notify_root/$namespace.db"
 
-@mkdir@ -p -- "$notify_dir"
+@mkdir@ -p -- "$notify_root"
 
 # Nanosecond epoch as this event's ordering key. Concurrent hooks for the same
-# pane (parallel subagents, delayed jq/mkdir scheduling) can finish out of
-# order, so writes are serialized under a lock and an older event's write is
-# skipped rather than clobbering a newer one.
+# pane (parallel subagents, delayed scheduling) can finish out of order, so the
+# upsert below refuses to apply an event older than the row already there.
 event_ns="$(@date@ +%s%N)"
+now="$(@date@ +%s)"
 
-attempts=0
-while ! @mkdir@ -- "$lock_dir" 2>/dev/null; do
-  attempts=$((attempts + 1))
-  if ((attempts > 1000)); then
-    # Previous holder crashed without cleaning up; break the stale lock.
-    rmdir -- "$lock_dir" 2>/dev/null || true
-    attempts=0
-  fi
-  sleep 0.005
-done
-trap 'rmdir -- "$lock_dir" 2>/dev/null || true' EXIT
-
-current_ns=0
-if [[ -f "$notify_path" ]]; then
-  current_ns="$(@jq@ -r '.timestamp_ns // 0' "$notify_path" 2>/dev/null || printf 0)"
-fi
-
-if ((event_ns > current_ns)); then
-  temporary_path="$notify_path.$$.tmp"
-  printf '{"status":"%s","timestamp_ns":%s}\n' "$status" "$event_ns" > "$temporary_path"
-  @mv@ -- "$temporary_path" "$notify_path"
-fi
+# One row per pane, and the upsert touches only that row. Serialising writers
+# is sqlite's job here: WAL plus a busy timeout replaces the mkdir lock, the
+# temp-file rename, and the read-compare-write this script used to do by hand.
+# read_ns is deliberately absent from the SET list, so a new event keeps the
+# pane's read marker and reads as unread by being newer than it.
+# The PRAGMAs echo their result, and this hook's stdout belongs to the client
+# that invoked it.
+@sqlite3@ "$db" > /dev/null <<SQL
+PRAGMA journal_mode=WAL;
+PRAGMA busy_timeout=3000;
+CREATE TABLE IF NOT EXISTS notifications (
+  pane_id INTEGER PRIMARY KEY,
+  status TEXT NOT NULL,
+  updated_at INTEGER NOT NULL,
+  event_ns INTEGER NOT NULL,
+  read_ns INTEGER NOT NULL DEFAULT 0
+);
+INSERT INTO notifications (pane_id, status, updated_at, event_ns, read_ns)
+VALUES ($pane_id, '$status', $now, $event_ns, 0)
+ON CONFLICT(pane_id) DO UPDATE SET
+  status = excluded.status,
+  updated_at = excluded.updated_at,
+  event_ns = excluded.event_ns
+WHERE excluded.event_ns >= notifications.event_ns;
+SQL

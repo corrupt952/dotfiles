@@ -4,15 +4,10 @@ local mux = wezterm.mux
 
 local M = {}
 
--- Per-instance notification dir. The hook writes to
---   /tmp/wezterm-notifications/<basename(WEZTERM_UNIX_SOCKET)>/<pane_id>.json
--- per the wezterm official ExecDomain pattern:
--- https://wezterm.org/config/lua/ExecDomain.html
--- The wezterm-gui process carries the same WEZTERM_UNIX_SOCKET in its env
--- (verified via `ps eww`). A child shell spawned via io.popen inherits it,
--- which avoids any uncertainty about whether wezterm exposes that env to
--- os.getenv at module load.
+-- wezterm-gui does not expose WEZTERM_UNIX_SOCKET to os.getenv at module load,
+-- so a child shell reads it instead.
 local NOTIFY_ROOT = '/tmp/wezterm-notifications'
+local SQLITE = '@sqlite3@'
 
 local function basename(s)
   return (s:gsub('(.*[/\\])(.*)', '%2'))
@@ -29,12 +24,10 @@ local function detect_socket_path()
   return nil
 end
 
-local function current_notify_dir()
+local function db_path()
   local s = detect_socket_path()
-  if not s or s == '' then
-    return NOTIFY_ROOT .. '/__no_socket__'
-  end
-  return NOTIFY_ROOT .. '/' .. basename(s)
+  local namespace = (s and s ~= '') and basename(s) or '__no_socket__'
+  return NOTIFY_ROOT .. '/' .. namespace .. '.db'
 end
 
 local STATUS_LABELS = {
@@ -52,120 +45,161 @@ local STATUS_COLORS = {
 }
 
 -- ============================================
--- Local State (survives within process, cleared on restart)
+-- Storage
 -- ============================================
-local notifications = {}
+-- One row per pane, and every statement names the pane it belongs to. wezterm
+-- runs this module in several lua contexts at once, so nothing may rewrite the
+-- whole set.
+local SCHEMA = [[
+CREATE TABLE IF NOT EXISTS notifications (
+  pane_id INTEGER PRIMARY KEY,
+  status TEXT NOT NULL,
+  updated_at INTEGER NOT NULL,
+  event_ns INTEGER NOT NULL,
+  read_ns INTEGER NOT NULL DEFAULT 0
+);
+]]
 
-local function load_from_global()
-  local json = wezterm.GLOBAL.notifications_json
-  if json and json ~= '' then
-    local ok, data = pcall(wezterm.json_parse, json)
-    if ok and data then
-      notifications = data
-    end
-  end
+local PRAGMAS = 'PRAGMA busy_timeout=3000;'
+
+local function sqlite_command(sql)
+  return string.format(
+    "mkdir -p '%s' && '%s' -noheader -separator '|' '%s' '%s' 2>/dev/null",
+    NOTIFY_ROOT, SQLITE, db_path(), PRAGMAS .. SCHEMA .. sql
+  )
 end
 
-local function save_to_global()
-  local ok, json = pcall(wezterm.json_encode, notifications)
-  if ok then
-    wezterm.GLOBAL.notifications_json = json
-  end
+local function sqlite_exec(sql)
+  local handle = io.popen(sqlite_command(sql))
+  if not handle then return end
+  handle:read('*a')
+  handle:close()
 end
 
-local function add_notification(pane_id, status)
-  for i = #notifications, 1, -1 do
-    if notifications[i].pane_id == pane_id then
-      table.remove(notifications, i)
+local function sqlite_rows(sql)
+  local handle = io.popen(sqlite_command(sql))
+  if not handle then return {} end
+
+  local rows = {}
+  for line in handle:lines() do
+    local pane_id, status, updated_at, event_ns, read_ns =
+      line:match('^(%-?%d+)|([^|]*)|(%-?%d+)|(%-?%d+)|(%-?%d+)$')
+    if pane_id then
+      table.insert(rows, {
+        pane_id = tonumber(pane_id),
+        status = status,
+        updated_at = tonumber(updated_at),
+        event_ns = tonumber(event_ns),
+        read_ns = tonumber(read_ns),
+      })
     end
   end
+  handle:close()
+  return rows
+end
 
-  table.insert(notifications, {
-    pane_id = pane_id,
-    status = status,
-    timestamp = os.time(),
-    read = false,
-  })
-  save_to_global()
+-- Refreshed once per update-status tick so tab titles do not each spawn a
+-- query. Never written back.
+local cache = {}
+
+local function refresh()
+  cache = sqlite_rows(
+    'SELECT pane_id, status, updated_at, event_ns, read_ns FROM notifications;'
+  )
+  return cache
+end
+
+local function set_status(pane_id, status, event_ns)
+  -- read_ns is left alone so a newer event reads as unread again.
+  sqlite_exec(string.format([[
+INSERT INTO notifications (pane_id, status, updated_at, event_ns, read_ns)
+VALUES (%d, '%s', %d, %d, 0)
+ON CONFLICT(pane_id) DO UPDATE SET
+  status = excluded.status,
+  updated_at = excluded.updated_at,
+  event_ns = excluded.event_ns
+WHERE excluded.event_ns >= notifications.event_ns;
+]], pane_id, status, os.time(), event_ns))
 end
 
 local function mark_read(pane_id)
-  for _, n in ipairs(notifications) do
-    if n.pane_id == pane_id then
-      n.read = true
-    end
-  end
-  save_to_global()
-end
-
-local function remove_notification(pane_id)
-  for i = #notifications, 1, -1 do
-    if notifications[i].pane_id == pane_id then
-      table.remove(notifications, i)
-    end
-  end
-  save_to_global()
-end
-
-local function prune_stale()
-  local live = {}
-  for _, n in ipairs(notifications) do
-    local ok, pane = pcall(mux.get_pane, n.pane_id)
-    if ok and pane then
-      table.insert(live, n)
-    end
-  end
-  notifications = live
-  save_to_global()
+  sqlite_exec(string.format(
+    'UPDATE notifications SET read_ns = event_ns WHERE pane_id = %d;', pane_id
+  ))
 end
 
 -- ============================================
--- File-based Notification Ingestion
+-- Views over the snapshot
 -- ============================================
-local function ingest_notification_files()
-  local handle = io.popen('ls -1 "' .. current_notify_dir() .. '"/*.json 2>/dev/null')
-  if not handle then return end
+local function live_pane_ids()
+  local ids = {}
+  local ok, windows = pcall(mux.all_windows)
+  if not ok or type(windows) ~= 'table' then return ids end
 
-  for file in handle:lines() do
-    local pane_id_str = file:match('/(%d+)%.json$')
-    if pane_id_str then
-      local pane_id = tonumber(pane_id_str)
-      local f = io.open(file, 'r')
-      if f then
-        local content = f:read('*a')
-        f:close()
-        os.remove(file)
-
-        local ok, data = pcall(wezterm.json_parse, content)
-        if ok and data then
-          if data.status == 'idle' or data.status == '' then
-            remove_notification(pane_id)
-          else
-            add_notification(pane_id, data.status)
+  for _, window in ipairs(windows) do
+    local tabs_ok, tabs = pcall(function() return window:tabs() end)
+    if tabs_ok and type(tabs) == 'table' then
+      for _, tab in ipairs(tabs) do
+        local panes_ok, panes = pcall(function() return tab:panes() end)
+        if panes_ok and type(panes) == 'table' then
+          for _, pane in ipairs(panes) do
+            ids[pane:pane_id()] = true
           end
         end
       end
     end
   end
-  handle:close()
+  return ids
+end
+
+local function row_for(pane_id)
+  for _, row in ipairs(cache) do
+    if row.pane_id == pane_id and row.status ~= 'idle' then
+      return row
+    end
+  end
+  return nil
+end
+
+-- Every live pane that currently has a status, unread first and then newest
+-- first, matching how the list has always been ordered.
+local function collect_entries()
+  local live = live_pane_ids()
+  local entries = {}
+  for _, row in ipairs(cache) do
+    if live[row.pane_id] and row.status ~= 'idle' then
+      table.insert(entries, {
+        pane_id = row.pane_id,
+        status = row.status,
+        timestamp = row.updated_at or os.time(),
+        read = row.event_ns <= row.read_ns,
+      })
+    end
+  end
+  table.sort(entries, function(a, b)
+    if a.read ~= b.read then
+      return not a.read
+    end
+    return a.timestamp > b.timestamp
+  end)
+  return entries
 end
 
 -- ============================================
 -- Public API (called from appearance.lua)
 -- ============================================
 function M.get_status_indicator(pane_id)
-  for _, n in ipairs(notifications) do
-    if n.pane_id == pane_id and not n.read then
-      return STATUS_LABELS[n.status] or ''
-    end
+  local row = row_for(pane_id)
+  if row and row.event_ns > row.read_ns then
+    return STATUS_LABELS[row.status] or ''
   end
   return ''
 end
 
 function M.get_unread_count()
   local count = 0
-  for _, n in ipairs(notifications) do
-    if not n.read then
+  for _, entry in ipairs(collect_entries()) do
+    if not entry.read then
       count = count + 1
     end
   end
@@ -173,11 +207,19 @@ function M.get_unread_count()
 end
 
 function M.mark_active_pane_read(pane)
-  mark_read(pane:pane_id())
+  local pane_id = pane:pane_id()
+  local row = row_for(pane_id)
+  -- Skip the write when there is nothing new to acknowledge, so the common
+  -- tick costs one query rather than two.
+  if row and row.event_ns > row.read_ns then
+    mark_read(pane_id)
+  end
 end
 
+-- Kept for appearance.lua, which calls this every update-status tick. The hook
+-- writes its row directly now, so this only refreshes the snapshot.
 function M.ingest()
-  ingest_notification_files()
+  refresh()
 end
 
 function M.jump_to_pane(window, pane, target_pane_id)
@@ -209,47 +251,43 @@ end
 -- Apply to config
 -- ============================================
 function M.apply(config)
-  load_from_global()
-
   config.notification_handling = 'SuppressFromFocusedPane'
 
   -- Fallback: receive agent status via OSC 1337 user variable (if /dev/tty works)
   wezterm.on('user-var-changed', function(window, pane, name, value)
-    if name == 'agent_status' then
-      local pane_id = pane:pane_id()
-      if value == '' or value == 'idle' then
-        remove_notification(pane_id)
-      elseif value == 'running' then
-        mark_read(pane_id)
-      else
-        add_notification(pane_id, value)
-      end
+    if name ~= 'agent_status' then return end
+
+    local pane_id = pane:pane_id()
+    if value == 'running' then
+      mark_read(pane_id)
+      return
     end
+
+    -- This value arrives from the terminal, so only the known statuses reach
+    -- the statement above.
+    local status = (value == '' or value == 'idle') and 'idle' or value
+    if status ~= 'idle' and not STATUS_LABELS[status] then
+      return
+    end
+
+    -- No nanosecond clock in lua, so use the same epoch in the same unit and
+    -- let it order against the hook's events.
+    set_status(pane_id, status, math.floor(os.time()) * 1000000000)
+    refresh()
   end)
 
   -- Notification list action (Leader+U)
   M.notification_list_action = wezterm.action_callback(function(window, pane)
-    prune_stale()
+    refresh()
+    local entries = collect_entries()
 
-    if #notifications == 0 then
+    if #entries == 0 then
       window:toast_notification('WezTerm', 'No notifications', nil, 2000)
       return
     end
 
-    -- Sort: unread first, then by timestamp (newest first)
-    local sorted = {}
-    for _, n in ipairs(notifications) do
-      table.insert(sorted, n)
-    end
-    table.sort(sorted, function(a, b)
-      if a.read ~= b.read then
-        return not a.read
-      end
-      return a.timestamp > b.timestamp
-    end)
-
     local choices = {}
-    for _, n in ipairs(sorted) do
+    for _, n in ipairs(entries) do
       local status_text = STATUS_LABELS[n.status] or '???'
       local status_color = STATUS_COLORS[n.status] or '#c6c6c6'
       local age = os.time() - n.timestamp
@@ -312,21 +350,16 @@ function M.apply(config)
 
   -- Jump to latest unread action (Leader+N)
   M.jump_to_latest_action = wezterm.action_callback(function(window, pane)
-    prune_stale()
-
-    local latest = nil
-    for _, n in ipairs(notifications) do
-      if not n.read then
-        latest = n
-      end
-    end
-
-    if not latest then
+    refresh()
+    -- collect_entries sorts unread first, so the head is the newest unread
+    -- when one exists.
+    local entries = collect_entries()
+    if #entries == 0 or entries[1].read then
       window:toast_notification('WezTerm', 'No unread notifications', nil, 2000)
       return
     end
 
-    M.jump_to_pane(window, pane, latest.pane_id)
+    M.jump_to_pane(window, pane, entries[1].pane_id)
   end)
 end
 
