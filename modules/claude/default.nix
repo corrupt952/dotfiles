@@ -1,9 +1,20 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   configDir = "${config.xdg.configHome}/claude";
 
   weztermNotifyCommand = "${config.home.homeDirectory}/.local/libexec/wezterm-notify-hook";
+
+  bashGuardCommand = "${config.home.homeDirectory}/.local/libexec/claude-bash-guard";
+
+  bashGuardScript =
+    builtins.replaceStrings [ "@python3@" ] [ (lib.getExe pkgs.python3Minimal) ]
+      (builtins.readFile ./claude-bash-guard.py);
 
   notifyHook = {
     hooks = [
@@ -43,17 +54,12 @@ in
           "Bash(git branch *)"
           "Bash(git fetch *)"
         ];
+        # Bash rules live in the claude-bash-guard PreToolUse hook instead. A
+        # deny entry here is a bare "no", which reads to the model as the user
+        # having refused, so it stops working; the hook states its own reason
+        # and names an alternative. Read rules stay here, because those are the
+        # ones the model must not route around.
         deny = [
-          "Bash(rm -f *)"
-          "Bash(rm -rf *)"
-          "Bash(curl *)"
-          "Bash(wget *)"
-          "Bash(git push -f *)"
-          "Bash(git push --force-with-lease *)"
-          "Bash(git reset *)"
-          "Bash(chmod 777 *)"
-          "Bash(npx *)"
-          "Bash(pnpx *)"
           "Read(**/.env)"
           "Read(**/.env.*)"
           "Read(**/secrets/**)"
@@ -100,6 +106,16 @@ in
           }
         ];
         PreToolUse = [
+          {
+            matcher = "Bash";
+            hooks = [
+              {
+                type = "command";
+                command = bashGuardCommand;
+                timeout = 5;
+              }
+            ];
+          }
           {
             matcher = "WebSearch";
             hooks = [
@@ -243,24 +259,33 @@ in
     };
   };
 
-  # claudeSettingsWritable (below) leaves settings.json as a plain file, so
-  # every switch's checkLinkTargets tries to back it up before re-linking.
-  # Clear last switch's backup first, or it hard-fails on the second switch.
-  home.activation.claudeSettingsBackupCleanup = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
-    run rm -f -- "${configDir}/settings.json.backup"
-  '';
+  home = {
+    file.".local/libexec/claude-bash-guard" = {
+      text = bashGuardScript;
+      executable = true;
+    };
 
-  # Claude Code rewrites settings.json at runtime (e.g. worktree.baseRef
-  # changes, periodic partial rewrites), but home.file links it as a
-  # read-only symlink into the Nix store. Materialize it into a writable
-  # copy after each activation so Claude Code can mutate it between
-  # switches; the next switch resets it back to the Nix-managed content.
-  home.activation.claudeSettingsWritable = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    settingsPath="${configDir}/settings.json"
-    if [ -L "$settingsPath" ]; then
-      resolvedPath="$(readlink -f "$settingsPath")"
-      run rm -f "$settingsPath"
-      run install -m 644 "$resolvedPath" "$settingsPath"
-    fi
-  '';
+    activation = {
+      # claudeSettingsWritable (below) leaves settings.json as a plain file, so
+      # every switch's checkLinkTargets tries to back it up before re-linking.
+      # Clear last switch's backup first, or it hard-fails on the second switch.
+      claudeSettingsBackupCleanup = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+        run rm -f -- "${configDir}/settings.json.backup"
+      '';
+
+      # Claude Code rewrites settings.json at runtime (e.g. worktree.baseRef
+      # changes, periodic partial rewrites), but home.file links it as a
+      # read-only symlink into the Nix store. Materialize it into a writable
+      # copy after each activation so Claude Code can mutate it between
+      # switches; the next switch resets it back to the Nix-managed content.
+      claudeSettingsWritable = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+        settingsPath="${configDir}/settings.json"
+        if [ -L "$settingsPath" ]; then
+          resolvedPath="$(readlink -f "$settingsPath")"
+          run rm -f "$settingsPath"
+          run install -m 644 "$resolvedPath" "$settingsPath"
+        fi
+      '';
+    };
+  };
 }
