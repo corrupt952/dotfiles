@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  # Every tool comes from one pinned nixpkgs so a channel bump moves both jobs
+  # together.
+  NIXPKGS: github:NixOS/nixpkgs/nixpkgs-26.05-darwin
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+
+      - name: shellcheck
+        run: |
+          mapfile -t scripts < <(find . -name '*.sh' -not -path './.git/*' | sort)
+          nix shell "$NIXPKGS#shellcheck" --command shellcheck "${scripts[@]}"
+
+      - name: actionlint
+        run: nix shell "$NIXPKGS#actionlint" --command actionlint
+
+      - name: zizmor
+        run: nix shell "$NIXPKGS#zizmor" --command zizmor .
+
+      - name: statix
+        run: nix shell "$NIXPKGS#statix" --command statix check .
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+
+      # The guard decides which Bash commands Claude Code may run, so a rule
+      # that silently stops matching is a hole rather than a broken test.
+      - name: claude bash guard
+        run: |
+          nix shell "$NIXPKGS#python3Minimal" \
+            --command python3 modules/claude/claude-bash-guard.test.py
+
+  ci-result:
+    name: CI Result
+    if: always()
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check all jobs passed
+        run: |
+          failing=$(echo "$NEEDS_JSON" | jq -r 'to_entries[] | select(.value.result != "success") | "\(.key): \(.value.result)"')
+          if [ -n "$failing" ]; then
+            echo "Failed jobs:"
+            echo "$failing"
+            exit 1
+          fi
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
