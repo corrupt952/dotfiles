@@ -152,7 +152,10 @@ in
       enabledPlugins = {
         "swift-lsp@claude-plugins-official" = true;
         "frontend-design@claude-plugins-official" = true;
-        "labee-standards@labee-standards" = true;
+        "labee-core@labee-standards" = true;
+        "labee-swift@labee-standards" = true;
+        "labee-marketing@labee-standards" = true;
+        "labee-authoring@labee-standards" = true;
         "document-skills@anthropic-agent-skills" = true;
       };
 
