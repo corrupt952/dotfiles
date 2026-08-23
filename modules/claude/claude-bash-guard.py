@@ -553,7 +553,7 @@ RULES: Sequence[Rule] = (
         id="gh-repo-publish",
         names=frozenset({"gh"}),
         predicate=lambda c: gh_is(c, ("repo", "edit"))
-        and flag_value(c, "--visibility") == "public",
+        and (flag_value(c, "--visibility") or "").lower() == "public",
         message=(
             "Making a repository public is blocked by a static rule in "
             "settings.json. Nobody blocked this interactively. Disclosure cannot "

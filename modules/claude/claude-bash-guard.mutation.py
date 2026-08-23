@@ -159,8 +159,12 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "            and False",
     ),
     "gh: visibility value ignored": (
-        '        and flag_value(c, "--visibility") == "public",',
+        '        and (flag_value(c, "--visibility") or "").lower() == "public",',
         "        and True,",
+    ),
+    "gh: visibility compared case-sensitively": (
+        '        and (flag_value(c, "--visibility") or "").lower() == "public",',
+        '        and flag_value(c, "--visibility") == "public",',
     ),
     "ask: decision ignored, everything denies": (
         '    if rule.decision == "ask":',

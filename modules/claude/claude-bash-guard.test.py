@@ -320,7 +320,13 @@ def main() -> int:
     blocked("gh project field-delete --id 3", "gh-irreversible-delete")
     blocked("gh repo edit --visibility public", "gh-repo-publish")
     blocked("gh repo edit --visibility=public", "gh-repo-publish")
+    # gh passes the value through as written, so case is not a difference.
+    blocked("gh repo edit --visibility PUBLIC", "gh-repo-publish")
+    blocked("gh repo edit --visibility Public", "gh-repo-publish")
+    blocked("gh repo edit --visibility=PUBLIC", "gh-repo-publish")
     allowed("gh repo edit --visibility private")
+    allowed("gh repo edit --visibility PRIVATE")
+    allowed("gh repo edit --visibility internal")
     allowed("gh repo edit --default-branch main")
     allowed("gh repo view owner/repo")
     allowed("gh repo list")
