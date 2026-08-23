@@ -565,6 +565,57 @@ RULES: Sequence[Rule] = (
     # Ask rules come last: the first match wins, so an overlapping deny has to
     # be reached first.
     Rule(
+        id="gh-ci-config",
+        names=frozenset({"gh"}),
+        decision="ask",
+        predicate=lambda c: gh_is(
+            c,
+            ("secret", "set"),
+            ("secret", "delete"),
+            ("variable", "set"),
+            ("variable", "delete"),
+        ),
+        message=(
+            "This changes what the repository's workflows run with. A secret "
+            "cannot be read back, so overwriting one loses the old value."
+        ),
+    ),
+    Rule(
+        id="gh-remote-delete",
+        names=frozenset({"gh"}),
+        decision="ask",
+        predicate=lambda c: gh_is(
+            c,
+            ("release", "delete"),
+            ("release", "delete-asset"),
+            ("issue", "delete"),
+            ("gist", "delete"),
+            ("run", "delete"),
+        ),
+        message=(
+            "This deletes something on GitHub that does not come back. A run "
+            "takes its logs with it."
+        ),
+    ),
+    Rule(
+        id="gh-remote-run",
+        names=frozenset({"gh"}),
+        decision="ask",
+        predicate=lambda c: gh_is(c, ("workflow", "run"), ("agent-task", "create")),
+        message="This starts work on GitHub's machines, and it bills.",
+    ),
+    Rule(
+        id="gh-repo-sync-force",
+        names=frozenset({"gh"}),
+        decision="ask",
+        predicate=lambda c: gh_is(c, ("repo", "sync"))
+        and ("force" in set(c.long_flags()) or c.has_short_letter("f")),
+        message=(
+            "This resets the branch to match the other side, discarding "
+            "commits it does not have."
+        ),
+    ),
+    Rule(
         id="git-clean-force",
         names=frozenset({"git"}),
         decision="ask",

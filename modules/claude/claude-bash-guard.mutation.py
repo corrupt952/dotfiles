@@ -166,6 +166,22 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '        and (flag_value(c, "--visibility") or "").lower() == "public",',
         '        and flag_value(c, "--visibility") == "public",',
     ),
+    "gh ask: ci-config becomes a deny": (
+        '        id="gh-ci-config",\n        names=frozenset({"gh"}),\n        decision="ask",',
+        '        id="gh-ci-config",\n        names=frozenset({"gh"}),\n        decision="deny",',
+    ),
+    "gh ask: repo sync force flag ignored": (
+        '        and ("force" in set(c.long_flags()) or c.has_short_letter("f")),',
+        "        and True,",
+    ),
+    "gh ask: run delete not covered": (
+        '            ("run", "delete"),',
+        '            ("run", "__none__"),',
+    ),
+    "gh ask: variable not folded in": (
+        '            ("variable", "set"),\n            ("variable", "delete"),',
+        '            ("variable", "__none__"),',
+    ),
     "ask: decision ignored, everything denies": (
         '    if rule.decision == "ask":',
         "    if False:",
