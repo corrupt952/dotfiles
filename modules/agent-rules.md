@@ -3,11 +3,26 @@
 ## Commit messages
 
 - Follow explicit repository-local commit-message requirements first.
-- When the repository does not specify a requirement, use Conventional
-  Commits in the form `type: description`.
-- Omit the scope by default. Use `type(scope): description` only when
-  repository-local rules explicitly require a scope.
+- When the repository does not specify a requirement, use Conventional Commits in the form `type: description`.
+- Omit the scope by default. Use `type(scope): description` only when repository-local rules explicitly require a scope.
 - Do not infer a scope solely from directory names or isolated historical commits.
+- Write the subject in imperative mood ("add", not "added"), English, lowercase start, no trailing period, 50 characters or fewer.
+- Give the subject exactly one verb and one object naming the thing changed, then stop. Enumerations ("X and Y") and purpose or method tails ("for X", "to improve Y", "with Z") belong in the body — they are also what breaks the character limit.
+- Read `git diff --cached` and `git log --oneline -15` before drafting: the diff decides the type, and the recent log shows the conventions this repository already follows.
+- Classify the type by effect, not by file extension, taking the first rule that matches:
+
+  | # | Condition | Type |
+  |---|-----------|------|
+  | 1 | Only human-facing explanation changed (README, guides, code comments) | `docs` |
+  | 2 | Only test files changed | `test` |
+  | 3 | Only CI config changed | `ci` |
+  | 4 | Behavior changes: new capability added | `feat` |
+  | 5 | Behavior changes: defect corrected | `fix` |
+  | 6 | Behavior-defining content changed, behavior equivalent | `refactor` |
+  | 7 | None of the above (dependencies, tooling, build config, repo maintenance) | `chore` |
+
+- Markdown is not automatically `docs`. Files that define behavior — `SKILL.md`, agent definitions, prompt templates — are source code, so they take rules 4 through 6. `docs` is only for content whose sole job is informing humans.
+- Reach `chore` only after every rule above has been checked and none matched. Classify a mixed changeset by its dominant intent.
 
 ## Running work
 
