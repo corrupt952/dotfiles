@@ -273,6 +273,19 @@ RULES: Sequence[Rule] = (
         ),
     ),
     Rule(
+        id="keychain-secret-read",
+        names=frozenset({"security"}),
+        predicate=lambda c: c.subcommand_is(
+            "dump-keychain", "find-generic-password", "find-internet-password", "export"
+        ),
+        message=(
+            "Reading secrets out of the macOS keychain is blocked by a static "
+            "rule in settings.json. Nobody blocked this interactively. The "
+            "secret would be printed straight into the transcript. Ask the "
+            "user for it instead. Every other security subcommand still works."
+        ),
+    ),
+    Rule(
         id="registry-runner",
         names=RUNNER_COMMANDS,
         message=REGISTRY_RUNNER_MESSAGE,

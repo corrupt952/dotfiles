@@ -206,6 +206,23 @@ def main() -> int:
     allowed("chmod +x script.sh")
     allowed("chmod -R 775 dir")
 
+    # Only the subcommands that print a stored secret. The allowed list below
+    # is every other `security` subcommand that appears in real transcripts.
+    print("## rule: keychain secrets")
+    blocked("security dump-keychain", "keychain-secret-read")
+    blocked("security dump-keychain -d", "keychain-secret-read")
+    blocked("security find-generic-password -s github -w", "keychain-secret-read")
+    blocked("security find-internet-password -s example.com", "keychain-secret-read")
+    blocked("security export -k login.keychain -t privKeys", "keychain-secret-read")
+    blocked("sudo security dump-keychain", "keychain-secret-read")
+    allowed("security cms -D -i embedded.mobileprovision")
+    allowed("security list-keychains")
+    allowed("security default-keychain")
+    allowed("security show-keychain-info /Library/Keychains/System.keychain")
+    allowed("security find-identity -v -p codesigning")
+    allowed("security find-certificate -a")
+    allowed("security")
+
     print("## rule: registry runners")
     blocked("npx prettier --write .", "registry-runner")
     blocked("pnpx tsx foo.ts", "registry-runner")
