@@ -47,16 +47,33 @@ WRAPPERS = frozenset(
     }
 )
 
-# Redirections that feed a script in over stdin.
+# Skipping a flag but not its value leaves the value in command position, so
+# the real command is never examined. Only flags that always take a separate
+# value belong here -- an optional or joined one would eat the command itself,
+# which is the same failure. That rules out `sudo -h` and `xargs -i`.
+WRAPPER_VALUE_FLAGS: dict[str, frozenset[str]] = {
+    "doas": frozenset({"-u", "-C"}),
+    "env": frozenset({"-u", "--unset", "-C", "--chdir", "-S", "--split-string"}),
+    "nice": frozenset({"-n", "--adjustment"}),
+    "stdbuf": frozenset({"-i", "-o", "-e", "--input", "--output", "--error"}),
+    "sudo": frozenset({"-u", "-g", "-U", "-C", "-p", "-r", "-t"}),
+    "timeout": frozenset({"-s", "--signal", "-k", "--kill-after"}),
+    "xargs": frozenset({"-I", "-n", "-P", "-s", "-L", "-E", "-d", "-a"}),
+}
+
 STDIN_REDIRECTS = frozenset({"<", "<<", "<<<", "<<-"})
 
-# Cap on the sub-command echoed back in a block message. Measured across every
-# transcript, only the two interpreter rules run long enough to matter -- they
-# fire precisely because a whole program was inlined -- and for those the
-# message already names the fix, so the inlined code adds nothing.
+# The tokenizer hands a shell's -c argument over intact, so nothing inside it
+# meets a rule unless it is unpacked deliberately.
+SHELLS = frozenset({"bash", "sh", "zsh", "dash", "ksh", "fish"})
+
+# Cap on the sub-command echoed back in a block message. Across every
+# transcript only the interpreter rules run long enough to matter, and their
+# messages already name the fix, so echoing the inlined program adds nothing.
 ECHO_LIMIT = 200
 
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+VERSION_SUFFIX = re.compile(r"[0-9.]+$")
 DURATION = re.compile(r"^[0-9]+[smhd]?$")
 OCTAL_MODE = re.compile(r"^[0-7]{3,4}$")
 
@@ -65,7 +82,9 @@ OCTAL_MODE = re.compile(r"^[0-7]{3,4}$")
 LOCAL_TARGET = re.compile(
     r"^(?:[a-z][a-z0-9+.\-]*://)?"
     r"(?:\[::1\]|::1|localhost|127(?:\.[0-9]{1,3}){3}|0\.0\.0\.0)"
-    r"(?::[0-9]+)?(?:[/?#]|$)",
+    # The port is often a shell variable, so anything up to the path counts --
+    # except `@`, which ends the userinfo: past it the match is not the host.
+    r"(?::[^/?#@]*)?(?:[/?#]|$)",
     re.IGNORECASE,
 )
 
@@ -77,6 +96,11 @@ class Command:
     name: str
     args: tuple[str, ...]
     raw: str
+
+    @property
+    def program(self) -> str:
+        """The name without a pinned version, so python3.11 reads as python."""
+        return VERSION_SUFFIX.sub("", self.name) or self.name
 
     def short_flag_clusters(self) -> Iterator[str]:
         """Letter runs of each short flag: -pi.bak yields 'pi', -rf yields 'rf'."""
@@ -148,7 +172,9 @@ class Rule:
     predicate: Callable[[Command], bool] = field(default=lambda _: True)
 
     def matches(self, command: Command) -> bool:
-        return command.name in self.names and self.predicate(command)
+        if command.name not in self.names and command.program not in self.names:
+            return False
+        return self.predicate(command)
 
 
 # Commands whose whole purpose is to fetch a package and run it. The name alone
@@ -178,6 +204,22 @@ RUNNER_SUBCOMMAND_PAIRS: dict[str, frozenset[tuple[str, str]]] = {
     "uv": frozenset({("tool", "run"), ("tool", "install")}),
     "dotnet": frozenset({("tool", "exec")}),
 }
+
+# The letter that hands an interpreter its program is not the same across the
+# set, so one shared letter would miss whichever ones disagree. Keyed by the
+# version-free name. deno is absent: it spells this as `deno eval`, not a flag.
+INLINE_CODE_FLAG: dict[str, str] = {
+    "python": "c",
+    "node": "e",
+    "ruby": "e",
+    "perl": "e",
+    "swift": "e",
+    "bun": "e",
+    "osascript": "e",
+    "php": "r",
+}
+
+INTERPRETERS = frozenset(INLINE_CODE_FLAG)
 
 REGISTRY_RUNNER_MESSAGE = (
     "Fetching a package from a registry and running it is blocked by a static "
@@ -330,10 +372,8 @@ RULES: Sequence[Rule] = (
     ),
     Rule(
         id="interpreter-inline-code",
-        names=frozenset({"python", "python3", "node", "ruby", "perl"}),
-        predicate=lambda c: c.has_trailing_short_flag(
-            "c" if c.name.startswith("python") else "e"
-        ),
+        names=INTERPRETERS,
+        predicate=lambda c: c.has_trailing_short_flag(INLINE_CODE_FLAG[c.program]),
         message=(
             "Running a one-liner through an interpreter is blocked by a static "
             "rule in settings.json. Nobody blocked this interactively. Use the "
@@ -344,7 +384,7 @@ RULES: Sequence[Rule] = (
     ),
     Rule(
         id="interpreter-stdin-script",
-        names=frozenset({"python", "python3", "node", "ruby", "perl"}),
+        names=INTERPRETERS,
         predicate=lambda c: c.reads_stdin_script(),
         message=(
             "Piping a script into an interpreter over stdin is blocked by a "
@@ -356,6 +396,58 @@ RULES: Sequence[Rule] = (
 )
 
 
+def strip_comments(command_line: str) -> str:
+    """Drop `#` comments, leaving quoted text alone.
+
+    Has to run before tokenizing: shlex removes the quotes, after which a
+    quoted `#` cannot be told from a comment marker. A `#` opens a comment only
+    at the start of a word, which is what keeps flake refs and URL fragments.
+    """
+    result: list[str] = []
+    quote = ""
+    at_word_start = True
+    index = 0
+
+    while index < len(command_line):
+        char = command_line[index]
+
+        if quote:
+            result.append(char)
+            if char == "\\" and quote == '"' and index + 1 < len(command_line):
+                result.append(command_line[index + 1])
+                index += 2
+                continue
+            if char == quote:
+                quote = ""
+            index += 1
+            continue
+
+        if char == "\\" and index + 1 < len(command_line):
+            result.append(char)
+            result.append(command_line[index + 1])
+            index += 2
+            at_word_start = False
+            continue
+
+        if char in "'\"":
+            quote = char
+            result.append(char)
+            at_word_start = False
+            index += 1
+            continue
+
+        if char == "#" and at_word_start:
+            while index < len(command_line) and command_line[index] not in "\r\n":
+                index += 1
+            continue
+
+        result.append(char)
+        at_word_start = char.isspace() or char in ";|&()"
+        index += 1
+
+    return "".join(result)
+
+
 def tokenize(command_line: str) -> list[str]:
     """Split a command line into shell tokens, keeping operators separate.
 
@@ -363,10 +455,16 @@ def tokenize(command_line: str) -> list[str]:
     newline as plain whitespace, which would splice two commands into one, and
     it has no notion of a backtick substitution at all.
     """
-    prepared = command_line.replace("\n", " ; ").replace("\r", " ; ").replace("`", " ; ")
+    without_comments = strip_comments(command_line)
+    prepared = (
+        without_comments.replace("\n", " ; ").replace("\r", " ; ").replace("`", " ; ")
+    )
 
     lexer = shlex.shlex(prepared, posix=True, punctuation_chars=True)
     lexer.whitespace_split = True
+    # Comments are already gone, and shlex's own handling would take `#` in the
+    # middle of a word too, eating nix flake refs and URL fragments.
+    lexer.commenters = ""
     try:
         return list(lexer)
     except ValueError:
@@ -388,13 +486,20 @@ def normalize(tokens: list[str]) -> Command | None:
             tokens.pop(0)
             changed = True
 
-        if tokens and tokens[0] in WRAPPERS:
-            tokens.pop(0)
+        # `nix ... --command X ...` runs X; everything before it only picks an
+        # environment. Dropping the prefix puts X in command position.
+        if tokens and tokens[0] == "nix" and "--command" in tokens:
+            del tokens[: tokens.index("--command") + 1]
             changed = True
-            # Wrappers carry flags, and some carry a value of their own such as
-            # `timeout 30` or `nice -n 10`.
+
+        if tokens and tokens[0] in WRAPPERS:
+            value_flags = WRAPPER_VALUE_FLAGS.get(tokens.pop(0), frozenset())
+            changed = True
+            # Some wrappers also carry a bare value, as `timeout 30` does.
             while tokens and (tokens[0].startswith("-") or DURATION.match(tokens[0])):
-                tokens.pop(0)
+                flag = tokens.pop(0)
+                if flag in value_flags and tokens and not tokens[0].startswith("-"):
+                    tokens.pop(0)
 
     if not tokens:
         return None
@@ -426,25 +531,56 @@ def split_commands(command_line: str) -> list[Command]:
     return commands
 
 
-def find_violation(command_line: str) -> tuple[Rule, Command] | None:
+def nested_command(command: Command) -> str | None:
+    """The program a shell was handed with -c, which no rule can otherwise see.
+
+    The letter may sit anywhere in a short-flag cluster, and the program is the
+    token after that cluster rather than the first positional, since a flag's
+    own value can come in between.
+    """
+    if command.name not in SHELLS:
+        return None
+
+    for index, arg in enumerate(command.args):
+        if not arg.startswith("-") or arg.startswith("--"):
+            continue
+        if "c" in arg[1:]:
+            # An end-of-options separator may sit in between, and is not it.
+            for candidate in command.args[index + 1 :]:
+                if candidate != "--":
+                    return candidate
+            return None
+
+    return None
+
+
+def find_violation(command_line: str, depth: int = 0) -> tuple[Rule, Command] | None:
     for command in split_commands(command_line):
         for rule in RULES:
             if rule.matches(command):
                 return rule, command
+
+        # One level, deliberately. Deeper nesting stops being the plain detour
+        # this hook exists to redirect, and containment is the sandbox's job.
+        if depth == 0:
+            payload = nested_command(command)
+            if payload:
+                inner = find_violation(payload, depth + 1)
+                if inner:
+                    return inner
+
     return None
 
 
 def abbreviate(text: str, limit: int = ECHO_LIMIT) -> str:
     """Cut an over-long sub-command down to its head.
 
-    The head names the program and its first flags, which is what identifies
-    the call among several on one line -- the only job the echo has. Nothing is
-    kept from the end: the model wrote the command, so a trailing path or URL
-    tells it nothing it does not already have.
+    The head is what identifies the call among several on one line, the only
+    job the echo has. Nothing is kept from the end: the model wrote the
+    command, so a trailing path tells it nothing it does not already have.
 
     Reserving the marker inside the limit makes two invariants exact: the
-    result never exceeds `limit`, and so is never longer than the text it
-    replaced. The count says the echo is partial rather than malformed.
+    result never exceeds `limit`, and so is never longer than what it replaced.
     """
     if len(text) <= limit:
         return text
