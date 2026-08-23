@@ -101,9 +101,23 @@ def raw_allowed(payload: str, label: str) -> None:
         record(False, f"raw: {label}", f"expected exit 0, got {code}: {first_line}")
 
 
+def echo_of(command: str) -> str:
+    """The sub-command the guard echoed back, with its label stripped.
+
+    `Command.raw` joins tokens with spaces, so the echo is always one line.
+    """
+    _, err = run(payload_for(command))
+    prefix = "Blocked sub-command: "
+    for line in err.splitlines():
+        if line.startswith(prefix):
+            return line[len(prefix) :]
+    return ""
+
+
 # Loaded from the guard itself, so a reworded message cannot silently stop the
-# tests from checking which rule fired.
-def load_rule_messages() -> dict[str, str]:
+# tests from checking which rule fired, and so the pure helpers can be called
+# directly rather than only through the stdin contract.
+def load_guard():
     # Importing the guard would otherwise drop a __pycache__ into the module
     # directory, which is tracked source.
     sys.dont_write_bytecode = True
@@ -111,10 +125,12 @@ def load_rule_messages() -> dict[str, str]:
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
-    return {rule.id: rule.message for rule in module.RULES}
+    return module
 
 
-RULE_MESSAGES = load_rule_messages()
+GUARD = load_guard()
+RULE_MESSAGES = {rule.id: rule.message for rule in GUARD.RULES}
+LIMIT = GUARD.ECHO_LIMIT
 
 
 def main() -> int:
@@ -340,6 +356,114 @@ def main() -> int:
     blocked('sed -i "s/x/y/" "my file.txt"', "sed-in-place")
     # Unbalanced quotes must not become a bypass.
     blocked('rm -rf "unterminated', "rm-forced")
+
+    # The echo exists to say which sub-command of a compound line matched. That
+    # is its whole job, so it has to keep naming the right one.
+    print("## echo: identifies the matched sub-command")
+    record(
+        echo_of("rm -rf /tmp/foo") == "rm -rf /tmp/foo",
+        "a short sub-command is echoed verbatim",
+        f"got {echo_of('rm -rf /tmp/foo')!r}",
+    )
+    record(
+        echo_of("git status && rm -rf /tmp/x") == "rm -rf /tmp/x",
+        "echo names the matched sub-command, not the whole line",
+        f"got {echo_of('git status && rm -rf /tmp/x')!r}",
+    )
+
+    # Off-by-one at the cap is the classic bug, and the no-op path covers the
+    # median block (~32 chars), so it must stay byte-identical.
+    print("## abbreviate: boundary")
+    for length in (0, LIMIT):
+        text = "x" * length
+        record(
+            GUARD.abbreviate(text) == text,
+            f"{length} chars is at or under the cap, passed through",
+            f"got {len(GUARD.abbreviate(text))} chars",
+        )
+    over = "x" * (LIMIT + 1)
+    record(GUARD.abbreviate(over) != over, "one char over the cap is abbreviated")
+
+    print("## abbreviate: the head survives")
+    padded = "curl -sSL -H 'X-Pad: " + "p" * 500 + "' https://example.com/target"
+    out = GUARD.abbreviate(padded)
+    record(out.startswith("curl -sSL -H"), "head keeps the program and its first flags")
+    record(out.endswith(" chars)"), "the cut is visibly marked")
+
+    # If the arithmetic drifts, the message lies to the model about how much of
+    # the command it is looking at. The empty trailing piece is the other half
+    # of the claim: nothing is kept from the end, by design.
+    print("## abbreviate: the omitted count is honest")
+    original = "a" * 1000
+    head, _, rest = GUARD.abbreviate(original).partition(" ... (+")
+    count, _, trailing = rest.partition(" chars)")
+    record(count.isdigit(), "the marker carries a number", f"got {count!r}")
+    if count.isdigit():
+        record(
+            len(head) + int(count) == len(original),
+            "head + omitted reconciles with the original length",
+            f"{len(head)} + {count} != {len(original)}",
+        )
+    record(trailing == "", "nothing is kept after the marker", f"got {trailing!r}")
+
+    # Both bounds are exact because the marker is budgeted inside the cap, so
+    # no slack can hide a degraded implementation. `< length` is what a cut
+    # that costs more than it saves fails on.
+    print("## abbreviate: output stays bounded")
+    for length in (LIMIT + 1, 50_000):
+        out = GUARD.abbreviate("z" * length)
+        record(
+            len(out) <= LIMIT,
+            f"{length:,} chars in stays within the cap",
+            f"got {len(out)} chars",
+        )
+        record(len(out) < length, f"{length:,} chars in comes back shorter")
+        # The cap is a budget to spend, not a ceiling to stay under: a head too
+        # short to identify the call is the one failure the invariants above
+        # cannot see. The omitted count has at most one digit fewer than the
+        # input length, so the marker can fall one char short of its
+        # reservation and no further.
+        record(
+            len(out) >= LIMIT - 1,
+            f"{length:,} chars in fills the cap",
+            f"got {len(out)} chars, leaving budget unspent",
+        )
+
+    # Not hypothetical: real transcripts contain a perl -0pi rewriting
+    # Japanese comments.
+    print("## abbreviate: multibyte")
+    japanese = "perl -0pi -e 's/x/" + "文節" * 300 + "/' file.ts"
+    record(
+        GUARD.abbreviate(japanese).startswith("perl -0pi -e"),
+        "multibyte head is intact",
+    )
+
+    # Unit-testing abbreviate() is not enough: main() is where the call can be
+    # dropped.
+    print("## abbreviate: wired into the block message")
+    inlined = 'node -e "' + "console.log(1);" * 400 + '"'
+    code, err = run(payload_for(inlined))
+    record(code == 2, "a long inline script still blocks", f"got exit {code}")
+    record("chars)" in err, "the echo is abbreviated in real output")
+    # Spelling the budget out as its parts catches an uncapped echo and stray
+    # output alike, and says which one grew when it fails.
+    stderr_budget = (
+        len(RULE_MESSAGES["interpreter-inline-code"])
+        + len("\n\nBlocked sub-command: ")
+        + LIMIT
+        + 1  # trailing newline from print()
+    )
+    record(
+        len(err) <= stderr_budget,
+        "stderr is the message plus a capped echo, nothing more",
+        f"got {len(err)}, budget {stderr_budget}",
+    )
+    # Only the echo is capped. The message names the alternative, so truncating
+    # it would remove the reason the hook exists.
+    record(
+        RULE_MESSAGES["interpreter-inline-code"] in err,
+        "the rule message itself is never truncated",
+    )
 
     print("## payload edge cases")
     raw_allowed(

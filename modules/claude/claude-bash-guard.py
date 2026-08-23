@@ -50,6 +50,12 @@ WRAPPERS = frozenset(
 # Redirections that feed a script in over stdin.
 STDIN_REDIRECTS = frozenset({"<", "<<", "<<<", "<<-"})
 
+# Cap on the sub-command echoed back in a block message. Measured across every
+# transcript, only the two interpreter rules run long enough to matter -- they
+# fire precisely because a whole program was inlined -- and for those the
+# message already names the fix, so the inlined code adds nothing.
+ECHO_LIMIT = 200
+
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 DURATION = re.compile(r"^[0-9]+[smhd]?$")
 OCTAL_MODE = re.compile(r"^[0-7]{3,4}$")
@@ -415,6 +421,28 @@ def find_violation(command_line: str) -> tuple[Rule, Command] | None:
     return None
 
 
+def abbreviate(text: str, limit: int = ECHO_LIMIT) -> str:
+    """Cut an over-long sub-command down to its head.
+
+    The head names the program and its first flags, which is what identifies
+    the call among several on one line -- the only job the echo has. Nothing is
+    kept from the end: the model wrote the command, so a trailing path or URL
+    tells it nothing it does not already have.
+
+    Reserving the marker inside the limit makes two invariants exact: the
+    result never exceeds `limit`, and so is never longer than the text it
+    replaced. The count says the echo is partial rather than malformed.
+    """
+    if len(text) <= limit:
+        return text
+
+    # len(text) has at least as many digits as the count of omitted characters,
+    # so reserving against it can never come up short.
+    marker_budget = len(f" ... (+{len(text)} chars)")
+    head = text[: limit - marker_budget]
+    return f"{head} ... (+{len(text) - len(head)} chars)"
+
+
 def main() -> int:
     try:
         payload = json.load(sys.stdin)
@@ -437,7 +465,10 @@ def main() -> int:
         return 0
 
     rule, command = violation
-    print(f"{rule.message}\n\nBlocked sub-command: {command.raw}", file=sys.stderr)
+    print(
+        f"{rule.message}\n\nBlocked sub-command: {abbreviate(command.raw)}",
+        file=sys.stderr,
+    )
     return 2
 
 
