@@ -237,6 +237,65 @@ REGISTRY_RUNNER_MESSAGE = (
 )
 
 
+# gh's global flags that take a separate value. Their value would otherwise
+# read as the first subcommand word.
+GH_VALUE_FLAGS = frozenset({"-R", "--repo", "--hostname", "-q", "--jq", "-t", "--template"})
+
+GITHUB_HOST = re.compile(r"(?:^|\.)github\.com$", re.IGNORECASE)
+
+# An argument that is itself a URL. Anchored, so a `://` inside a search query
+# or a field value is left alone.
+URL_ARGUMENT = re.compile(r"^[a-z][a-z0-9+.\-]*://", re.IGNORECASE)
+
+
+def flag_value(command: Command, flag: str) -> str | None:
+    for index, arg in enumerate(command.args):
+        if arg == flag and index + 1 < len(command.args):
+            return command.args[index + 1]
+        if arg.startswith(f"{flag}="):
+            return arg.split("=", 1)[1]
+    return None
+
+
+def gh_words(command: Command) -> tuple[str, ...]:
+    words: list[str] = []
+    skip = False
+    for arg in command.args:
+        if skip:
+            skip = False
+        elif arg in GH_VALUE_FLAGS:
+            skip = True
+        elif not arg.startswith("-"):
+            words.append(arg)
+    return tuple(words)
+
+
+def gh_is(command: Command, *paths: tuple[str, ...]) -> bool:
+    # Asking gh how a subcommand works prints text and does nothing else, and
+    # it is how the right invocation gets found in the first place.
+    if "help" in set(command.long_flags()) or "-h" in command.args:
+        return False
+
+    words = gh_words(command)
+    return any(words[: len(path)] == path for path in paths)
+
+
+def gh_leaves_github(command: Command) -> bool:
+    """True when `gh api` was pointed at a host that is not github.com."""
+    if not gh_is(command, ("api",)):
+        return False
+
+    hosts = []
+    hostname = flag_value(command, "--hostname")
+    if hostname:
+        hosts.append(hostname)
+    for arg in command.args:
+        if URL_ARGUMENT.match(arg):
+            hosts.append(arg.split("://", 1)[1].split("/", 1)[0].split("@")[-1])
+
+    return any(not GITHUB_HOST.search(host.split(":")[0]) for host in hosts)
+
+
 def runs_from_registry(command: Command) -> bool:
     """True when a package manager was asked to fetch and run something."""
     positionals = command.positionals()
@@ -397,6 +456,110 @@ RULES: Sequence[Rule] = (
             "static rule in settings.json. Nobody blocked this interactively. "
             "Write the script to the scratchpad directory and run that file, so "
             "the code stays reviewable."
+        ),
+    ),
+    Rule(
+        id="gh-auth",
+        names=frozenset({"gh"}),
+        predicate=lambda c: gh_is(
+            c,
+            ("auth", "token"),
+            ("auth", "login"),
+            ("auth", "logout"),
+            ("auth", "refresh"),
+            ("auth", "switch"),
+            ("auth", "setup-git"),
+            ("ssh-key", "add"),
+            ("gpg-key", "add"),
+            ("repo", "deploy-key", "add"),
+        )
+        or (
+            gh_is(c, ("auth", "status"))
+            and ("show-token" in set(c.long_flags()) or c.has_short_letter("t"))
+        ),
+        message=(
+            "Handing out GitHub credentials is blocked by a static rule in "
+            "settings.json. Nobody blocked this interactively. Printing a token "
+            "puts it in the transcript, and adding a key or refreshing a scope "
+            "widens what this session can reach from here on. There is no safe "
+            "alternative: tell the user which access you need and let them "
+            "grant it. gh auth status still reports the account and its scopes."
+        ),
+    ),
+    Rule(
+        id="gh-config-persist",
+        names=frozenset({"gh"}),
+        predicate=lambda c: gh_is(
+            c,
+            ("alias", "set"),
+            ("alias", "import"),
+            ("config", "set"),
+            ("extension", "install"),
+            ("extension", "upgrade"),
+            ("skill", "install"),
+            ("skill", "update"),
+        ),
+        message=(
+            "Writing gh's persistent configuration is blocked by a static rule "
+            "in settings.json. Nobody blocked this interactively. An alias, a "
+            "pager, an extension or a skill outlives this session and can carry "
+            "any command with it. Whatever the work at hand needs can be passed "
+            "as a flag or an environment variable instead; making it permanent "
+            "is the user's call."
+        ),
+    ),
+    Rule(
+        id="gh-agent-spawn",
+        names=frozenset({"gh"}),
+        predicate=lambda c: gh_is(c, ("copilot",)),
+        message=(
+            "Starting the Copilot CLI is blocked by a static rule in "
+            "settings.json. Nobody blocked this interactively. It fetches and "
+            "runs a second agent that holds its own shell access, outside every "
+            "rule here. Do the work with the tools in this session, or tell the "
+            "user what you want run."
+        ),
+    ),
+    Rule(
+        id="gh-api-remote",
+        names=frozenset({"gh"}),
+        predicate=gh_leaves_github,
+        message=(
+            "Fetching a non-GitHub host through gh api is blocked by a static "
+            "rule in settings.json. Nobody blocked this interactively. This is "
+            "the curl rule reached by another route. Use the WebFetch tool for a "
+            "remote page; gh api against github.com is unaffected."
+        ),
+    ),
+    Rule(
+        id="gh-irreversible-delete",
+        names=frozenset({"gh"}),
+        predicate=lambda c: gh_is(
+            c,
+            ("repo", "delete"),
+            ("project", "delete"),
+            ("project", "item-delete"),
+            ("project", "field-delete"),
+        ),
+        message=(
+            "Deleting a repository or a project through gh is blocked by a "
+            "static rule in settings.json. Nobody blocked this interactively. "
+            "Neither comes back, and everything filed against them goes too. "
+            "There is no safe alternative: tell the user what should be removed "
+            "and let them do it."
+        ),
+    ),
+    Rule(
+        id="gh-repo-publish",
+        names=frozenset({"gh"}),
+        predicate=lambda c: gh_is(c, ("repo", "edit"))
+        and flag_value(c, "--visibility") == "public",
+        message=(
+            "Making a repository public is blocked by a static rule in "
+            "settings.json. Nobody blocked this interactively. Disclosure cannot "
+            "be taken back: once the code has been fetched, setting it private "
+            "again changes nothing. Tell the user what you would publish and let "
+            "them decide."
         ),
     ),
     # Ask rules come last: the first match wins, so an overlapping deny has to

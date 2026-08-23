@@ -138,6 +138,30 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '            "dump-keychain", "find-generic-password", "find-internet-password",\n'
         '            "export", "cms", "list-keychains"',
     ),
+    "gh: global flag values not skipped": (
+        "        elif arg in GH_VALUE_FLAGS:\n            skip = True",
+        "        elif False:\n            skip = True",
+    ),
+    "gh: help not exempted": (
+        '    if "help" in set(command.long_flags()) or "-h" in command.args:\n        return False',
+        "    if False:\n        return False",
+    ),
+    "gh: any scheme counts as a fetch target": (
+        "        if URL_ARGUMENT.match(arg):",
+        '        if "://" in arg:',
+    ),
+    "gh: github hosts treated as remote too": (
+        "    return any(not GITHUB_HOST.search(host.split(\":\")[0]) for host in hosts)",
+        "    return bool(hosts)",
+    ),
+    "gh: auth status --show-token not caught": (
+        '            and ("show-token" in set(c.long_flags()) or c.has_short_letter("t"))',
+        "            and False",
+    ),
+    "gh: visibility value ignored": (
+        '        and flag_value(c, "--visibility") == "public",',
+        "        and True,",
+    ),
     "ask: decision ignored, everything denies": (
         '    if rule.decision == "ask":',
         "    if False:",
