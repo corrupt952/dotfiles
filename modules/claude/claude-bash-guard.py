@@ -159,17 +159,23 @@ class Command:
 
 @dataclass(frozen=True)
 class Rule:
-    """A block rule.
+    """A rule that stops a command, either outright or for confirmation.
 
     `names` selects the programs it applies to; `predicate` narrows further.
-    The message states that the block is a static setting rather than a live
-    refusal, and names what to do instead.
+
+    The two decisions have different readers, so their messages differ in
+    kind. A `deny` message is read by the model: it says the block is a static
+    setting rather than a live refusal, and names what to do instead. An `ask`
+    message is read by the user in the approval prompt, which already shows the
+    command, so it says only what the command itself does not -- the
+    consequence -- in one sentence.
     """
 
     id: str
     names: frozenset[str]
     message: str
     predicate: Callable[[Command], bool] = field(default=lambda _: True)
+    decision: str = "deny"
 
     def matches(self, command: Command) -> bool:
         if command.name not in self.names and command.program not in self.names:
@@ -393,6 +399,47 @@ RULES: Sequence[Rule] = (
             "the code stays reviewable."
         ),
     ),
+    # Ask rules come last: the first match wins, so an overlapping deny has to
+    # be reached first.
+    Rule(
+        id="git-clean-force",
+        names=frozenset({"git"}),
+        decision="ask",
+        predicate=lambda c: c.subcommand_is("clean")
+        and (c.has_short_letter("f") or "force" in set(c.long_flags()))
+        and not (c.has_short_letter("n") or "dry-run" in set(c.long_flags())),
+        message=(
+            "This deletes untracked files outright. Nothing in git can bring "
+            "them back."
+        ),
+    ),
+    Rule(
+        id="git-history-rewrite",
+        names=frozenset({"git"}),
+        decision="ask",
+        predicate=lambda c: c.subcommand_is("filter-branch", "filter-repo")
+        or (c.subcommand_is("reflog") and "expire" in c.positionals())
+        or (
+            c.subcommand_is("gc")
+            and any(arg in {"--prune=now", "--prune=all"} for arg in c.args)
+        ),
+        message=(
+            "This rewrites history and drops the reflog entries that would "
+            "otherwise undo it."
+        ),
+    ),
+    Rule(
+        id="git-push-delete",
+        names=frozenset({"git"}),
+        decision="ask",
+        predicate=lambda c: c.subcommand_is("push")
+        and (
+            "delete" in set(c.long_flags())
+            or c.has_short_letter("d")
+            or any(arg.startswith(":") and len(arg) > 1 for arg in c.positionals())
+        ),
+        message="This removes the branch from the remote.",
+    ),
 )
 
 
@@ -614,6 +661,21 @@ def main() -> int:
         return 0
 
     rule, command = violation
+
+    if rule.decision == "ask":
+        # No echo: the prompt already shows the user the command.
+        json.dump(
+            {
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "permissionDecision": "ask",
+                    "permissionDecisionReason": rule.message,
+                }
+            },
+            sys.stdout,
+        )
+        return 0
+
     print(
         f"{rule.message}\n\nBlocked sub-command: {abbreviate(command.raw)}",
         file=sys.stderr,

@@ -43,6 +43,16 @@ def run(payload: str) -> tuple[int, str]:
     return result.returncode, result.stderr
 
 
+def run_full(payload: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        guard_argv(),
+        input=payload,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
 def payload_for(command: str) -> str:
     return json.dumps({"tool_name": "Bash", "tool_input": {"command": command}})
 
@@ -82,23 +92,67 @@ def blocked(command: str, expected_rule: str) -> None:
     record(True, label)
 
 
+def asked(command: str, expected_rule: str) -> None:
+    """Assert exit 0 and a well-formed ask decision carrying the rule's reason."""
+    proc = run_full(payload_for(command))
+    label = f"asked: {command!r}"
+
+    if proc.returncode != 0:
+        record(False, label, f"expected exit 0, got {proc.returncode}: {proc.stderr[:120]}")
+        return
+    if proc.stderr:
+        record(False, label, f"expected no stderr, got {proc.stderr[:120]}")
+        return
+
+    try:
+        payload = json.loads(proc.stdout)
+    except ValueError:
+        record(False, label, f"stdout is not JSON: {proc.stdout[:120]}")
+        return
+
+    output = payload.get("hookSpecificOutput", {})
+    if output.get("hookEventName") != "PreToolUse":
+        record(False, label, f"wrong hookEventName: {output.get('hookEventName')!r}")
+        return
+    if output.get("permissionDecision") != "ask":
+        record(False, label, f"wrong decision: {output.get('permissionDecision')!r}")
+        return
+
+    reason = output.get("permissionDecisionReason", "")
+    if reason != RULE_MESSAGES.get(expected_rule):
+        record(False, label, f"expected rule {expected_rule!r}, got reason: {reason[:80]}")
+        return
+
+    record(True, label)
+
+
 def allowed(command: str) -> None:
-    code, err = run(payload_for(command))
+    # An ask also exits 0 with an empty stderr, so silence on stdout is what
+    # separates "no rule matched" from "the user was asked".
+    proc = run_full(payload_for(command))
     label = f"allowed: {command!r}"
-    if code == 0 and not err:
+    if proc.returncode == 0 and not proc.stderr and not proc.stdout:
         record(True, label)
     else:
-        first_line = err.splitlines()[0] if err else ""
-        record(False, label, f"expected silent exit 0, got {code}: {first_line}")
+        detail = (proc.stderr or proc.stdout).splitlines()
+        record(
+            False,
+            label,
+            f"expected silent exit 0, got {proc.returncode}: {detail[0] if detail else ''}",
+        )
 
 
 def raw_allowed(payload: str, label: str) -> None:
-    code, err = run(payload)
-    if code == 0:
+    proc = run_full(payload)
+    if proc.returncode == 0 and not proc.stdout:
         record(True, f"raw: {label}")
     else:
-        first_line = err.splitlines()[0] if err else ""
-        record(False, f"raw: {label}", f"expected exit 0, got {code}: {first_line}")
+        detail = (proc.stderr or proc.stdout).splitlines()
+        record(
+            False,
+            f"raw: {label}",
+            f"expected exit 0, got {proc.returncode}: {detail[0] if detail else ''}",
+        )
 
 
 def echo_of(command: str) -> str:
@@ -197,6 +251,35 @@ def main() -> int:
     allowed("git restore file.txt")
     allowed("git revert HEAD")
     allowed("git reset-author")
+
+    print("## ask: destructive git")
+    asked("git clean -fd sites/labee-jp", "git-clean-force")
+    asked("git clean -f", "git-clean-force")
+    asked("git clean --force -d", "git-clean-force")
+    asked("git filter-branch --tree-filter true HEAD", "git-history-rewrite")
+    asked("git filter-repo --path docs", "git-history-rewrite")
+    asked("git reflog expire --expire=now --all", "git-history-rewrite")
+    asked("git gc --prune=now", "git-history-rewrite")
+    asked("git push origin --delete feature", "git-push-delete")
+    asked("git push -d origin feature", "git-push-delete")
+    asked("git push origin :feature", "git-push-delete")
+    allowed("git clean -n")
+    allowed("git clean -nd")
+    allowed("git clean --dry-run -d")
+    # -n overrides -f in git, so these only preview.
+    allowed("git clean -fn")
+    allowed("git clean -nf")
+    allowed("git clean -f --dry-run")
+    allowed("git clean --force --dry-run -d")
+    allowed("git gc")
+    allowed("git gc --auto")
+    allowed("git reflog")
+    allowed("git reflog show HEAD")
+    allowed("git push origin main")
+    allowed("git push --dry-run origin main")
+    allowed("git push origin HEAD:refs/heads/topic")
+    # An overlapping deny is reached first, since ask rules are listed last.
+    blocked("git push -fd origin feature", "git-force-push")
 
     print("## rule: chmod 777")
     blocked("chmod 777 file", "chmod-world-writable")
