@@ -643,6 +643,28 @@ RULES: Sequence[Rule] = (
         ),
     ),
     Rule(
+        id="git-restore-worktree",
+        names=frozenset({"git"}),
+        decision="ask",
+        predicate=lambda c: c.subcommand_is("restore")
+        and "." in c.positionals()[1:]
+        and not (
+            "staged" in set(c.long_flags()) and "worktree" not in set(c.long_flags())
+        ),
+        message=(
+            "This throws away every uncommitted change in the working tree, "
+            "the same as git reset --hard would."
+        ),
+    ),
+    Rule(
+        id="git-stash-discard",
+        names=frozenset({"git"}),
+        decision="ask",
+        predicate=lambda c: c.subcommand_is("stash")
+        and bool({"drop", "clear"} & set(c.positionals()[1:3])),
+        message="This throws away stashed work, which nothing else holds.",
+    ),
+    Rule(
         id="git-push-delete",
         names=frozenset({"git"}),
         decision="ask",

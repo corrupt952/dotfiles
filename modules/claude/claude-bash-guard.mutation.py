@@ -182,6 +182,18 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '            ("variable", "set"),\n            ("variable", "delete"),',
         '            ("variable", "__none__"),',
     ),
+    "git ask: restore catches a named path too": (
+        '        and "." in c.positionals()[1:]',
+        "        and True",
+    ),
+    "git ask: restore --staged not spared": (
+        '        and not (\n            "staged" in set(c.long_flags()) and "worktree" not in set(c.long_flags())\n        ),',
+        "        and True,",
+    ),
+    "git ask: stash catches pop and list": (
+        '        and bool({"drop", "clear"} & set(c.positionals()[1:3])),',
+        "        and True,",
+    ),
     "ask: decision ignored, everything denies": (
         '    if rule.decision == "ask":',
         "    if False:",
