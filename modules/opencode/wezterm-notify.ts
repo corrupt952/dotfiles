@@ -1,50 +1,43 @@
 import type { Plugin } from "@opencode-ai/plugin";
-import { mkdirSync, renameSync, writeFileSync } from "fs";
-import { basename, join } from "path";
+import { spawnSync } from "child_process";
 
-const NOTIFY_ROOT = "/tmp/wezterm-notifications";
+// The shared hook owns the storage format (sqlite under
+// /tmp/wezterm-notifications), so this plugin only translates opencode's event
+// names into the hook event names claude and codex already send.
+const NOTIFY_HOOK = "@weztermNotifyHook@";
+
+const HOOK_EVENTS: Record<string, string> = {
+  "session.idle": "Stop",
+  "session.error": "StopFailure",
+  "permission.asked": "PermissionRequest",
+  "permission.replied": "UserPromptSubmit",
+  "session.deleted": "SessionEnd",
+};
+
+// Synchronous because the process-exit handler below has no chance to await,
+// and the hook is a single sqlite upsert.
+const notify = (hookEventName: string) => {
+  try {
+    spawnSync(NOTIFY_HOOK, {
+      input: JSON.stringify({ hook_event_name: hookEventName }),
+      stdio: ["pipe", "ignore", "ignore"],
+      timeout: 3000,
+    });
+  } catch {
+    // A missing or failing hook must never take opencode down with it.
+  }
+};
 
 const WezTermNotify: Plugin = async () => {
-  const paneId = process.env.WEZTERM_PANE;
-  const socket = process.env.WEZTERM_UNIX_SOCKET;
-  if (!paneId || !socket) return {};
+  if (!process.env.WEZTERM_PANE || !process.env.WEZTERM_UNIX_SOCKET) return {};
 
-  const notifyDir = join(NOTIFY_ROOT, basename(socket));
-  const notifyPath = join(notifyDir, `${paneId}.json`);
-  const temporaryPath = `${notifyPath}.${process.pid}.tmp`;
-
-  mkdirSync(notifyDir, { recursive: true });
-
-  const writeStatus = (status: string) => {
-    writeFileSync(
-      temporaryPath,
-      JSON.stringify({ status, timestamp: Math.floor(Date.now() / 1000) }),
-    );
-    renameSync(temporaryPath, notifyPath);
-  };
-
-  writeStatus("initial");
-  process.once("exit", () => writeStatus("idle"));
+  notify("SessionStart");
+  process.once("exit", () => notify("SessionEnd"));
 
   return {
     event: async ({ event }) => {
-      switch (event.type) {
-        case "session.idle":
-          writeStatus("done");
-          break;
-        case "session.error":
-          writeStatus("error");
-          break;
-        case "permission.asked":
-          writeStatus("waiting");
-          break;
-        case "permission.replied":
-          writeStatus("initial");
-          break;
-        case "session.deleted":
-          writeStatus("idle");
-          break;
-      }
+      const hookEventName = HOOK_EVENTS[event.type];
+      if (hookEventName) notify(hookEventName);
     },
   };
 };

@@ -1,5 +1,8 @@
-_:
+{ config, pkgs, ... }:
 
+let
+  weztermNotifyHook = "${config.home.homeDirectory}/.local/libexec/wezterm-notify-hook";
+in
 {
   programs.opencode = {
     enable = true;
@@ -7,5 +10,7 @@ _:
   };
 
   xdg.configFile."opencode/plugins/wezterm-notify.ts".source =
-    ./wezterm-notify.ts;
+    pkgs.replaceVars ./wezterm-notify.ts {
+      inherit weztermNotifyHook;
+    };
 }
