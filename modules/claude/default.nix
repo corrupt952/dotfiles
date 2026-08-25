@@ -78,9 +78,10 @@ in
         defaultMode = "default";
       };
 
-      model = "claude-opus-5";
+      model = "claude-sonnet-5";
+      effortLevel = "high";
       fallbackModel = [
-        "claude-sonnet-5"
+        "claude-opus-5"
       ];
 
       hooks = {
@@ -251,7 +252,6 @@ in
       feedbackSurveyRate = 0;
       spinnerTipsEnabled = false;
       alwaysThinkingEnabled = true;
-      effortLevel = "high";
       promptSuggestionEnabled = false;
       awaySummaryEnabled = false;
       autoUpdatesChannel = "latest";
