@@ -99,10 +99,12 @@ node_modules/
 .claude/settings.local.json
 **/.claude/settings.local.json
 .claude/todos/
+**/.claude/.cc-writes/
+**/.claude/worktrees
 
 # Bun / pnpm / Deno
 bun.lockb
 .pnpm-store/
 deno.lock
 
-**/.claude/.cc-writes/
+
