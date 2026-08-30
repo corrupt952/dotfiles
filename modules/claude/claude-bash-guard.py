@@ -27,8 +27,21 @@ SEPARATORS = frozenset({"&&", "||", ";", ";;", "|", "|&", "&", "(", ")", "{", "}
 # checked as a `git reset`.
 KEYWORDS = frozenset({"then", "else", "elif", "do", "done", "fi", "esac", "!"})
 
+# Tokens that only redirect. A run of punctuation that is none of these and
+# none of SEPARATORS, such as the `&)` that closes `(cmd &)`, is a splice of
+# several and gets split back apart.
+REDIRECTS = frozenset({"<", "<<", "<<<", "<<-", "<&", "<>", ">", ">>", ">&", ">|", "&>", "&>>"})
+OPERATORS = SEPARATORS | REDIRECTS
+PUNCTUATION = frozenset("();<>|&")
+
+# Stands in for an `&` that sits inside quotes or behind a backslash while the
+# line is tokenized, since shlex hands both back as a bare `&`, which would
+# read as a background operator. Restored once the tokens are apart.
+QUOTED_AMPERSAND = "\x00amp\x00"
+
 # Commands that only prefix another command. Stripping them stops a rule from
-# being sidestepped by `env sed -i ...` or `xargs rm -rf`.
+# being sidestepped by `env sed -i ...` or `xargs rm -rf`. nohup and setsid are
+# not here: they detach the command, which is a rule of its own.
 WRAPPERS = frozenset(
     {
         "builtin",
@@ -37,8 +50,6 @@ WRAPPERS = frozenset(
         "env",
         "exec",
         "nice",
-        "nohup",
-        "setsid",
         "stdbuf",
         "sudo",
         "time",
@@ -96,6 +107,8 @@ class Command:
     name: str
     args: tuple[str, ...]
     raw: str
+    # True when the sub-command was closed by a lone `&`.
+    background: bool = False
 
     @property
     def program(self) -> str:
@@ -161,7 +174,8 @@ class Command:
 class Rule:
     """A rule that stops a command, either outright or for confirmation.
 
-    `names` selects the programs it applies to; `predicate` narrows further.
+    `names` selects the programs it applies to, or every program when empty;
+    `predicate` narrows further.
 
     The two decisions have different readers, so their messages differ in
     kind. A `deny` message is read by the model: it says the block is a static
@@ -178,7 +192,7 @@ class Rule:
     decision: str = "deny"
 
     def matches(self, command: Command) -> bool:
-        if command.name not in self.names and command.program not in self.names:
+        if self.names and command.name not in self.names and command.program not in self.names:
             return False
         return self.predicate(command)
 
@@ -312,7 +326,31 @@ def runs_from_registry(command: Command) -> bool:
     return command.subcommand_is(*RUNNER_SUBCOMMANDS.get(command.name, frozenset()))
 
 
+DETACH_MESSAGE = (
+    "Detaching a command from the Bash tool is blocked by a static rule in "
+    "settings.json. Nobody blocked this interactively. The Bash tool starts each "
+    "command in its own process group with no controlling terminal and does not "
+    "reap it, so a process left behind with `&`, nohup, setsid or disown is "
+    "reparented to PID 1, never receives SIGHUP, and outlives the session. Run "
+    "the command with `run_in_background: true` instead; if you only need to "
+    "wait for something, use the Monitor tool."
+)
+
+
 RULES: Sequence[Rule] = (
+    # First, so that a command which also trips a later rule still gets the
+    # run_in_background pointer: that is the fix the model has to reach for.
+    Rule(
+        id="background",
+        names=frozenset(),
+        predicate=lambda c: c.background,
+        message=DETACH_MESSAGE,
+    ),
+    Rule(
+        id="detach",
+        names=frozenset({"nohup", "setsid", "disown"}),
+        message=DETACH_MESSAGE,
+    ),
     Rule(
         id="rm-forced",
         names=frozenset({"rm"}),
@@ -679,12 +717,18 @@ RULES: Sequence[Rule] = (
 )
 
 
+def shield(char: str) -> str:
+    """The form a quoted or escaped character takes through the tokenizer."""
+    return QUOTED_AMPERSAND if char == "&" else char
+
+
 def strip_comments(command_line: str) -> str:
-    """Drop `#` comments, leaving quoted text alone.
+    """Drop `#` comments and shield quoted `&`, leaving other quoted text alone.
 
     Has to run before tokenizing: shlex removes the quotes, after which a
-    quoted `#` cannot be told from a comment marker. A `#` opens a comment only
-    at the start of a word, which is what keeps flake refs and URL fragments.
+    quoted `#` cannot be told from a comment marker, nor a quoted `&` from the
+    background operator. A `#` opens a comment only at the start of a word,
+    which is what keeps flake refs and URL fragments.
     """
     result: list[str] = []
     quote = ""
@@ -695,11 +739,12 @@ def strip_comments(command_line: str) -> str:
         char = command_line[index]
 
         if quote:
-            result.append(char)
             if char == "\\" and quote == '"' and index + 1 < len(command_line):
-                result.append(command_line[index + 1])
+                result.append(char)
+                result.append(shield(command_line[index + 1]))
                 index += 2
                 continue
+            result.append(shield(char) if char != quote else char)
             if char == quote:
                 quote = ""
             index += 1
@@ -707,7 +752,7 @@ def strip_comments(command_line: str) -> str:
 
         if char == "\\" and index + 1 < len(command_line):
             result.append(char)
-            result.append(command_line[index + 1])
+            result.append(shield(command_line[index + 1]))
             index += 2
             at_word_start = False
             continue
@@ -749,17 +794,46 @@ def tokenize(command_line: str) -> list[str]:
     # middle of a word too, eating nix flake refs and URL fragments.
     lexer.commenters = ""
     try:
-        return list(lexer)
+        tokens = list(lexer)
     except ValueError:
         # Unbalanced quotes. Fall back to a crude split rather than skipping the
         # check, so a malformed command cannot be used to slip a rule.
         rough = re.sub(r"(\|\||&&|;|\||&|\(|\)|\{|\})", " \\1 ", prepared)
-        return [token.strip("\"'") for token in rough.split() if token.strip("\"'")]
+        tokens = [token.strip("\"'") for token in rough.split() if token.strip("\"'")]
+
+    # Shielded ampersands stay shielded here: split_commands has yet to tell
+    # the operators apart, and normalize restores them once it has.
+    result: list[str] = []
+    for token in tokens:
+        result.extend(split_operators(token))
+    return result
 
 
-def normalize(tokens: list[str]) -> Command | None:
+def split_operators(token: str) -> list[str]:
+    """Break a spliced punctuation run such as `&)` into `&` and `)`.
+
+    shlex groups adjacent punctuation into one token. Longest known operator
+    first, so `&>` stays a redirect and does not become `&` plus `>`.
+    """
+    if not token or set(token) - PUNCTUATION:
+        return [token]
+
+    parts: list[str] = []
+    while token:
+        for width in range(min(3, len(token)), 0, -1):
+            if token[:width] in OPERATORS:
+                parts.append(token[:width])
+                token = token[width:]
+                break
+        else:
+            parts.append(token[0])
+            token = token[1:]
+    return parts
+
+
+def normalize(tokens: list[str], background: bool = False) -> Command | None:
     """Strip everything that only prefixes the real command."""
-    tokens = list(tokens)
+    tokens = [token.replace(QUOTED_AMPERSAND, "&") for token in tokens]
 
     changed = True
     while changed and tokens:
@@ -791,7 +865,9 @@ def normalize(tokens: list[str]) -> Command | None:
     if "/" in name:
         name = name.rsplit("/", 1)[1]
 
-    return Command(name=name, args=tuple(tokens[1:]), raw=" ".join(tokens))
+    return Command(
+        name=name, args=tuple(tokens[1:]), raw=" ".join(tokens), background=background
+    )
 
 
 def split_commands(command_line: str) -> list[Command]:
@@ -800,7 +876,7 @@ def split_commands(command_line: str) -> list[Command]:
 
     for token in tokenize(command_line):
         if token in SEPARATORS:
-            command = normalize(current)
+            command = normalize(current, background=token == "&")
             if command:
                 commands.append(command)
             current = []

@@ -73,8 +73,8 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "        return self.name",
     ),
     "interp: rules ignore the version-free name": (
-        "        if command.name not in self.names and command.program not in self.names:",
-        "        if command.name not in self.names:",
+        "        if self.names and command.name not in self.names and command.program not in self.names:",
+        "        if self.names and command.name not in self.names:",
     ),
     "comments: not recognised at all": (
         '        if char == "#" and at_word_start:',
@@ -209,6 +209,38 @@ MUTATIONS: dict[str, tuple[str, str]] = {
     "ask: git clean dry-run not spared": (
         '        and not (c.has_short_letter("n") or "dry-run" in set(c.long_flags())),',
         "        and True,",
+    ),
+    "background: flag never set": (
+        '            command = normalize(current, background=token == "&")',
+        "            command = normalize(current)",
+    ),
+    "background: && counts too": (
+        '            command = normalize(current, background=token == "&")',
+        '            command = normalize(current, background=token.startswith("&"))',
+    ),
+    "background: empty names match nothing": (
+        "        if self.names and command.name not in self.names and command.program not in self.names:",
+        "        if command.name not in self.names and command.program not in self.names:",
+    ),
+    "background: quoted & not shielded": (
+        '    return QUOTED_AMPERSAND if char == "&" else char',
+        "    return char",
+    ),
+    "background: spliced &) left whole": (
+        "        result.extend(split_operators(token))",
+        "        result.append(token)",
+    ),
+    "background: splitter breaks &> apart": (
+        "        for width in range(min(3, len(token)), 0, -1):",
+        "        for width in range(1, 2):",
+    ),
+    "detach: nohup back to a wrapper": (
+        '        "nice",\n        "stdbuf",',
+        '        "nice",\n        "nohup",\n        "setsid",\n        "stdbuf",',
+    ),
+    "detach: disown not covered": (
+        '        names=frozenset({"nohup", "setsid", "disown"}),',
+        '        names=frozenset({"nohup", "setsid"}),',
     ),
 }
 

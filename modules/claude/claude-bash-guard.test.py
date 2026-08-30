@@ -232,6 +232,50 @@ def main() -> int:
     allowed("man curl")
     allowed("which curl")
 
+    print("## rule: background and detach")
+    blocked("python3 test-server.py &", "background")
+    blocked("python3 -m http.server 8765 &", "background")
+    blocked("cmd&", "background")
+    blocked("cmd & wait", "background")
+    blocked("cmd &>/dev/null &", "background")
+    blocked("cmd > log 2>&1 &", "background")
+    blocked("(cmd &)", "background")
+    blocked("{ cmd & }", "background")
+    blocked("cmd1 && cmd2 &", "background")
+    blocked("cmd | tee log &", "background")
+    blocked("a & b & c", "background")
+    blocked("bash -c 'cmd &'", "background")
+    blocked("sh -c \"cmd &\"", "background")
+    blocked("nohup cmd", "detach")
+    blocked("nohup wget http://x", "detach")
+    blocked("sudo nohup cmd", "detach")
+    blocked("setsid cmd", "detach")
+    blocked("setsid -f cmd", "detach")
+    blocked("cmd; disown", "detach")
+    blocked("cmd & disown", "background")
+    # A wrapper that also trips a later rule still gets the run_in_background
+    # pointer, since that is the fix.
+    blocked("rm -rf x &", "background")
+    # `&&`, `|&` and the redirect spellings share the character, and are not it.
+    allowed("cmd1 && cmd2")
+    allowed("cmd |& tee log")
+    allowed("cmd &> log")
+    allowed("cmd &>> log")
+    allowed("cmd 2>&1")
+    allowed("cmd >&2")
+    allowed("cmd <&0")
+    allowed("echo '&'")
+    allowed("echo 'a & b'")
+    allowed('echo "a & b"')
+    allowed('echo "a \\& b"')
+    allowed("echo a \\& b")
+    allowed("grep -c '&' file")
+    allowed("wait")
+    allowed("jobs")
+    allowed("echo nohup")
+    allowed("man nohup")
+    allowed("which setsid")
+
     print("## rule: force push")
     blocked("git push -f origin main", "git-force-push")
     blocked("git push --force origin main", "git-force-push")
@@ -646,7 +690,6 @@ def main() -> int:
     blocked("sudo rm -rf /tmp/x", "rm-forced")
     blocked("env FOO=1 sed -i s/a/b/ f", "sed-in-place")
     blocked("FOO=bar BAZ=qux curl https://x.com", "network-fetch")
-    blocked("nohup wget http://x", "network-fetch")
     blocked("time git reset --hard", "git-reset")
     blocked("timeout 30 curl https://x.com", "network-fetch")
     blocked("timeout 5m wget http://x", "network-fetch")
@@ -713,6 +756,10 @@ def main() -> int:
         except Exception:
             crashed += 1
             continue
+        # A quoted `&` comes back shielded, which is the one change that is
+        # not a removal; undo it so the properties speak about comments alone.
+        once = once.replace(GUARD.QUOTED_AMPERSAND, "&")
+        twice = twice.replace(GUARD.QUOTED_AMPERSAND, "&")
         if len(once) > len(text):
             grew += 1
         if twice != once:
