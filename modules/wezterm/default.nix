@@ -36,7 +36,7 @@ in
 
   programs.wezterm = {
     enable = true;
-    enableZshIntegration = true;
+    enableZshIntegration = false;
   };
 
   targets.darwin.copyApps.enable = pkgs.stdenv.hostPlatform.isDarwin;
