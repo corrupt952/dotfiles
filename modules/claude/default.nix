@@ -145,6 +145,7 @@ in
         "labee-marketing@labee-standards" = true;
         "labee-authoring@labee-standards" = true;
         "document-skills@anthropic-agent-skills" = true;
+        "claude-code@dirigo" = true;
       };
 
       extraKnownMarketplaces = {
@@ -161,6 +162,12 @@ in
             repo = "anthropics/skills";
           };
           autoUpdate = true;
+        };
+        dirigo = {
+          source = {
+            source = "directory";
+            path = "${config.home.homeDirectory}/Applications/Dirigo.app/Contents/Resources/AgentPlugins";
+          };
         };
       };
 
