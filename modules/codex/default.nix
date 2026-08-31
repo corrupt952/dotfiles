@@ -1,13 +1,4 @@
-{ config, lib, pkgs, ... }:
-
-let
-  codexHome =
-    if config.home.preferXdgDirectories then
-      "${config.xdg.configHome}/codex"
-    else
-      "${config.home.homeDirectory}/.codex";
-  codexHomeRelative = lib.removePrefix "${config.home.homeDirectory}/" codexHome;
-in
+_:
 {
   # The Codex app manages and updates the CLI. Home Manager owns only the
   # integration files here, leaving config.toml writable for runtime state
