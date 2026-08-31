@@ -8,22 +8,12 @@
 let
   configDir = "${config.xdg.configHome}/claude";
 
-  weztermNotifyCommand = "${config.home.homeDirectory}/.local/libexec/wezterm-notify-hook";
-
   bashGuardCommand = "${config.home.homeDirectory}/.local/libexec/claude-bash-guard";
 
   bashGuardScript =
     builtins.replaceStrings [ "@python3@" ] [ (lib.getExe pkgs.python3Minimal) ]
       (builtins.readFile ./claude-bash-guard.py);
 
-  notifyHook = {
-    hooks = [
-      {
-        type = "command";
-        command = weztermNotifyCommand;
-      }
-    ];
-  };
 in
 {
   programs.claude-code = {
@@ -85,16 +75,6 @@ in
       ];
 
       hooks = {
-        SessionStart = [ notifyHook ];
-        Notification = [ notifyHook ];
-        PermissionRequest = [ notifyHook ];
-        Elicitation = [ notifyHook ];
-        SubagentStop = [ notifyHook ];
-        Stop = [
-          notifyHook
-        ];
-        StopFailure = [ notifyHook ];
-        SessionEnd = [ notifyHook ];
         UserPromptSubmit = [ ];
         PostToolUse = [
           {
@@ -228,7 +208,6 @@ in
             "${configDir}/output-styles"
             "~/Obsidian"
             "~/Library/Caches"
-            "/tmp/wezterm-notifications"
           ];
           denyRead = [
             "~/.aws"
