@@ -68,11 +68,16 @@ in
         defaultMode = "default";
       };
 
-      model = "claude-sonnet-5";
+      model = "claude-fable-5[1m]";
       effortLevel = "high";
       fallbackModel = [
         "claude-opus-5"
       ];
+      modelSettings = {
+        "claude-fable-5" = {
+          effortLevel = "low";
+        };
+      };
 
       hooks = {
         UserPromptSubmit = [ ];
