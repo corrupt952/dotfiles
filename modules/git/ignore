@@ -101,6 +101,7 @@ node_modules/
 .claude/todos/
 **/.claude/.cc-writes/
 **/.claude/worktrees
+TODO.md
 
 # Bun / pnpm / Deno
 bun.lockb
