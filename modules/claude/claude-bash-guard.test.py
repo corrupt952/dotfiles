@@ -94,8 +94,17 @@ def blocked(command: str, expected_rule: str) -> None:
 
 def asked(command: str, expected_rule: str) -> None:
     """Assert exit 0 and a well-formed ask decision carrying the rule's reason."""
+    decided(command, expected_rule, "ask")
+
+
+def lifted(command: str, expected_rule: str) -> None:
+    """Assert exit 0 and an allow decision, which bypasses the settings ask."""
+    decided(command, expected_rule, "allow")
+
+
+def decided(command: str, expected_rule: str, decision: str) -> None:
     proc = run_full(payload_for(command))
-    label = f"asked: {command!r}"
+    label = f"{decision}: {command!r}"
 
     if proc.returncode != 0:
         record(False, label, f"expected exit 0, got {proc.returncode}: {proc.stderr[:120]}")
@@ -114,7 +123,7 @@ def asked(command: str, expected_rule: str) -> None:
     if output.get("hookEventName") != "PreToolUse":
         record(False, label, f"wrong hookEventName: {output.get('hookEventName')!r}")
         return
-    if output.get("permissionDecision") != "ask":
+    if output.get("permissionDecision") != decision:
         record(False, label, f"wrong decision: {output.get('permissionDecision')!r}")
         return
 
@@ -473,6 +482,89 @@ def main() -> int:
     allowed("git push origin HEAD:refs/heads/topic")
     # An overlapping deny is reached first, since ask rules are listed last.
     blocked("git push -fd origin feature", "git-force-push")
+    # A deny anywhere on the line outranks an ask that comes earlier on it.
+    blocked("git stash drop && rm -rf /tmp/x", "rm-forced")
+
+    print("## allow: git checkout that only creates a branch")
+    lifted("git checkout -b feature/x", "git-checkout-branch")
+    lifted("git checkout -b feature/x origin/main", "git-checkout-branch")
+    lifted("git checkout -b fix HEAD~2", "git-checkout-branch")
+    lifted("git checkout -q -b fix", "git-checkout-branch")
+    lifted("git checkout -b fix --no-track origin/fix", "git-checkout-branch")
+    lifted("git checkout -t -b fix origin/fix", "git-checkout-branch")
+    lifted("git checkout --orphan gh-pages", "git-checkout-branch")
+    lifted("git checkout main -b fix", "git-checkout-branch")
+    lifted("git checkout -b 'feature/x'", "git-checkout-branch")
+    lifted("git checkout -b a && git checkout -b b", "git-checkout-branch")
+    # Anything that could restore a path or move an existing branch falls
+    # through to the settings.json ask, which is silence here.
+    allowed("git checkout main")
+    allowed("git checkout")
+    allowed("git checkout -- file.txt")
+    allowed("git checkout -b fix -- file.txt")
+    allowed("git checkout .")
+    allowed("git checkout -f main")
+    allowed("git checkout -B fix")
+    allowed("git checkout -b fix -B other")
+    allowed("git checkout -qb fix")
+    allowed("git checkout --track=direct -b fix origin/fix")
+    allowed("git checkout -b fix a b")
+    allowed("git checkout -b")
+    allowed("git checkout --orphan")
+    allowed("git checkout -b -")
+    allowed("git checkout -b fix -")
+    allowed("git checkout -b fix > log")
+    allowed("git -C repo checkout -b fix")
+    allowed("git --no-pager checkout -b fix")
+    allowed("git -c core.hooksPath=/x checkout -b fix")
+    allowed("git checkout -p -b fix")
+    # An allow only covers a line it can vouch for entirely.
+    allowed("git checkout -b fix && git status")
+    allowed("git checkout -b fix; ls")
+    allowed("git status && git checkout -b fix")
+    allowed("bash -c 'git checkout -b fix'")
+    # A prefix changes what the same words do, and the settings pattern
+    # would not have matched it either.
+    allowed("sudo git checkout -b fix")
+    allowed("env git checkout -b fix")
+    allowed("GIT_DIR=/elsewhere git checkout -b fix")
+    allowed("/usr/bin/git checkout -b fix")
+    allowed("if true; then git checkout -b fix; fi")
+    # A name that the shell would still expand is not a name.
+    allowed('git checkout -b "$(rm -r x)"')
+    allowed("git checkout -b '$(rm -r x)'")
+    allowed("git checkout -b '`ls`'")
+    allowed("git checkout -b $BRANCH")
+    allowed("git checkout -b fix{1,2}")
+    allowed("git checkout -b 'a b'")
+    allowed("git checkout -b .hidden")
+    allowed("git checkout -b '-x'")
+    # Unbalanced quotes leave the tokens a guess, which no allow rests on.
+    allowed("git checkout -b 'fix")
+    allowed("git checkout -b fix '")
+    allowed('git checkout -b "fix')
+    blocked("git checkout -b \"fix; rm -rf x", "rm-forced")
+    # A deny or an ask elsewhere on the line still wins.
+    blocked("git checkout -b fix && rm -rf /tmp/x", "rm-forced")
+    blocked("git checkout -b fix &", "background")
+    blocked("git checkout -b $(curl https://x.com)", "network-fetch")
+    asked("git checkout -b fix && git stash drop", "git-stash-discard")
+
+    print("## allow: git rebase that only resumes or abandons")
+    lifted("git rebase --abort", "git-rebase-resume")
+    lifted("git rebase --continue", "git-rebase-resume")
+    lifted("git rebase --continue && git checkout -b fix", "git-rebase-resume")
+    allowed("git rebase")
+    allowed("git rebase main")
+    allowed("git rebase -i HEAD~3")
+    allowed("git rebase --skip")
+    allowed("git rebase --quit")
+    allowed("git rebase --abort main")
+    allowed("git rebase --continue --no-verify")
+    allowed("git rebase -q --abort")
+    allowed("sudo git rebase --abort")
+    allowed("git rebase --abort && ls")
+    blocked("git rebase --abort && rm -rf /tmp/x", "rm-forced")
 
     print("## rule: chmod 777")
     blocked("chmod 777 file", "chmod-world-writable")

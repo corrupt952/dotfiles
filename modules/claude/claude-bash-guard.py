@@ -109,6 +109,10 @@ class Command:
     raw: str
     # True when the sub-command was closed by a lone `&`.
     background: bool = False
+    # True when a wrapper, an assignment or a keyword was stripped to reach
+    # the program. A deny still applies through a prefix; an allow does not,
+    # since sudo or GIT_DIR=... changes what the same words do.
+    prefixed: bool = False
 
     @property
     def program(self) -> str:
@@ -177,12 +181,14 @@ class Rule:
     `names` selects the programs it applies to, or every program when empty;
     `predicate` narrows further.
 
-    The two decisions have different readers, so their messages differ in
-    kind. A `deny` message is read by the model: it says the block is a static
-    setting rather than a live refusal, and names what to do instead. An `ask`
-    message is read by the user in the approval prompt, which already shows the
+    The decisions have different readers, so their messages differ in kind. A
+    `deny` message is read by the model: it says the block is a static setting
+    rather than a live refusal, and names what to do instead. An `ask` message
+    is read by the user in the approval prompt, which already shows the
     command, so it says only what the command itself does not -- the
-    consequence -- in one sentence.
+    consequence -- in one sentence. An `allow` message is a one-line record of
+    why no prompt appeared: it lifts a settings.json ask entry for a form of
+    the command that cannot touch the working tree.
     """
 
     id: str
@@ -324,6 +330,55 @@ def runs_from_registry(command: Command) -> bool:
         return True
 
     return command.subcommand_is(*RUNNER_SUBCOMMANDS.get(command.name, frozenset()))
+
+
+# The only checkout flags that cannot make it write to the working tree. -B is
+# absent: it moves an existing branch. -t and --track are bare here; a joined
+# value (--track=direct) fails the exact match and falls through to the ask.
+CHECKOUT_BRANCH_FLAGS = frozenset(
+    {
+        "-b",
+        "--orphan",
+        "-q",
+        "--quiet",
+        "-t",
+        "--track",
+        "--no-track",
+        "--no-guess",
+        "--progress",
+        "--no-progress",
+    }
+)
+
+# A ref or branch name as the shell would hand it over unexpanded. Anything
+# that could still expand -- `$`, a backtick, braces -- is excluded, since an
+# allow is the one decision where a token that grows a command is not caught
+# downstream. Quotes are already stripped, so `"$(x)"` shows up as `$(x)`.
+REF_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/@^~+-]*$")
+
+
+def creates_branch_only(command: Command) -> bool:
+    """True for `git checkout -b <name> [<start>]` and nothing more.
+
+    Any other checkout, a global git flag before the subcommand, or a `--`
+    fails, so the settings.json ask is reached as before. A plain
+    `git checkout <x>` is not here on purpose: when <x> is not a branch, git
+    reads it as a path and restores the file, which cannot be told apart
+    statically.
+    """
+    if not command.args or command.args[0] != "checkout":
+        return False
+
+    rest = command.args[1:]
+    if not {"-b", "--orphan"} & set(rest):
+        return False
+
+    flags = [arg for arg in rest if arg.startswith("-")]
+    if any(flag not in CHECKOUT_BRANCH_FLAGS for flag in flags):
+        return False
+
+    names = [arg for arg in rest if not arg.startswith("-")]
+    return 1 <= len(names) <= 2 and all(REF_NAME.match(name) for name in names)
 
 
 DETACH_MESSAGE = (
@@ -714,6 +769,24 @@ RULES: Sequence[Rule] = (
         ),
         message="This removes the branch from the remote.",
     ),
+    # Allow rules come after the asks, and only lift a settings.json ask for
+    # a line where every sub-command is one of these; decide() enforces that.
+    Rule(
+        id="git-checkout-branch",
+        names=frozenset({"git"}),
+        decision="allow",
+        predicate=creates_branch_only,
+        message="Creating a branch only moves HEAD; the working tree is untouched.",
+    ),
+    # Exactly these two words: --skip drops a commit and --quit leaves the
+    # tree half-rebased, so neither is here, nor is any extra flag.
+    Rule(
+        id="git-rebase-resume",
+        names=frozenset({"git"}),
+        decision="allow",
+        predicate=lambda c: c.args in {("rebase", "--abort"), ("rebase", "--continue")},
+        message="Finishing or abandoning a rebase already in progress; no history is rewritten.",
+    ),
 )
 
 
@@ -776,12 +849,16 @@ def strip_comments(command_line: str) -> str:
     return "".join(result)
 
 
-def tokenize(command_line: str) -> list[str]:
+def tokenize(command_line: str) -> tuple[list[str], bool]:
     """Split a command line into shell tokens, keeping operators separate.
 
     Newlines and backticks become explicit separators first: shlex treats a
     newline as plain whitespace, which would splice two commands into one, and
     it has no notion of a backtick substitution at all.
+
+    The flag is True when the line could not be tokenized properly and the
+    crude fallback was used. Such tokens are good enough to catch a rule, and
+    not good enough to vouch for an allow.
     """
     without_comments = strip_comments(command_line)
     prepared = (
@@ -793,11 +870,13 @@ def tokenize(command_line: str) -> list[str]:
     # Comments are already gone, and shlex's own handling would take `#` in the
     # middle of a word too, eating nix flake refs and URL fragments.
     lexer.commenters = ""
+    malformed = False
     try:
         tokens = list(lexer)
     except ValueError:
         # Unbalanced quotes. Fall back to a crude split rather than skipping the
         # check, so a malformed command cannot be used to slip a rule.
+        malformed = True
         rough = re.sub(r"(\|\||&&|;|\||&|\(|\)|\{|\})", " \\1 ", prepared)
         tokens = [token.strip("\"'") for token in rough.split() if token.strip("\"'")]
 
@@ -806,7 +885,7 @@ def tokenize(command_line: str) -> list[str]:
     result: list[str] = []
     for token in tokens:
         result.extend(split_operators(token))
-    return result
+    return result, malformed
 
 
 def split_operators(token: str) -> list[str]:
@@ -834,6 +913,7 @@ def split_operators(token: str) -> list[str]:
 def normalize(tokens: list[str], background: bool = False) -> Command | None:
     """Strip everything that only prefixes the real command."""
     tokens = [token.replace(QUOTED_AMPERSAND, "&") for token in tokens]
+    original_length = len(tokens)
 
     changed = True
     while changed and tokens:
@@ -866,15 +946,21 @@ def normalize(tokens: list[str], background: bool = False) -> Command | None:
         name = name.rsplit("/", 1)[1]
 
     return Command(
-        name=name, args=tuple(tokens[1:]), raw=" ".join(tokens), background=background
+        name=name,
+        args=tuple(tokens[1:]),
+        raw=" ".join(tokens),
+        background=background,
+        prefixed=len(tokens) != original_length or name != tokens[0],
     )
 
 
-def split_commands(command_line: str) -> list[Command]:
+def split_commands(command_line: str) -> tuple[list[Command], bool]:
+    """The sub-commands on a line, and whether tokenizing had to guess."""
     commands: list[Command] = []
     current: list[str] = []
 
-    for token in tokenize(command_line):
+    tokens, malformed = tokenize(command_line)
+    for token in tokens:
         if token in SEPARATORS:
             command = normalize(current, background=token == "&")
             if command:
@@ -887,7 +973,7 @@ def split_commands(command_line: str) -> list[Command]:
     if command:
         commands.append(command)
 
-    return commands
+    return commands, malformed
 
 
 def nested_command(command: Command) -> str | None:
@@ -913,20 +999,56 @@ def nested_command(command: Command) -> str | None:
     return None
 
 
-def find_violation(command_line: str, depth: int = 0) -> tuple[Rule, Command] | None:
-    for command in split_commands(command_line):
-        for rule in RULES:
-            if rule.matches(command):
-                return rule, command
+def match_all(
+    command_line: str, depth: int = 0
+) -> tuple[list[tuple[Rule | None, Command]], bool]:
+    """Every sub-command on the line, paired with the first rule it meets.
+
+    The flag says whether any part of the line was tokenized by guesswork.
+    """
+    matches: list[tuple[Rule | None, Command]] = []
+    commands, malformed = split_commands(command_line)
+    for command in commands:
+        matches.append((next((r for r in RULES if r.matches(command)), None), command))
 
         # One level, deliberately. Deeper nesting stops being the plain detour
         # this hook exists to redirect, and containment is the sandbox's job.
         if depth == 0:
             payload = nested_command(command)
             if payload:
-                inner = find_violation(payload, depth + 1)
-                if inner:
-                    return inner
+                inner, inner_malformed = match_all(payload, depth + 1)
+                matches.extend(inner)
+                malformed = malformed or inner_malformed
+
+    return matches, malformed
+
+
+def decide(command_line: str) -> tuple[Rule, Command] | None:
+    """The one rule that speaks for the whole line, or None to stay silent.
+
+    A deny anywhere on the line wins, then an ask. An allow is returned only
+    when every sub-command met an allow rule: the decision covers the whole
+    line, so one unmatched sub-command -- which the hook cannot vouch for --
+    hands the line back to the settings.json permissions instead. The same
+    goes for a sub-command reached through a wrapper, a path or an
+    assignment: the words were vetted, the prefix was not. And for a line
+    with unbalanced quotes: the tokens are a guess, so no allow rests on
+    them.
+    """
+    matches, malformed = match_all(command_line)
+    for decision in ("deny", "ask"):
+        for rule, command in matches:
+            if rule and rule.decision == decision:
+                return rule, command
+
+    if malformed:
+        return None
+
+    if matches and all(
+        rule and rule.decision == "allow" and not command.prefixed
+        for rule, command in matches
+    ):
+        return matches[0][0], matches[0][1]
 
     return None
 
@@ -968,19 +1090,19 @@ def main() -> int:
     if not isinstance(command_line, str) or not command_line.strip():
         return 0
 
-    violation = find_violation(command_line)
-    if violation is None:
+    verdict = decide(command_line)
+    if verdict is None:
         return 0
 
-    rule, command = violation
+    rule, command = verdict
 
-    if rule.decision == "ask":
+    if rule.decision in {"ask", "allow"}:
         # No echo: the prompt already shows the user the command.
         json.dump(
             {
                 "hookSpecificOutput": {
                     "hookEventName": "PreToolUse",
-                    "permissionDecision": "ask",
+                    "permissionDecision": rule.decision,
                     "permissionDecisionReason": rule.message,
                 }
             },

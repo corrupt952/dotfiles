@@ -195,8 +195,100 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "        and True,",
     ),
     "ask: decision ignored, everything denies": (
-        '    if rule.decision == "ask":',
+        '    if rule.decision in {"ask", "allow"}:',
         "    if False:",
+    ),
+    "allow: falls back to the ask branch": (
+        '    if rule.decision in {"ask", "allow"}:',
+        '    if rule.decision == "ask":',
+    ),
+    "allow: decision hard-coded to ask": (
+        '                    "permissionDecision": rule.decision,',
+        '                    "permissionDecision": "ask",',
+    ),
+    "allow: one matching sub-command is enough": (
+        "    if matches and all(\n        rule and rule.decision == \"allow\" and not command.prefixed",
+        "    if matches and any(\n        rule and rule.decision == \"allow\" and not command.prefixed",
+    ),
+    "allow: malformed line still allowed": (
+        "    if malformed:\n        return None",
+        "    if False:\n        return None",
+    ),
+    "allow: malformed flag never set": (
+        "        malformed = True\n        rough = re.sub(",
+        "        rough = re.sub(",
+    ),
+    "allow: prefix ignored": (
+        '        rule and rule.decision == "allow" and not command.prefixed',
+        '        rule and rule.decision == "allow"',
+    ),
+    "allow: path prefix not counted": (
+        "        prefixed=len(tokens) != original_length or name != tokens[0],",
+        "        prefixed=len(tokens) != original_length,",
+    ),
+    "allow: wrapper prefix not counted": (
+        "        prefixed=len(tokens) != original_length or name != tokens[0],",
+        "        prefixed=name != tokens[0],",
+    ),
+    "allow: ask no longer outranks it": (
+        '    for decision in ("deny", "ask"):',
+        '    for decision in ("deny",):',
+    ),
+    "allow: deny no longer outranks ask": (
+        '    for decision in ("deny", "ask"):',
+        '    for decision in ("ask", "deny"):',
+    ),
+    "allow: nested shell -c not folded in": (
+        "                inner, inner_malformed = match_all(payload, depth + 1)",
+        "                inner, inner_malformed = [], False",
+    ),
+    "checkout: -B let through": (
+        '        "-b",\n        "--orphan",',
+        '        "-b",\n        "-B",\n        "--orphan",',
+    ),
+    "checkout: -- let through": (
+        '        "--no-progress",\n    }',
+        '        "--no-progress",\n        "--",\n    }',
+    ),
+    "checkout: any flag accepted": (
+        "    if any(flag not in CHECKOUT_BRANCH_FLAGS for flag in flags):\n        return False",
+        "    if False:\n        return False",
+    ),
+    "checkout: plain switch let through": (
+        '    if not {"-b", "--orphan"} & set(rest):\n        return False',
+        "    if False:\n        return False",
+    ),
+    "checkout: extra positionals accepted": (
+        "    return 1 <= len(names) <= 2 and all(REF_NAME.match(name) for name in names)",
+        "    return 1 <= len(names) and all(REF_NAME.match(name) for name in names)",
+    ),
+    "checkout: bare -b accepted": (
+        "    return 1 <= len(names) <= 2 and all(REF_NAME.match(name) for name in names)",
+        "    return len(names) <= 2 and all(REF_NAME.match(name) for name in names)",
+    ),
+    "checkout: names not vetted": (
+        "    return 1 <= len(names) <= 2 and all(REF_NAME.match(name) for name in names)",
+        "    return 1 <= len(names) <= 2",
+    ),
+    "checkout: name may start with a dot": (
+        'REF_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/@^~+-]*$")',
+        'REF_NAME = re.compile(r"^[A-Za-z0-9._/@^~+-]+$")',
+    ),
+    "checkout: shell metacharacters in a name": (
+        'REF_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/@^~+-]*$")',
+        'REF_NAME = re.compile(r"^[A-Za-z0-9][^ ]*$")',
+    ),
+    "rebase: --skip let through": (
+        '        predicate=lambda c: c.args in {("rebase", "--abort"), ("rebase", "--continue")},',
+        '        predicate=lambda c: c.args in {("rebase", "--abort"), ("rebase", "--continue"), ("rebase", "--skip")},',
+    ),
+    "rebase: extra args accepted": (
+        '        predicate=lambda c: c.args in {("rebase", "--abort"), ("rebase", "--continue")},',
+        '        predicate=lambda c: c.args[:2] in {("rebase", "--abort"), ("rebase", "--continue")},',
+    ),
+    "checkout: global git flag accepted": (
+        '    if not command.args or command.args[0] != "checkout":',
+        '    if not command.subcommand_is("checkout"):',
     ),
     "ask: every rule becomes an ask": (
         '    decision: str = "deny"',
