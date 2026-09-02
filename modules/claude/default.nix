@@ -138,7 +138,6 @@ in
       };
 
       enabledPlugins = {
-        "swift-lsp@claude-plugins-official" = true;
         "frontend-design@claude-plugins-official" = true;
         "labee-core@labee-standards" = true;
         "labee-swift@labee-standards" = true;
