@@ -244,6 +244,7 @@ in
 
       attribution.sessionUrl = false;
       feedbackSurveyRate = 0;
+      feedbackDrafts = "off";
       spinnerTipsEnabled = false;
       alwaysThinkingEnabled = true;
       promptSuggestionEnabled = false;
