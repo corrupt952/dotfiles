@@ -256,6 +256,8 @@ in
       fileCheckpointingEnabled = false;
       remoteControlAtStartup = true;
       agentPushNotifEnabled = true;
+      inputNeededNotifEnabled = true;
+      preferredNotifChannel = "notifications_disabled";
       useAutoModeDuringPlan = false;
     };
   };
