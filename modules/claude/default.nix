@@ -69,7 +69,7 @@ in
         defaultMode = "default";
       };
 
-      model = "claude-fable-5[1m]";
+      model = "claude-opus-5-5[1m]";
       effortLevel = "high";
       fallbackModel = [
         "claude-opus-5"
@@ -77,6 +77,9 @@ in
       modelSettings = {
         "claude-fable-5" = {
           effortLevel = "low";
+        };
+        "claude-opus-5-5" = {
+          effortLevel = "medium";
         };
       };
 
