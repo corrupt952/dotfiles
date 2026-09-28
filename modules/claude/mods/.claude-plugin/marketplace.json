@@ -1,0 +1,18 @@
+{
+  "name": "dotfiles-mods",
+  "owner": {
+    "name": "corrupt952"
+  },
+  "metadata": {
+    "description": "Claude Code mods distributed with these dotfiles",
+    "version": "1.0.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "verify-reports",
+      "source": "verify-reports",
+      "description": "Reminds the main agent to verify reports that other agents deliver before treating them as fact"
+    }
+  ]
+}

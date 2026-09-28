@@ -1,0 +1,4 @@
+{
+  "description": "A verification reminder beside every delivery from another agent",
+  "modules": ["./register.ts"]
+}

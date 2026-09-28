@@ -149,6 +149,7 @@ in
         "labee-authoring@labee-standards" = true;
         "document-skills@anthropic-agent-skills" = true;
         "claude-code@dirigo" = true;
+        "verify-reports@dotfiles-mods" = true;
       };
 
       extraKnownMarketplaces = {
@@ -170,6 +171,12 @@ in
           source = {
             source = "directory";
             path = "${config.home.homeDirectory}/Applications/Dirigo.app/Contents/Resources/AgentPlugins";
+          };
+        };
+        dotfiles-mods = {
+          source = {
+            source = "directory";
+            path = "${./mods}";
           };
         };
       };

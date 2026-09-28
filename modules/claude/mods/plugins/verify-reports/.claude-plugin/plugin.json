@@ -1,0 +1,8 @@
+{
+  "name": "verify-reports",
+  "version": "0.1.0",
+  "description": "Attaches a verification reminder to every delivery from another agent: a subagent's hand-back, a background task's notification, another session's message",
+  "author": {
+    "name": "corrupt952"
+  }
+}
