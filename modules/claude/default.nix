@@ -51,7 +51,9 @@ in
         # deny entry here is a bare "no", which reads to the model as the user
         # having refused, so it stops working; the hook states its own reason
         # and names an alternative. Read rules stay here, because those are the
-        # ones the model must not route around.
+        # ones the model must not route around. Bash asks live in the hook as
+        # well: a matching ask entry here prompts whatever the hook returns, so
+        # the hook could never lift one for a harmless form of the command.
         deny = [
           "Read(**/.env)"
           "Read(**/.env.*)"
@@ -59,12 +61,6 @@ in
           "Read(**/config/credentials.json)"
           "Read(**/*.pem)"
           "Read(**/*.key)"
-        ];
-        ask = [
-          "Bash(git commit *)"
-          "Bash(git push *)"
-          "Bash(git rebase *)"
-          "Bash(git checkout *)"
         ];
         defaultMode = "default";
       };
