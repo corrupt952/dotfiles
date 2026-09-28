@@ -35,6 +35,7 @@ in
         CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
         CLAUDE_CODE_THRIFTY_SONIC = "0";
         CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS = "1";
+        CLAUDE_CODE_ENABLE_FUNCTION_HOOKS = "1";
       };
 
       permissions = {
