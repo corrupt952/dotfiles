@@ -146,6 +146,7 @@ in
         "document-skills@anthropic-agent-skills" = true;
         "claude-code@dirigo" = true;
         "verify-reports@dotfiles-mods" = true;
+        "classify-hint@dotfiles-mods" = true;
       };
 
       extraKnownMarketplaces = {

@@ -13,6 +13,11 @@
       "name": "verify-reports",
       "source": "verify-reports",
       "description": "Reminds the main agent to verify reports that other agents deliver before treating them as fact"
+    },
+    {
+      "name": "classify-hint",
+      "source": "classify-hint",
+      "description": "Classifies the user's prompt with Haiku in one call and attaches a rough, non-binding hint for the main agent"
     }
   ]
 }

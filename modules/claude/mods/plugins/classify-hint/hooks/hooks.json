@@ -1,0 +1,4 @@
+{
+  "description": "A rough classifier hint beside the user's own prompts",
+  "modules": ["./register.ts"]
+}

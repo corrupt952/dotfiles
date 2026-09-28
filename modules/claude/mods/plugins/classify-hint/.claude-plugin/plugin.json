@@ -1,0 +1,8 @@
+{
+  "name": "classify-hint",
+  "version": "0.1.0",
+  "description": "Classifies the user's prompt with Haiku against a few yes/no questions in one call and attaches a rough, non-binding hint for the main agent",
+  "author": {
+    "name": "corrupt952"
+  }
+}
