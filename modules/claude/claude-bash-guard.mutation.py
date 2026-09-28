@@ -211,8 +211,16 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "    if matches and any(\n        rule and rule.decision == \"allow\" and not command.prefixed",
     ),
     "allow: malformed line still allowed": (
-        "    if malformed:\n        return None",
-        "    if False:\n        return None",
+        "    if malformed:\n        return fallback_ask(matches)",
+        "    if False:\n        return fallback_ask(matches)",
+    ),
+    "allow: no fallback to the ask behind it": (
+        "            if ask:\n                return ask, command",
+        "            if False:\n                return ask, command",
+    ),
+    "allow: fallback reaches for another allow": (
+        '            ask = next((r for r in RULES if r.decision == "ask" and r.matches(command)), None)',
+        "            ask = next((r for r in RULES if r.matches(command)), None)",
     ),
     "allow: malformed flag never set": (
         "        malformed = True\n        rough = re.sub(",
@@ -289,6 +297,45 @@ MUTATIONS: dict[str, tuple[str, str]] = {
     "checkout: global git flag accepted": (
         '    if not command.args or command.args[0] != "checkout":',
         '    if not command.subcommand_is("checkout"):',
+    ),
+    "git ask: commit not covered": (
+        '        predicate=lambda c: git_subcommand(c) == "commit",',
+        '        predicate=lambda c: git_subcommand(c) == "__none__",',
+    ),
+    "git ask: push not covered": (
+        '        predicate=lambda c: git_subcommand(c) == "push",',
+        '        predicate=lambda c: git_subcommand(c) == "__none__",',
+    ),
+    "git ask: rebase not covered": (
+        '        predicate=lambda c: git_subcommand(c) == "rebase",',
+        '        predicate=lambda c: git_subcommand(c) == "__none__",',
+    ),
+    "git ask: checkout not covered": (
+        '        predicate=lambda c: git_subcommand(c) == "checkout",',
+        '        predicate=lambda c: git_subcommand(c) == "__none__",',
+    ),
+    "git ask: any of the first two words counts": (
+        '        predicate=lambda c: git_subcommand(c) == "push",',
+        '        predicate=lambda c: c.subcommand_is("push"),',
+    ),
+    "git ask: global flag values read as the subcommand": (
+        '    {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--config-env"}',
+        "    set()",
+    ),
+    "git ask: global flags not skipped at all": (
+        '        elif not arg.startswith("-"):\n            return arg',
+        "        else:\n            return arg",
+    ),
+    "git ask: broad ask listed ahead of the allows": (
+        "    # Allow rules come after the specific asks, and only lift the broad git",
+        "    Rule(\n"
+        '        id="git-checkout-early",\n'
+        '        names=frozenset({"git"}),\n'
+        '        decision="ask",\n'
+        '        predicate=lambda c: git_subcommand(c) == "checkout",\n'
+        '        message="early",\n'
+        "    ),\n"
+        "    # Allow rules come after the specific asks, and only lift the broad git",
     ),
     "ask: every rule becomes an ask": (
         '    decision: str = "deny"',

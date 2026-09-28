@@ -6,6 +6,10 @@ and the model reads that bare refusal as the user having blocked it, so it
 stops. Exiting 2 here sends stderr back to the model as the reason, which lets
 each rule name its own alternative and keeps the turn going.
 
+Replaces the Bash entries of permissions.ask too. A matching ask rule prompts
+whatever a hook returns, so an allow here could never carve a harmless form
+out of one; an ask raised here can.
+
 Fails open: a malformed payload lets the call through to the normal permission
 flow. Real containment belongs to the sandbox settings.
 """
@@ -187,7 +191,7 @@ class Rule:
     is read by the user in the approval prompt, which already shows the
     command, so it says only what the command itself does not -- the
     consequence -- in one sentence. An `allow` message is a one-line record of
-    why no prompt appeared: it lifts a settings.json ask entry for a form of
+    why no prompt appeared: it lifts one of the git asks below for a form of
     the command that cannot touch the working tree.
     """
 
@@ -332,6 +336,30 @@ def runs_from_registry(command: Command) -> bool:
     return command.subcommand_is(*RUNNER_SUBCOMMANDS.get(command.name, frozenset()))
 
 
+# git's global options that take a separate value, so the value is not read
+# as the subcommand.
+GIT_VALUE_FLAGS = frozenset(
+    {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--config-env"}
+)
+
+
+def git_subcommand(command: Command) -> str | None:
+    """The word git runs as its subcommand, past its global options.
+
+    Stricter than subcommand_is(), which also looks at the second
+    positional: `git stash push` is a stash, not a push.
+    """
+    skip = False
+    for arg in command.args:
+        if skip:
+            skip = False
+        elif arg in GIT_VALUE_FLAGS:
+            skip = True
+        elif not arg.startswith("-"):
+            return arg
+    return None
+
+
 # The only checkout flags that cannot make it write to the working tree. -B is
 # absent: it moves an existing branch. -t and --track are bare here; a joined
 # value (--track=direct) fails the exact match and falls through to the ask.
@@ -361,7 +389,7 @@ def creates_branch_only(command: Command) -> bool:
     """True for `git checkout -b <name> [<start>]` and nothing more.
 
     Any other checkout, a global git flag before the subcommand, or a `--`
-    fails, so the settings.json ask is reached as before. A plain
+    fails, so the git-checkout ask is reached as before. A plain
     `git checkout <x>` is not here on purpose: when <x> is not a branch, git
     reads it as a path and restores the file, which cannot be told apart
     statically.
@@ -769,8 +797,9 @@ RULES: Sequence[Rule] = (
         ),
         message="This removes the branch from the remote.",
     ),
-    # Allow rules come after the asks, and only lift a settings.json ask for
-    # a line where every sub-command is one of these; decide() enforces that.
+    # Allow rules come after the specific asks, and only lift the broad git
+    # asks below for a line where every sub-command is one of these; decide()
+    # enforces that.
     Rule(
         id="git-checkout-branch",
         names=frozenset({"git"}),
@@ -786,6 +815,41 @@ RULES: Sequence[Rule] = (
         decision="allow",
         predicate=lambda c: c.args in {("rebase", "--abort"), ("rebase", "--continue")},
         message="Finishing or abandoning a rebase already in progress; no history is rewritten.",
+    ),
+    # The broad git asks come last, behind the allows they make exceptions
+    # for: first match wins per sub-command, so a form an allow covers never
+    # reaches its ask, and decide() falls back to the ask when that allow
+    # cannot be granted.
+    Rule(
+        id="git-commit",
+        names=frozenset({"git"}),
+        decision="ask",
+        predicate=lambda c: git_subcommand(c) == "commit",
+        message="This records a commit on the current branch.",
+    ),
+    Rule(
+        id="git-push",
+        names=frozenset({"git"}),
+        decision="ask",
+        predicate=lambda c: git_subcommand(c) == "push",
+        message="This publishes commits to the remote, where others can fetch them.",
+    ),
+    Rule(
+        id="git-rebase",
+        names=frozenset({"git"}),
+        decision="ask",
+        predicate=lambda c: git_subcommand(c) == "rebase",
+        message="This rewrites the commits of the current branch.",
+    ),
+    Rule(
+        id="git-checkout",
+        names=frozenset({"git"}),
+        decision="ask",
+        predicate=lambda c: git_subcommand(c) == "checkout",
+        message=(
+            "This switches branches, or overwrites files in the working tree "
+            "with another version of them."
+        ),
     ),
 )
 
@@ -1029,11 +1093,10 @@ def decide(command_line: str) -> tuple[Rule, Command] | None:
     A deny anywhere on the line wins, then an ask. An allow is returned only
     when every sub-command met an allow rule: the decision covers the whole
     line, so one unmatched sub-command -- which the hook cannot vouch for --
-    hands the line back to the settings.json permissions instead. The same
-    goes for a sub-command reached through a wrapper, a path or an
-    assignment: the words were vetted, the prefix was not. And for a line
-    with unbalanced quotes: the tokens are a guess, so no allow rests on
-    them.
+    sends the line to fallback_ask() instead. The same goes for a
+    sub-command reached through a wrapper, a path or an assignment: the
+    words were vetted, the prefix was not. And for a line with unbalanced
+    quotes: the tokens are a guess, so no allow rests on them.
     """
     matches, malformed = match_all(command_line)
     for decision in ("deny", "ask"):
@@ -1042,13 +1105,30 @@ def decide(command_line: str) -> tuple[Rule, Command] | None:
                 return rule, command
 
     if malformed:
-        return None
+        return fallback_ask(matches)
 
     if matches and all(
         rule and rule.decision == "allow" and not command.prefixed
         for rule, command in matches
     ):
         return matches[0][0], matches[0][1]
+
+    return fallback_ask(matches)
+
+
+def fallback_ask(matches: list[tuple[Rule | None, Command]]) -> tuple[Rule, Command] | None:
+    """The ask behind an allow that could not be granted.
+
+    An allow rule only carves a form out of one of the broad git asks. When
+    the line cannot be vouched for as a whole, the sub-command it covered
+    goes back under that ask: falling silent instead would let it run with
+    no prompt at all, now that no settings.json ask stands behind the hook.
+    """
+    for rule, command in matches:
+        if rule and rule.decision == "allow":
+            ask = next((r for r in RULES if r.decision == "ask" and r.matches(command)), None)
+            if ask:
+                return ask, command
 
     return None
 
