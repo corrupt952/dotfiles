@@ -8,6 +8,10 @@
 let
   configDir = "${config.xdg.configHome}/claude";
 
+  # A fixed path linked to the mods in the store, so a marketplace entry that
+  # names it, here or in another config dir, survives every switch.
+  modsDir = "${configDir}/mods";
+
   bashGuardCommand = "${config.home.homeDirectory}/.local/libexec/claude-bash-guard";
 
   bashGuardScript =
@@ -173,7 +177,7 @@ in
         dotfiles-mods = {
           source = {
             source = "directory";
-            path = "${./mods}";
+            path = modsDir;
           };
         };
       };
@@ -271,6 +275,8 @@ in
       text = bashGuardScript;
       executable = true;
     };
+
+    file.${modsDir}.source = ./mods;
 
     activation = {
       # claudeSettingsWritable (below) leaves settings.json as a plain file, so
