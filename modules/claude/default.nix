@@ -260,7 +260,7 @@ in
       autoUpdatesChannel = "latest";
       autoMemoryEnabled = false;
       skipWorkflowUsageWarning = true;
-      verbose = true;
+      tui = "fullscreen";
       fileCheckpointingEnabled = false;
       remoteControlAtStartup = true;
       agentPushNotifEnabled = true;
