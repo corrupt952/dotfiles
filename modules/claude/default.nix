@@ -148,7 +148,7 @@ in
         "labee-marketing@labee-standards" = true;
         "labee-authoring@labee-standards" = true;
         "document-skills@anthropic-agent-skills" = true;
-        "claude-code@dirigo" = true;
+        "dirigo-activity@dirigo" = true;
         "verify-reports@dotfiles-mods" = true;
         "classify-hint@dotfiles-mods" = true;
       };
