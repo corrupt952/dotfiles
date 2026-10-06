@@ -133,6 +133,7 @@ in
           JIMPrefAutocorrectionKey = 0;
           JIMPrefLiveConversionKey = 0;
           JIMPrefPredictiveCandidateKey = 0;
+          JIMPrefPrivNoLearningKey = 1;
         };
       };
     };
