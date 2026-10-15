@@ -151,6 +151,10 @@ in
           done
         }
 
+        claude-main() {
+          CLAUDE_CONFIG_DIR='${config.xdg.configHome}/claude' command claude "$@"
+        }
+
         command_not_found_handler() {
           print -Pru2 -- "%F{red}(;_;)%f < Sorry, I didn't know %F{magenta}$1%f command."
           return 127
