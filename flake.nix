@@ -6,6 +6,10 @@
     # Pulled in solely to track a newer `container` package until the fix
     # lands in nixpkgs-26.05-darwin (see nixpkgs#445648 / apple/container#1329).
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # Pinned master commit for uv 0.13.4, the first release whose bundled
+    # webpki roots drop the compromised emSign root (CVE-2026-111943).
+    # Drop once nixpkgs-unstable carries uv >= 0.13.4.
+    nixpkgs-uv.url = "github:NixOS/nixpkgs/e789515051c08dd0dccf00476f31a971bd8ca126";
 
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
@@ -39,7 +43,7 @@
   };
 
   outputs =
-    { nixpkgs, nixpkgs-unstable, nix-darwin, home-manager, xckit, closest, tmuxist, sallyport, ... }:
+    { nixpkgs, nixpkgs-unstable, nixpkgs-uv, nix-darwin, home-manager, xckit, closest, tmuxist, sallyport, ... }:
     let
       readIdentity = path:
         nixpkgs.lib.removeSuffix "\n" (builtins.readFile path);
@@ -63,6 +67,7 @@
       # a version with the CONTAINER_INSTALL_ROOT wrapProgram fix.
       containerOverlay = final: prev: {
         container = nixpkgs-unstable.legacyPackages.${system}.container;
+        uv = nixpkgs-uv.legacyPackages.${system}.uv;
       };
       pkgs = import nixpkgs {
         inherit system;
