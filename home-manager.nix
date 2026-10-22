@@ -26,6 +26,7 @@
       bat
       btop
       cmake
+      cocoapods
       container
       coreutils-prefixed
       curl
