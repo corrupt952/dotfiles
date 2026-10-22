@@ -6,7 +6,6 @@
     ./modules/codex
     ./modules/fzf-direnv
     ./modules/git
-    ./modules/opencode
     ./modules/ruby
     ./modules/tmux
     ./modules/wezterm
