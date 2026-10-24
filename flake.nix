@@ -22,22 +22,22 @@
     };
 
     xckit = {
-      url = "github:corrupt952/xckit/v0.2.1";
+      url = "github:corrupt952/xckit/v0.2.3";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     closest = {
-      url = "github:corrupt952/closest/v1.2.0";
+      url = "github:corrupt952/closest/v2.0.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     tmuxist = {
-      url = "github:corrupt952/tmuxist/1.3.0";
+      url = "github:corrupt952/tmuxist/1.3.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     sallyport = {
-      url = "github:corrupt952/sallyport/v0.1.1";
+      url = "github:corrupt952/sallyport/v0.3.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
