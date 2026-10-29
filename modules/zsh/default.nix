@@ -111,6 +111,7 @@ in
     ];
 
     shellAliases = {
+      actionlint = "jactionlint";
       claude = "SHELL=/bin/bash claude";
       cp = "cp -i";
       df = "df -h";

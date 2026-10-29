@@ -2,6 +2,98 @@
 
 lockfile_version = 3
 
+[conda-packages.macos-arm64."autoconf-2.72-pl5321hd3c70e0_1"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/autoconf-2.72-pl5321hd3c70e0_1.conda"
+checksum = "sha256:02d2581b44b289ace2c5408a831a9486e512f24eb9e8e1c38f5a4054f3d95920"
+
+[conda-packages.macos-arm64."bzip2-1.0.8-h4e30115_10"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/bzip2-1.0.8-h4e30115_10.conda"
+checksum = "sha256:8ec22f0ba25cbfc2e64d70cf29459eccd7ffdf6436f6a6ff15bbfef799f7d4f6"
+
+[conda-packages.macos-arm64."c-ares-1.34.9-h74c22ad_0"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/c-ares-1.34.9-h74c22ad_0.conda"
+checksum = "sha256:74b52d784b3576643da3aea1240a4120c1f25ee057f14ae5a89e8a7b3fb2e69f"
+
+[conda-packages.macos-arm64."ca-certificates-2026.10.23-hbd8a1cb_0"]
+url = "https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.23-hbd8a1cb_0.conda"
+checksum = "sha256:95619b9c1184be7175392eeb0ee7eeb5ccf25d280951f4225f2d62e725790be3"
+
+[conda-packages.macos-arm64."icu-79.1-py311h7f96da7_0"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/icu-79.1-py311h7f96da7_0.conda"
+checksum = "sha256:45c4961b3bdf4e95b9f37f69fe9531449789a3737dc4006b8e582747c6c2dc09"
+
+[conda-packages.macos-arm64."krb5-1.22.2-h34f8a20_2"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/krb5-1.22.2-h34f8a20_2.conda"
+checksum = "sha256:aaea1d42b07769920db2af7471ece9399d2613448863da64ad8272998db5db34"
+
+[conda-packages.macos-arm64."libcurl-8.23.0-h6651222_0"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libcurl-8.23.0-h6651222_0.conda"
+checksum = "sha256:d9f60525b665e50da15c84fcb4e74e6b1f0a56ea4c89a02d4258f23c3fe1f02c"
+
+[conda-packages.macos-arm64."libcxx-23.1.4-h55c6f16_2"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-23.1.4-h55c6f16_2.conda"
+checksum = "sha256:9c390b4f403db32346754ccef6b84b7e5d9b70cb6d76258fd23b05f2db2ab216"
+
+[conda-packages.macos-arm64."libedit-3.1.20260512-pl5321h26f1114_0"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libedit-3.1.20260512-pl5321h26f1114_0.conda"
+checksum = "sha256:5692a969e49b200c7874d1e869d281753361980b2ecfe9191b571d7e550f8b92"
+
+[conda-packages.macos-arm64."libev-4.33-h1a92334_3"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libev-4.33-h1a92334_3.conda"
+checksum = "sha256:c0100064506ae8abb432c5a506d474f10af2cf48c33d62bc221fb28b6d6ff6ac"
+
+[conda-packages.macos-arm64."libiconv-1.18-he4c29f2_3"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libiconv-1.18-he4c29f2_3.conda"
+checksum = "sha256:689a14968267f2f97c07112fca5636e7d756036b9aee969911267c20bd3eea1f"
+
+[conda-packages.macos-arm64."libintl-0.25.1-hae62183_2"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libintl-0.25.1-hae62183_2.conda"
+checksum = "sha256:b43c6645e668f86d04d5c06d6dc17efe921bbd9244be4b77946d56fb950a3fcc"
+
+[conda-packages.macos-arm64."libltdl-2.4.3a-h6111c0a_1"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libltdl-2.4.3a-h6111c0a_1.conda"
+checksum = "sha256:c5928a87c8a53a2be2eac692fd4097c4a6b76d9933cf191288d88b16164789d4"
+
+[conda-packages.macos-arm64."libnghttp2-1.70.0-h344cdd5_0"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libnghttp2-1.70.0-h344cdd5_0.conda"
+checksum = "sha256:7ac62fd2b395f405cd80eb12a90b506172a1c7dc605e7665c8721e88bb1982d1"
+
+[conda-packages.macos-arm64."libpsl-0.23.1-h08d577c_2"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libpsl-0.23.1-h08d577c_2.conda"
+checksum = "sha256:abbf2067e931cebbedf5440f188f127a71a709d8f01834b23e1c46eff09759cc"
+
+[conda-packages.macos-arm64."libssh2-1.11.1-hbf2880b_1"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libssh2-1.11.1-hbf2880b_1.conda"
+checksum = "sha256:a056e518c3d2d09fbb1778cea80c0c95338fb24adf1a817bbf90fb484850a304"
+
+[conda-packages.macos-arm64."libzlib-1.3.2-h8088a28_3"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libzlib-1.3.2-h8088a28_3.conda"
+checksum = "sha256:a18fa5d5bac452401459f966cf0d872224e8080c4ff93c77e168d43ab42ef9d7"
+
+[conda-packages.macos-arm64."m4-1.4.21-h84a0fba_0"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/m4-1.4.21-h84a0fba_0.conda"
+checksum = "sha256:2b8222694c7be372bde7ff3b971b7f606b22d01fc5ab106259192cf6a2461855"
+
+[conda-packages.macos-arm64."ncurses-6.6-he64c551_1"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/ncurses-6.6-he64c551_1.conda"
+checksum = "sha256:7024a48c8c0d0114ed4ab53c76bf9275d50e91ba7cea367a9aead638d3c29c68"
+
+[conda-packages.macos-arm64."openssl-3.6.5-h55eecbc_0"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.6.5-h55eecbc_0.conda"
+checksum = "sha256:44fbc526456571a9fb8fa18157f6f269d4d4bd40eef20183a93b9c9296f94497"
+
+[conda-packages.macos-arm64."pcre2-10.47-he63d830_1"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/pcre2-10.47-he63d830_1.conda"
+checksum = "sha256:f8c415329b542e1fca1ff2917b80e687c18302dfa0353530668b90cb225b494f"
+
+[conda-packages.macos-arm64."perl-5.44.0-1_hb001647_perl5"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/perl-5.44.0-1_hb001647_perl5.conda"
+checksum = "sha256:d68a8d9a8f329e46920d7750b495f613e093fa40736d00a227b727f5898804bb"
+
+[conda-packages.macos-arm64."zstd-1.5.7-hf451053_7"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda"
+checksum = "sha256:da867f5092eb0cb746d353694f0098031fd9817a4ce7d5743121209ae0f406ca"
+
 [[tools.bun]]
 version = "1.4.4"
 backend = "core:bun"
@@ -170,6 +262,17 @@ checksum = "sha256:97f28396b453030d0ef7e2344bddb176bb9a34ec3e1844eba2dc6521b5f60
 url = "https://github.com/corrupt952/xckit/releases/download/v0.2.3/xckit_0.2.3_darwin_arm64.tar.gz"
 url_api = "https://api.github.com/repos/corrupt952/xckit/releases/assets/671222961"
 provenance = "github-attestations"
+
+[[tools.jactionlint]]
+version = "2.3.0"
+backend = "packslip:github.com/jdx/jactionlint"
+specifiers = ["2.3.0"]
+
+[tools.jactionlint."platforms.macos-arm64"]
+checksum = "sha256:f96afa36578b21290203ae8df4fa7ac3bf5aba08ed288df28cb0530af7ca6e55"
+url = "https://github.com/jdx/jactionlint/releases/download/v2.3.0/jactionlint_2.3.0_darwin_arm64.tar.gz"
+signer = "sigstore-oidc:https://github.com/jdx/jactionlint/.github/workflows/release.yaml"
+repository_ids = { repository = "1404951382" }
 
 [[tools.node]]
 version = "22.23.4"

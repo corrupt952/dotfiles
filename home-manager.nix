@@ -20,7 +20,6 @@
 
     packages = with pkgs; [
       _1password-cli
-      actionlint
       arp-scan
       bat
       btop

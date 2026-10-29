@@ -39,8 +39,14 @@ jobs:
           mapfile -t scripts < <(find . -name '*.sh' -not -path './.git/*' | sort)
           nix shell "$NIXPKGS#shellcheck" --command shellcheck "${scripts[@]}"
 
-      - name: actionlint
-        run: nix shell "$NIXPKGS#actionlint" --command actionlint
+      - uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
+        with:
+          working_directory: .github/ci
+        env:
+          MISE_TRUSTED_CONFIG_PATHS: ${{ github.workspace }}/.github/ci
+
+      - name: jactionlint
+        run: jactionlint --format github
 
       - name: zizmor
         run: nix shell "$NIXPKGS#zizmor" --command zizmor .

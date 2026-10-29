@@ -1,0 +1,8 @@
+[tools]
+jactionlint = "2.3.0"
+
+[settings]
+minimum_release_age = "3d"
+lockfile = true
+lockfile_platforms = ["linux-x64"]
+locked = true
