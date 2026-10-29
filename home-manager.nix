@@ -24,7 +24,6 @@
       btop
       cocoapods
       container
-      git-filter-repo
       gnupg
       jq
       markdownlint-cli2

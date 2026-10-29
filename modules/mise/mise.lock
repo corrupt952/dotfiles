@@ -274,6 +274,16 @@ url = "https://github.com/corrupt952/xckit/releases/download/v0.2.3/xckit_0.2.3_
 url_api = "https://api.github.com/repos/corrupt952/xckit/releases/assets/671222961"
 provenance = "github-attestations"
 
+[[tools."github:newren/git-filter-repo"]]
+version = "2.47.0"
+backend = "github:newren/git-filter-repo"
+specifiers = ["2.47.0"]
+
+[tools."github:newren/git-filter-repo"."platforms.macos-arm64"]
+checksum = "blake3:612721f94a18ae18489b99a529e66aaf208b6683b78345af1667a4f2e4e22285"
+url = "https://github.com/newren/git-filter-repo/releases/download/v2.47.0/git-filter-repo-2.47.0.tar.xz"
+url_api = "https://api.github.com/repos/newren/git-filter-repo/releases/assets/210902120"
+
 [[tools.jactionlint]]
 version = "2.3.0"
 backend = "packslip:github.com/jdx/jactionlint"
