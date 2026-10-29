@@ -22,26 +22,19 @@
       _1password-cli
       actionlint
       arp-scan
-      automake
       bat
       btop
       cmake
       cocoapods
       container
-      coreutils-prefixed
-      curl
       git-filter-repo
-      gnugrep
       gnupg
-      gnused
       jq
-      libtool
       markdownlint-cli2
       mas
       statix
       tig
       tree
-      wget
     ];
   };
 

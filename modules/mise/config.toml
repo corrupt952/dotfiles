@@ -1,5 +1,10 @@
 [tools]
 bun = "1.4.4"
+"conda:automake" = "1.19"
+"conda:curl" = "8.23.0"
+"conda:grep" = "3.12"
+"conda:libtool" = "2.5.4"
+"conda:sed" = "4.10"
 duckdb = "2.0.0"
 gh = "2.103.2"
 "github:corrupt952/closest" = "2.0.1"
