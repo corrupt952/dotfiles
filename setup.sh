@@ -18,21 +18,10 @@ require_1password_app() {
   cat >&2 <<'EOF'
 1Password for Mac is required before running this setup.
 Install the app and enable Settings > Developer > Integrate with 1Password CLI.
-The `op` executable itself is managed by Nix. Then run this script again.
+The `op` executable itself is managed by mise. Then run this script again.
 https://1password.com/downloads/mac/
 EOF
   exit 1
-}
-
-verify_1password_cli() {
-  local op_bin="/etc/profiles/per-user/$1/bin/op"
-
-  if [[ ! -x "$op_bin" ]]; then
-    echo "Nix activation completed, but the 1Password CLI was not installed at $op_bin." >&2
-    exit 1
-  fi
-
-  "$op_bin" --version >/dev/null
 }
 
 write_machine_identity() {
@@ -182,8 +171,6 @@ main() {
     --extra-experimental-features "$NIX_FEATURES" \
     run "$NIX_DARWIN#darwin-rebuild" -- \
     switch --flake "path:$SCRIPT_DIR#$CONFIG_NAME"
-
-  verify_1password_cli "$target_user"
 }
 
 main "$@"

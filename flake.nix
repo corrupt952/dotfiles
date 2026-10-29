@@ -33,7 +33,6 @@
       system = "aarch64-darwin";
       allowUnfreePredicate = pkg:
         builtins.elem (nixpkgs.lib.getName pkg) [
-          "1password-cli"
           "zsh-abbr"
         ];
       pkgs = import nixpkgs {

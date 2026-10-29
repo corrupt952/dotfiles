@@ -228,6 +228,7 @@ specifiers = ["1.6.1"]
 
 [tools.container."platforms.macos-arm64"]
 checksum = "sha256:cd47846819f06478d067060efe21e516b562ac0a9af8eecad6d5fea0b556b200"
+checksum_source = "mise-versions"
 url = "https://github.com/apple/container/releases/download/1.6.1/container-1.6.1-installer-signed.pkg"
 url_api = "https://api.github.com/repos/apple/container/releases/assets/670899125"
 
@@ -311,6 +312,15 @@ specifiers = ["2.47.0"]
 checksum = "sha256:4662cbe5918196a9f1b5b3e1211a32e61cff1812419c21df4f47c5439f09e902"
 url = "https://github.com/newren/git-filter-repo/releases/download/v2.47.0/git-filter-repo-2.47.0.tar.xz"
 url_api = "https://api.github.com/repos/newren/git-filter-repo/releases/assets/210902120"
+
+[[tools."http:op"]]
+version = "2.41.1"
+backend = "http:op"
+specifiers = ["2.41.1"]
+
+[tools."http:op"."platforms.macos-arm64"]
+checksum = "sha256:2289771b68b521ee3dc1d63a013a6a1c5691e0c53e4c4fe79af8042b6ad3c7f5"
+url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.41.1/op_darwin_arm64_v2.41.1.zip"
 
 [[tools.jactionlint]]
 version = "2.3.0"

@@ -19,7 +19,6 @@
     stateVersion = "26.05";
 
     packages = with pkgs; [
-      _1password-cli
       bat
       gnupg
       jq
