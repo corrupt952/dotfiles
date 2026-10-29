@@ -54,6 +54,12 @@ macos-arm64 = { url = "https://dl.google.com/dl/cloudsdk/channels/rapid/download
 "~/.config/tmux/tmux.conf" = { source = "modules/tmux/tmux.conf" }
 "~/.local/bin/tmux-kubectl" = { source = "modules/tmux/kubectl.sh" }
 "~/.config/dirigo/settings.json" = { source = "modules/dirigo/settings.json", mode = "template" }
+"~/.config/git/config" = { source = "modules/git/config" }
+"~/.config/git/ignore" = { source = "modules/git/ignore" }
+"~/.config/git/hooks/pre-push" = { source = "modules/git/pre-push.sh" }
+"~/.config/git/scripts/git-delete-branch" = { source = "modules/git/delete-branch.sh" }
+"~/.config/git/scripts/git-select-branch" = { source = "modules/git/select-branch.sh" }
+"~/.config/git/scripts/git-ssh" = { source = "modules/git/ssh.sh" }
 
 [settings]
 minimum_release_age = "3d"

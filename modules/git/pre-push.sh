@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -euo pipefail
+
 input_file="$(mktemp)"
 trap 'rm -f -- "$input_file"' EXIT
 cat > "$input_file"

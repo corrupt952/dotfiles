@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -euo pipefail
+
 set -o noclobber
 
 fetch_local_branches() {

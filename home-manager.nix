@@ -5,7 +5,6 @@
     ./modules/claude
     ./modules/codex
     ./modules/fzf-direnv
-    ./modules/git
     ./modules/workspaces
     ./modules/zsh
   ];

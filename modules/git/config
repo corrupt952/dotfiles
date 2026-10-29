@@ -1,0 +1,139 @@
+[alias]
+	a = "add ."
+	aa = "add --all"
+	aci = "commit --amend"
+	add-all = "add --all"
+	add-patch = "add --patch"
+	ammend-commit = "commit --amend"
+	ap = "add --patch"
+	b = "branch"
+	ba = "branch --all"
+	bd = "branch -D"
+	branch-all = "branch --all"
+	branch-delete = "branch -D"
+	cfg = "config"
+	ci = "commit"
+	cl = "clone"
+	co = "checkout"
+	d = "diff --color-words"
+	ddi = "diff --color-words --diff-algorithm=default"
+	dh = "diff --color-words HEAD"
+	di = "diff --color-words"
+	diff-head = "diff --color-words HEAD"
+	diff-stat = "diff --stat"
+	ds = "diff --stat"
+	eci = "commit --allow-empty"
+	empty-commit = "commit --allow-empty"
+	env = "!git config --get-regexp '^user.'"
+	fdelete = "!~/.config/git/scripts/git-delete-branch"
+	fp = "fetch --prune"
+	fselect = "!~/.config/git/scripts/git-select-branch"
+	gl = "log --graph"
+	graph-log = "log --graph"
+	hdi = "diff --color-words --diff-algorithm=histogram"
+	m = "checkout master"
+	n = "now --stat"
+	nco = "checkout -B"
+	ol = "log --pretty=oneline"
+	onelog = "log --pretty=oneline"
+	pdi = "diff --color-words --diff-algorithm=patience"
+	pick = "cherry-pick"
+	ps = "push"
+	pu = "pull"
+	r = "reset --soft HEAD"
+	r1 = "reset --soft HEAD~"
+	r2 = "reset --soft HEAD~~"
+	r3 = "reset --soft HEAD~~~"
+	rh = "reset --hard HEAD"
+	rh1 = "reset --hard HEAD~"
+	rh2 = "reset --hard HEAD~~"
+	rh3 = "reset --hard HEAD~~~"
+	rv = "revert"
+	rvf = "checkout HEAD"
+	s = "stash"
+	sl = "stash list"
+	sp = "stash pop"
+	st = "status --short --branch"
+	t = "log --graph --pretty=oneline --abbrev-commit --decorate"
+	tree = "log --graph --pretty=oneline --abbrev-commit --decorate"
+
+[apply]
+	whitespace = "fix"
+
+[color]
+	branch = true
+	diff = true
+	interactive = true
+	status = true
+	ui = true
+
+[color "branch"]
+	current = "red"
+	local = "white"
+	remote = "yellow"
+
+[commit]
+	verbose = true
+
+[core]
+	editor = "vim"
+	hooksPath = "~/.config/git/hooks"
+	precomposeunicode = true
+	quotepath = false
+	sshCommand = "~/.config/git/scripts/git-ssh"
+	whitespace = "-indent-with-non-tab,trailing-space,cr-at-eol"
+
+[credential]
+	helper = "osxkeychain"
+
+[delta]
+	line-numbers = true
+	navigate = true
+
+[diff]
+	algorithm = "histogram"
+
+[fetch]
+	prune = true
+
+[filter "lfs"]
+	clean = "git-lfs clean -- %f"
+	process = "git-lfs filter-process"
+	required = true
+	smudge = "git-lfs smudge -- %f"
+
+[help]
+	autocorrect = "prompt"
+
+[init]
+	defaultBranch = "main"
+
+[interactive]
+	diffFilter = "delta --color-only"
+
+[merge]
+	conflictstyle = "zdiff3"
+
+[pager]
+	blame = "delta"
+	diff = "delta"
+	log = "delta"
+	show = "delta"
+
+[push]
+	default = "nothing"
+
+[rebase]
+	autoSquash = true
+	autoStash = true
+	missingCommitsCheck = "warn"
+
+[rerere]
+	autoupdate = true
+	enabled = true
+
+[ssh]
+	variant = "ssh"
+
+[include]
+	path = "~/.config/git/local"

@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -euo pipefail
+
 op_ssh_key="${OP_SSH_KEY:-}"
 
 if [[ -z "$op_ssh_key" ]]; then
