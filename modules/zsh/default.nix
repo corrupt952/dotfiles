@@ -17,6 +17,7 @@ in
 
     sessionVariables = {
       LANG = "en_US.UTF-8";
+      CLOUDSDK_PYTHON = "${config.home.homeDirectory}/.local/share/mise/installs/python/global/bin/python3";
       SSL_CERT_FILE = "${config.home.homeDirectory}/.local/share/mise/installs/conda-ca-certificates/global/ssl/cacert.pem";
       SSH_AUTH_SOCK = "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
     };

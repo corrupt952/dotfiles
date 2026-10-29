@@ -94,6 +94,24 @@ checksum = "sha256:d68a8d9a8f329e46920d7750b495f613e093fa40736d00a227b727f589880
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda"
 checksum = "sha256:da867f5092eb0cb746d353694f0098031fd9817a4ce7d5743121209ae0f406ca"
 
+[[tools."aqua:1password/cli"]]
+version = "2.41.1"
+backend = "aqua:1password/cli"
+specifiers = ["2.41.1"]
+
+[tools."aqua:1password/cli"."platforms.macos-arm64"]
+checksum = "sha256:2289771b68b521ee3dc1d63a013a6a1c5691e0c53e4c4fe79af8042b6ad3c7f5"
+url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.41.1/op_darwin_arm64_v2.41.1.zip"
+
+[[tools.aws-cli]]
+version = "2.38.6"
+backend = "aqua:aws/aws-cli"
+specifiers = ["2.38.6"]
+
+[tools.aws-cli."platforms.macos-arm64"]
+checksum = "sha256:0c67ccc431fac778898283fda62a9b0d6fa7fa4184a0e990cb6a7b7ec2cde333"
+url = "https://awscli.amazonaws.com/AWSCLIV2-2.38.6.pkg"
+
 [[tools.bun]]
 version = "1.4.4"
 backend = "core:bun"
@@ -313,14 +331,14 @@ checksum = "sha256:4662cbe5918196a9f1b5b3e1211a32e61cff1812419c21df4f47c5439f09e
 url = "https://github.com/newren/git-filter-repo/releases/download/v2.47.0/git-filter-repo-2.47.0.tar.xz"
 url_api = "https://api.github.com/repos/newren/git-filter-repo/releases/assets/210902120"
 
-[[tools."http:op"]]
-version = "2.41.1"
-backend = "http:op"
-specifiers = ["2.41.1"]
+[[tools."http:gcloud"]]
+version = "591.0.0"
+backend = "http:gcloud"
+specifiers = ["591.0.0"]
 
-[tools."http:op"."platforms.macos-arm64"]
-checksum = "sha256:2289771b68b521ee3dc1d63a013a6a1c5691e0c53e4c4fe79af8042b6ad3c7f5"
-url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.41.1/op_darwin_arm64_v2.41.1.zip"
+[tools."http:gcloud"."platforms.macos-arm64"]
+checksum = "sha256:85cb726919838faff48bfba7cf676b691b0202bec7c25aabdc116649c6843242"
+url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-591.0.0-darwin-arm.tar.gz"
 
 [[tools.jactionlint]]
 version = "2.3.0"
@@ -341,6 +359,21 @@ specifiers = ["22.23.4"]
 [tools.node."platforms.macos-arm64"]
 checksum = "sha256:c9e1dbc748b33ed2d14f42445191ecaf14c56259c7a9a26d0042c49ec2b66428"
 url = "https://nodejs.org/dist/v22.23.4/node-v22.23.4-darwin-arm64.tar.gz"
+
+[[tools."npm:cf"]]
+version = "1.0.0-beta.25"
+backend = "npm:cf"
+specifiers = ["1.0.0-beta.25"]
+
+[[tools.python]]
+version = "3.14.10"
+backend = "core:python"
+specifiers = ["3.14.10"]
+
+[tools.python."platforms.macos-arm64"]
+checksum = "blake3:740e04c9eec8c45d9cf9f9ee87caba33596c78731f3113766a8587c8f3c23b9c"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.14.10+20261026-aarch64-apple-darwin-install_only_stripped.tar.gz"
+provenance = "github-attestations"
 
 [[tools.ruby]]
 version = "3.4.12"
