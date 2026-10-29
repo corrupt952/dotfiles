@@ -66,6 +66,11 @@ jobs:
           nix shell "$NIXPKGS#python3Minimal" \
             --command python3 modules/claude/claude-bash-guard.test.py
 
+      - name: mise lock
+        run: |
+          nix shell "$NIXPKGS#python3Minimal" \
+            --command python3 modules/mise/check-lock.test.py
+
   ci-result:
     name: CI Result
     if: always()
