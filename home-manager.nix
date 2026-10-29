@@ -45,7 +45,6 @@
       swiftlint
       tig
       tree
-      uv
       wget
       zizmor
       xckitPackage

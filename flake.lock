@@ -95,22 +95,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-uv": {
-      "locked": {
-        "lastModified": 1792680737,
-        "narHash": "sha256-dzOIxXNS0LbZ4DBJWU9OK7UPquVuQczBaAO52MIIWVc=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "e789515051c08dd0dccf00476f31a971bd8ca126",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "e789515051c08dd0dccf00476f31a971bd8ca126",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "closest": "closest",
@@ -118,7 +102,6 @@
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "nixpkgs-uv": "nixpkgs-uv",
         "sallyport": "sallyport",
         "tmuxist": "tmuxist",
         "xckit": "xckit"
