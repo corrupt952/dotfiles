@@ -30,8 +30,6 @@
       container
       coreutils-prefixed
       curl
-      duckdb
-      gh
       git-filter-repo
       gnugrep
       gnupg
@@ -40,13 +38,10 @@
       libtool
       markdownlint-cli2
       mas
-      shellcheck
       statix
-      swiftlint
       tig
       tree
       wget
-      zizmor
       xckitPackage
       closestPackage
       tmuxistPackage
