@@ -42,6 +42,14 @@ checksum = "sha256:5692a969e49b200c7874d1e869d281753361980b2ecfe9191b571d7e550f8
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/libev-4.33-h1a92334_3.conda"
 checksum = "sha256:c0100064506ae8abb432c5a506d474f10af2cf48c33d62bc221fb28b6d6ff6ac"
 
+[conda-packages.macos-arm64."libexpat-2.9.0-h6111c0a_0"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libexpat-2.9.0-h6111c0a_0.conda"
+checksum = "sha256:b155c524118f751ad8b1c823397bab8b7f715f7e3ca10479925867a7e23e7e9d"
+
+[conda-packages.macos-arm64."libffi-3.7.0-h47dc5ef_1"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libffi-3.7.0-h47dc5ef_1.conda"
+checksum = "sha256:2783389a7b9dda04c62cc54c6bbeb03dd3cef24b3fc642715d02a3fa19464a9a"
+
 [conda-packages.macos-arm64."libiconv-1.18-he4c29f2_3"]
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/libiconv-1.18-he4c29f2_3.conda"
 checksum = "sha256:689a14968267f2f97c07112fca5636e7d756036b9aee969911267c20bd3eea1f"
@@ -54,6 +62,14 @@ checksum = "sha256:b43c6645e668f86d04d5c06d6dc17efe921bbd9244be4b77946d56fb950a3
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/libltdl-2.4.3a-h6111c0a_1.conda"
 checksum = "sha256:c5928a87c8a53a2be2eac692fd4097c4a6b76d9933cf191288d88b16164789d4"
 
+[conda-packages.macos-arm64."liblzma-5.8.3-h8088a28_1"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/liblzma-5.8.3-h8088a28_1.conda"
+checksum = "sha256:23d0630046a3e8b164d8f80f2b74ed2605af2e7050ab9913018056402fae4311"
+
+[conda-packages.macos-arm64."libmpdec-4.0.0-h84a0fba_2"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libmpdec-4.0.0-h84a0fba_2.conda"
+checksum = "sha256:04cc136c5a956a73aa14e0a160b5822b0b29714e67b299fa1b1fd16dbcba5366"
+
 [conda-packages.macos-arm64."libnghttp2-1.70.0-h344cdd5_0"]
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/libnghttp2-1.70.0-h344cdd5_0.conda"
 checksum = "sha256:7ac62fd2b395f405cd80eb12a90b506172a1c7dc605e7665c8721e88bb1982d1"
@@ -61,6 +77,14 @@ checksum = "sha256:7ac62fd2b395f405cd80eb12a90b506172a1c7dc605e7665c8721e88bb198
 [conda-packages.macos-arm64."libpsl-0.23.1-h08d577c_2"]
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/libpsl-0.23.1-h08d577c_2.conda"
 checksum = "sha256:abbf2067e931cebbedf5440f188f127a71a709d8f01834b23e1c46eff09759cc"
+
+[conda-packages.macos-arm64."libpython-3.14.10-h281bc5c_100_cp314"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libpython-3.14.10-h281bc5c_100_cp314.conda"
+checksum = "sha256:18eee3469dda55511fdebe67cf4a8e41e8fa0039e160971810c33c3eb6753608"
+
+[conda-packages.macos-arm64."libsqlite-3.54.1-h34a968b_101"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/libsqlite-3.54.1-h34a968b_101.conda"
+checksum = "sha256:c49adf700ad17332b938ac627845a3fdc70a0810660d3ec3814de25b156fbf60"
 
 [conda-packages.macos-arm64."libssh2-1.11.1-hbf2880b_1"]
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/libssh2-1.11.1-hbf2880b_1.conda"
@@ -82,13 +106,41 @@ checksum = "sha256:7024a48c8c0d0114ed4ab53c76bf9275d50e91ba7cea367a9aead638d3c29
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.6.5-h55eecbc_0.conda"
 checksum = "sha256:44fbc526456571a9fb8fa18157f6f269d4d4bd40eef20183a93b9c9296f94497"
 
+[conda-packages.macos-arm64."pcre-8.45-hbdafb3b_0"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/pcre-8.45-hbdafb3b_0.tar.bz2"
+checksum = "sha256:f2e0c4ae3306f94851eea2318c6d26d24f8e191e329ddd256a612cd1184c5737"
+
 [conda-packages.macos-arm64."pcre2-10.47-he63d830_1"]
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/pcre2-10.47-he63d830_1.conda"
 checksum = "sha256:f8c415329b542e1fca1ff2917b80e687c18302dfa0353530668b90cb225b494f"
 
+[conda-packages.macos-arm64."perl-5.32.1-10_hb001647_perl5"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/perl-5.32.1-10_hb001647_perl5.conda"
+checksum = "sha256:657cd963e25925bbb71dca27c01b47fef76be97e8a8517b8fcfc420233730614"
+
 [conda-packages.macos-arm64."perl-5.44.0-1_hb001647_perl5"]
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/perl-5.44.0-1_hb001647_perl5.conda"
 checksum = "sha256:d68a8d9a8f329e46920d7750b495f613e093fa40736d00a227b727f5898804bb"
+
+[conda-packages.macos-arm64."python-3.14.10-h0ae1c2c_100_cp314"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/python-3.14.10-h0ae1c2c_100_cp314.conda"
+checksum = "sha256:484750a2bbf65e2446a90731c6ab65a68dfc6f0e5761321e85bf5e23bfad7401"
+
+[conda-packages.macos-arm64."python_abi-3.14-9_cp314"]
+url = "https://conda.anaconda.org/conda-forge/noarch/python_abi-3.14-9_cp314.conda"
+checksum = "sha256:e7f8e965bbfb98e08feb2365cacdad8bb218fa5b5a0a2752f747287f425f213c"
+
+[conda-packages.macos-arm64."readline-8.3-h8b90a29_1"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/readline-8.3-h8b90a29_1.conda"
+checksum = "sha256:d6782b430e6dce4fe8c7ac118cd988d5a193eb4a7f60741edfaede58016b6110"
+
+[conda-packages.macos-arm64."tk-8.6.13-hbeba79b_4"]
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/tk-8.6.13-hbeba79b_4.conda"
+checksum = "sha256:857d89087ae7f2c328cf256728affcb7343031a148b4af847334d248a9cf564c"
+
+[conda-packages.macos-arm64.tzdata-2026e-h5d301ff_0]
+url = "https://conda.anaconda.org/conda-forge/noarch/tzdata-2026e-h5d301ff_0.conda"
+checksum = "sha256:2b7ca858879f183ce2dcc65b300f48a0133d5430550f35b23d80d405a0788dbf"
 
 [conda-packages.macos-arm64."zstd-1.5.7-hf451053_7"]
 url = "https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda"
@@ -119,6 +171,7 @@ specifiers = ["0.26.1"]
 
 [tools.bat."platforms.macos-arm64"]
 checksum = "sha256:e30beff26779c9bf60bb541e1d79046250cb74378f2757f8eb250afddb19e114"
+checksum_source = "mise-versions"
 url = "https://github.com/sharkdp/bat/releases/download/v0.26.1/bat-v0.26.1-aarch64-apple-darwin.tar.gz"
 url_api = "https://api.github.com/repos/sharkdp/bat/releases/assets/323548442"
 
@@ -199,6 +252,41 @@ conda_deps = [
     "ca-certificates-2026.10.23-hbd8a1cb_0",
     "ncurses-6.6-he64c551_1",
     "libev-4.33-h1a92334_3",
+]
+
+[[tools."conda:git"]]
+version = "2.56.0"
+backend = "conda:git"
+specifiers = ["2.56.0"]
+
+[tools."conda:git".options]
+channel = "conda-forge"
+
+[tools."conda:git"."platforms.macos-arm64"]
+checksum = "sha256:2faaa571f7da2dd0b17f54ddb8a0437c9bde290af2202257c75ba73889819975"
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/git-2.56.0-pl5440h66f49b9_0.conda"
+conda_deps = [
+    "libcurl-8.23.0-h6651222_0",
+    "libexpat-2.9.0-h6111c0a_0",
+    "libintl-0.25.1-hae62183_2",
+    "libzlib-1.3.2-h8088a28_3",
+    "pcre2-10.47-he63d830_1",
+    "libiconv-1.18-he4c29f2_3",
+    "openssl-3.6.5-h55eecbc_0",
+    "perl-5.44.0-1_hb001647_perl5",
+    "krb5-1.22.2-h34f8a20_2",
+    "libnghttp2-1.70.0-h344cdd5_0",
+    "c-ares-1.34.9-h74c22ad_0",
+    "libpsl-0.23.1-h08d577c_2",
+    "libssh2-1.11.1-hbf2880b_1",
+    "zstd-1.5.7-hf451053_7",
+    "ca-certificates-2026.10.23-hbd8a1cb_0",
+    "bzip2-1.0.8-h4e30115_10",
+    "libedit-3.1.20260512-pl5321h26f1114_0",
+    "libcxx-23.1.4-h55c6f16_2",
+    "libev-4.33-h1a92334_3",
+    "icu-79.1-py311h7f96da7_0",
+    "ncurses-6.6-he64c551_1",
 ]
 
 [[tools."conda:grep"]]
@@ -297,6 +385,7 @@ specifiers = ["0.20.1"]
 
 [tools.delta."platforms.macos-arm64"]
 checksum = "sha256:bc1839cea69288d4673a24faffbb825d408ca907e0f7d33b1678c9e6cdd5e58e"
+checksum_source = "mise-versions"
 url = "https://github.com/dandavison/delta/releases/download/0.20.1/delta-0.20.1-aarch64-apple-darwin.tar.gz"
 url_api = "https://api.github.com/repos/dandavison/delta/releases/assets/610498923"
 
@@ -307,6 +396,7 @@ specifiers = ["2.38.2"]
 
 [tools.direnv."platforms.macos-arm64"]
 checksum = "sha256:30443c413e74614a53deb90234e9c97661b1041a0f4aca601ceb482a578ae8b6"
+checksum_source = "mise-versions"
 url = "https://github.com/direnv/direnv/releases/download/v2.38.2/direnv.darwin-arm64"
 url_api = "https://api.github.com/repos/direnv/direnv/releases/assets/627455431"
 
@@ -328,6 +418,7 @@ specifiers = ["10.5.0"]
 
 [tools.fd."platforms.macos-arm64"]
 checksum = "sha256:b67e1836c468e42e411984b56e52fa7abec08c2bd22c867398e7cc134aac5e12"
+checksum_source = "mise-versions"
 url = "https://github.com/sharkdp/fd/releases/download/v10.5.0/fd-v10.5.0-aarch64-apple-darwin.tar.gz"
 url_api = "https://api.github.com/repos/sharkdp/fd/releases/assets/530481346"
 
@@ -338,6 +429,7 @@ specifiers = ["0.74.5"]
 
 [tools.fzf."platforms.macos-arm64"]
 checksum = "sha256:ada808c7401b9949ce8842274ac16a6b6193fd32dcada396884a6a9a89e5985a"
+checksum_source = "mise-versions"
 url = "https://github.com/junegunn/fzf/releases/download/v0.74.5/fzf-0.74.5-darwin_arm64.tar.gz"
 url_api = "https://api.github.com/repos/junegunn/fzf/releases/assets/629581702"
 
@@ -484,6 +576,7 @@ specifiers = ["15.2.0"]
 
 [tools.ripgrep."platforms.macos-arm64"]
 checksum = "sha256:3750b2e93f37e0c692657da574d7019a101c0084da05a790c83fd335bad973e4"
+checksum_source = "mise-versions"
 url = "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-aarch64-apple-darwin.tar.gz"
 url_api = "https://api.github.com/repos/BurntSushi/ripgrep/releases/assets/478118851"
 

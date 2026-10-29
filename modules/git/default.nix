@@ -50,6 +50,7 @@ in
 {
   programs.git = {
     enable = true;
+    package = null;
     lfs = {
       enable = true;
       package = null;

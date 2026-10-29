@@ -39,6 +39,7 @@ direnv = "2.38.2"
 vim = "9.2.1054"
 "conda:tree" = "2.3.2"
 "conda:tig" = "2.6.1"
+"conda:git" = "2.56.0"
 
 [tools."http:gcloud"]
 version = "591.0.0"
