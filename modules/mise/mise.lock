@@ -131,6 +131,19 @@ conda_deps = [
     "perl-5.44.0-1_hb001647_perl5",
 ]
 
+[[tools."conda:ca-certificates"]]
+version = "2026.10.23"
+backend = "conda:ca-certificates"
+specifiers = ["2026.10.23"]
+
+[tools."conda:ca-certificates".options]
+channel = "conda-forge"
+
+[tools."conda:ca-certificates"."platforms.macos-arm64"]
+checksum = "sha256:95619b9c1184be7175392eeb0ee7eeb5ccf25d280951f4225f2d62e725790be3"
+url = "https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.23-hbd8a1cb_0.conda"
+conda_deps = []
+
 [[tools."conda:curl"]]
 version = "8.23.0"
 backend = "conda:curl"
@@ -219,6 +232,11 @@ checksum_source = "mise-versions"
 url = "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-cli-osx-arm64.tar.gz"
 url_api = "https://api.github.com/repos/duckdb/duckdb/releases/assets/662551052"
 
+[[tools."gem:cocoapods"]]
+version = "1.17.0"
+backend = "gem:cocoapods"
+specifiers = ["1.17.0"]
+
 [[tools.gh]]
 version = "2.103.2"
 backend = "aqua:cli/cli"
@@ -280,7 +298,7 @@ backend = "github:newren/git-filter-repo"
 specifiers = ["2.47.0"]
 
 [tools."github:newren/git-filter-repo"."platforms.macos-arm64"]
-checksum = "blake3:612721f94a18ae18489b99a529e66aaf208b6683b78345af1667a4f2e4e22285"
+checksum = "sha256:4662cbe5918196a9f1b5b3e1211a32e61cff1812419c21df4f47c5439f09e902"
 url = "https://github.com/newren/git-filter-repo/releases/download/v2.47.0/git-filter-repo-2.47.0.tar.xz"
 url_api = "https://api.github.com/repos/newren/git-filter-repo/releases/assets/210902120"
 
@@ -303,6 +321,22 @@ specifiers = ["22.23.4"]
 [tools.node."platforms.macos-arm64"]
 checksum = "sha256:c9e1dbc748b33ed2d14f42445191ecaf14c56259c7a9a26d0042c49ec2b66428"
 url = "https://nodejs.org/dist/v22.23.4/node-v22.23.4-darwin-arm64.tar.gz"
+
+[[tools.ruby]]
+version = "3.4.12"
+backend = "core:ruby"
+specifiers = ["3.4.12"]
+
+[tools.ruby.options]
+compile = "false"
+precompiled_url = "jdx/ruby"
+ruby_build_repo = "https://github.com/rbenv/ruby-build.git"
+ruby_install = "false"
+
+[tools.ruby."platforms.macos-arm64"]
+checksum = "sha256:865b429c511c40a96fe3c25466bbf9b300e5cae22c70c7dd68e0af003b849de4"
+url = "https://github.com/jdx/ruby/releases/download/3.4.12-1/ruby-3.4.12.macos.tar.gz"
+provenance = "github-attestations"
 
 [[tools.shellcheck]]
 version = "0.11.0"

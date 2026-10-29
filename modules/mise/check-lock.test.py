@@ -59,6 +59,16 @@ class CheckLockTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("no macos-arm64 checksum", result.stderr)
 
+    def test_version_only_backend_passes_without_checksum(self):
+        lock = '[[tools."gem:cocoapods"]]\nversion = "1.17.0"\nbackend = "gem:cocoapods"\n'
+        result = self.run_check('[tools]\n"gem:cocoapods" = "1.17.0"\n', lock)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_version_only_backend_still_needs_lock_entry(self):
+        result = self.run_check('[tools]\n"gem:cocoapods" = "1.17.0"\n', "")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("gem:cocoapods: 1.17.0 is not locked", result.stderr)
+
     def test_stale_lock_entry_fails(self):
         result = self.run_check("[tools]\n", LOCKED_UV)
         self.assertEqual(result.returncode, 1)

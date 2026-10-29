@@ -3,6 +3,7 @@ import sys
 import tomllib
 
 PLATFORM = "macos-arm64"
+VERSION_ONLY_BACKENDS = ("gem:", "cargo:", "go:", "npm:")
 
 
 def configured_version(name: str, spec) -> str:
@@ -29,6 +30,8 @@ def check(config_path: Path, lock_path: Path) -> list[str]:
         entries = [entry for entry in locked.get(name, []) if entry.get("version") == version]
         if not entries:
             problems.append(f"{name}: {version} is not locked")
+            continue
+        if entries[0].get("backend", "").startswith(VERSION_ONLY_BACKENDS):
             continue
         platform = entries[0].get(f"platforms.{PLATFORM}", {})
         if not platform.get("checksum"):

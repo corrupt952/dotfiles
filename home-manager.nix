@@ -22,7 +22,6 @@
       _1password-cli
       bat
       btop
-      cocoapods
       container
       gnupg
       jq
