@@ -48,17 +48,6 @@ let
   gitConfigHome = "${config.xdg.configHome}/git";
 in
 {
-  home.packages = [ pkgs.vim ];
-
-  programs.delta = {
-    enable = true;
-    enableGitIntegration = true;
-    options = {
-      navigate = true;
-      line-numbers = true;
-    };
-  };
-
   programs.git = {
     enable = true;
     lfs = {
@@ -162,12 +151,24 @@ in
       };
 
       core = {
-        editor = lib.getExe pkgs.vim;
+        editor = "vim";
         hooksPath = "${gitConfigHome}/hooks";
         precomposeunicode = true;
         quotepath = false;
         sshCommand = "${gitConfigHome}/scripts/git-ssh";
         whitespace = "-indent-with-non-tab,trailing-space,cr-at-eol";
+      };
+
+      delta = {
+        navigate = true;
+        line-numbers = true;
+      };
+      interactive.diffFilter = "delta --color-only";
+      pager = {
+        blame = "delta";
+        diff = "delta";
+        log = "delta";
+        show = "delta";
       };
 
       commit.verbose = true;

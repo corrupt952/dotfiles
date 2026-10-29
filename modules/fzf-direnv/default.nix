@@ -10,8 +10,6 @@ let
   directoriesCommand = "${fd} --type d --hidden --follow --strip-cwd-prefix";
 in
 {
-  home.packages = [ pkgs.fd ];
-
   # Global fd ignore: every fd invocation (including fzf's defaultCommand) reads
   # this file, so exclusions live here once instead of inline per command.
   # --hidden stays in the fzf command: it is a traversal flag, not an ignore rule.
@@ -25,6 +23,7 @@ in
     # and sets RIPGREP_CONFIG_PATH for us. CLI flags still override these.
     ripgrep = {
       enable = true;
+      package = null;
       arguments = [
         "--smart-case"
         "--hidden"
@@ -34,7 +33,7 @@ in
 
     fzf = {
       enable = true;
-      enableZshIntegration = true;
+      enableZshIntegration = false;
 
       defaultCommand = filesCommand;
       defaultOptions = [
@@ -61,7 +60,7 @@ in
 
     direnv = {
       enable = true;
-      enableZshIntegration = true;
+      enableZshIntegration = false;
       nix-direnv.enable = true;
 
       stdlib = ''

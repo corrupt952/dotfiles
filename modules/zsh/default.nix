@@ -237,6 +237,14 @@ in
           eval "$("$HOME/.local/bin/mise" activate zsh)"
         fi
 
+        if [[ -o zle ]] && (( $+commands[fzf] )); then
+          source <(fzf --zsh)
+        fi
+
+        if (( $+commands[direnv] )); then
+          eval "$(direnv hook zsh)"
+        fi
+
         if (( $+commands[sallyport] )); then
           eval "$(sallyport hook zsh)"
         fi

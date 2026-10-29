@@ -112,6 +112,16 @@ specifiers = ["2.38.6"]
 checksum = "sha256:0c67ccc431fac778898283fda62a9b0d6fa7fa4184a0e990cb6a7b7ec2cde333"
 url = "https://awscli.amazonaws.com/AWSCLIV2-2.38.6.pkg"
 
+[[tools.bat]]
+version = "0.26.1"
+backend = "aqua:sharkdp/bat"
+specifiers = ["0.26.1"]
+
+[tools.bat."platforms.macos-arm64"]
+checksum = "sha256:e30beff26779c9bf60bb541e1d79046250cb74378f2757f8eb250afddb19e114"
+url = "https://github.com/sharkdp/bat/releases/download/v0.26.1/bat-v0.26.1-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/sharkdp/bat/releases/assets/323548442"
+
 [[tools.bun]]
 version = "1.4.4"
 backend = "core:bun"
@@ -239,6 +249,36 @@ conda_deps = [
     "libiconv-1.18-he4c29f2_3",
 ]
 
+[[tools."conda:tig"]]
+version = "2.6.1"
+backend = "conda:tig"
+specifiers = ["2.6.1"]
+
+[tools."conda:tig".options]
+channel = "conda-forge"
+
+[tools."conda:tig"."platforms.macos-arm64"]
+checksum = "sha256:dca8c0a53443a51c7c902e7fc04dd2492e37b8c3341b4fb504f7a3827715b33a"
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/tig-2.6.1-hce80881_0.conda"
+conda_deps = [
+    "pcre-8.45-hbdafb3b_0",
+    "ncurses-6.6-he64c551_1",
+    "libcxx-23.1.4-h55c6f16_2",
+]
+
+[[tools."conda:tree"]]
+version = "2.3.2"
+backend = "conda:tree"
+specifiers = ["2.3.2"]
+
+[tools."conda:tree".options]
+channel = "conda-forge"
+
+[tools."conda:tree"."platforms.macos-arm64"]
+checksum = "sha256:0c1aedd44c62ff2c37e851705493fafd210219daa4a682b414249c3060ef42cb"
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/tree-2.3.2-h84a0fba_0.conda"
+conda_deps = []
+
 [[tools.container]]
 version = "1.6.1"
 backend = "aqua:apple/container"
@@ -250,6 +290,26 @@ checksum_source = "mise-versions"
 url = "https://github.com/apple/container/releases/download/1.6.1/container-1.6.1-installer-signed.pkg"
 url_api = "https://api.github.com/repos/apple/container/releases/assets/670899125"
 
+[[tools.delta]]
+version = "0.20.1"
+backend = "aqua:dandavison/delta"
+specifiers = ["0.20.1"]
+
+[tools.delta."platforms.macos-arm64"]
+checksum = "sha256:bc1839cea69288d4673a24faffbb825d408ca907e0f7d33b1678c9e6cdd5e58e"
+url = "https://github.com/dandavison/delta/releases/download/0.20.1/delta-0.20.1-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/dandavison/delta/releases/assets/610498923"
+
+[[tools.direnv]]
+version = "2.38.2"
+backend = "aqua:direnv/direnv"
+specifiers = ["2.38.2"]
+
+[tools.direnv."platforms.macos-arm64"]
+checksum = "sha256:30443c413e74614a53deb90234e9c97661b1041a0f4aca601ceb482a578ae8b6"
+url = "https://github.com/direnv/direnv/releases/download/v2.38.2/direnv.darwin-arm64"
+url_api = "https://api.github.com/repos/direnv/direnv/releases/assets/627455431"
+
 [[tools.duckdb]]
 version = "2.0.0"
 backend = "aqua:duckdb/duckdb"
@@ -260,6 +320,26 @@ checksum = "sha256:188a36fe8883ef52e69165a0cbb6031ef679c8e6c448a1ce22951964149b7
 checksum_source = "mise-versions"
 url = "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-cli-osx-arm64.tar.gz"
 url_api = "https://api.github.com/repos/duckdb/duckdb/releases/assets/662551052"
+
+[[tools.fd]]
+version = "10.5.0"
+backend = "aqua:sharkdp/fd"
+specifiers = ["10.5.0"]
+
+[tools.fd."platforms.macos-arm64"]
+checksum = "sha256:b67e1836c468e42e411984b56e52fa7abec08c2bd22c867398e7cc134aac5e12"
+url = "https://github.com/sharkdp/fd/releases/download/v10.5.0/fd-v10.5.0-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/sharkdp/fd/releases/assets/530481346"
+
+[[tools.fzf]]
+version = "0.74.5"
+backend = "aqua:junegunn/fzf"
+specifiers = ["0.74.5"]
+
+[tools.fzf."platforms.macos-arm64"]
+checksum = "sha256:ada808c7401b9949ce8842274ac16a6b6193fd32dcada396884a6a9a89e5985a"
+url = "https://github.com/junegunn/fzf/releases/download/v0.74.5/fzf-0.74.5-darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/junegunn/fzf/releases/assets/629581702"
 
 [[tools."gem:cocoapods"]]
 version = "1.17.0"
@@ -328,6 +408,7 @@ specifiers = ["3.8.1"]
 
 [tools."github:git-lfs/git-lfs"."platforms.macos-arm64"]
 checksum = "sha256:0ba10e897e0496412cd86eacaed4ed554c97ddc29bc5c709d28faa5eaaa2222c"
+checksum_source = "mise-versions"
 url = "https://github.com/git-lfs/git-lfs/releases/download/v3.8.1/git-lfs-darwin-arm64-v3.8.1.zip"
 url_api = "https://api.github.com/repos/git-lfs/git-lfs/releases/assets/666388058"
 
@@ -361,6 +442,17 @@ url = "https://github.com/jdx/jactionlint/releases/download/v2.3.0/jactionlint_2
 signer = "sigstore-oidc:https://github.com/jdx/jactionlint/.github/workflows/release.yaml"
 repository_ids = { repository = "1404951382" }
 
+[[tools.jq]]
+version = "1.8.2"
+backend = "aqua:jqlang/jq"
+specifiers = ["1.8.2"]
+
+[tools.jq."platforms.macos-arm64"]
+checksum = "sha256:2d75340ba57a4b4b4c8708a21c2dc8e958a48aaa8bba13b27f77f6e4c0eca07e"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-macos-arm64"
+url_api = "https://api.github.com/repos/jqlang/jq/releases/assets/453012783"
+provenance = "github-attestations"
+
 [[tools.node]]
 version = "22.23.4"
 backend = "core:node"
@@ -384,6 +476,16 @@ specifiers = ["3.14.10"]
 checksum = "sha256:95eb8c87d16af37c54e9765e31d8c56c0d8ffa9968ea0f704f73a9b83f84e9f9"
 url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.14.10+20261026-aarch64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
+
+[[tools.ripgrep]]
+version = "15.2.0"
+backend = "aqua:BurntSushi/ripgrep"
+specifiers = ["15.2.0"]
+
+[tools.ripgrep."platforms.macos-arm64"]
+checksum = "sha256:3750b2e93f37e0c692657da574d7019a101c0084da05a790c83fd335bad973e4"
+url = "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/BurntSushi/ripgrep/releases/assets/478118851"
 
 [[tools.ruby]]
 version = "3.4.12"
@@ -444,6 +546,41 @@ checksum = "sha256:743f85035a1996ecb350659e01cd9faea9709829be09b1b4b03c73eaf3c9c
 url = "https://github.com/astral-sh/uv/releases/download/0.13.5/uv-aarch64-apple-darwin.tar.gz"
 url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/664335803"
 provenance = "github-attestations"
+
+[[tools.vim]]
+version = "9.2.1054"
+backend = "conda:vim"
+specifiers = ["9.2.1054"]
+
+[tools.vim.options]
+channel = "conda-forge"
+
+[tools.vim."platforms.macos-arm64"]
+checksum = "sha256:cf60808e53cbb2fc5835a5d66fa6d4b75c03e537003b93a9800607e3b73a92d2"
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/vim-9.2.1054-py314pl5321hb90a2a9_0.conda"
+conda_deps = [
+    "python-3.14.10-h0ae1c2c_100_cp314",
+    "libpython-3.14.10-h281bc5c_100_cp314",
+    "perl-5.32.1-10_hb001647_perl5",
+    "ncurses-6.6-he64c551_1",
+    "libcxx-23.1.4-h55c6f16_2",
+    "libintl-0.25.1-hae62183_2",
+    "python_abi-3.14-9_cp314",
+    "bzip2-1.0.8-h4e30115_10",
+    "libmpdec-4.0.0-h84a0fba_2",
+    "libsqlite-3.54.1-h34a968b_101",
+    "openssl-3.6.5-h55eecbc_0",
+    "tk-8.6.13-hbeba79b_4",
+    "tzdata-2026e-h5d301ff_0",
+    "zstd-1.5.7-hf451053_7",
+    "libexpat-2.9.0-h6111c0a_0",
+    "libffi-3.7.0-h47dc5ef_1",
+    "liblzma-5.8.3-h8088a28_1",
+    "libzlib-1.3.2-h8088a28_3",
+    "readline-8.3-h8b90a29_1",
+    "libiconv-1.18-he4c29f2_3",
+    "ca-certificates-2026.10.23-hbd8a1cb_0",
+]
 
 [[tools.zizmor]]
 version = "1.31.1"

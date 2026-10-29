@@ -18,13 +18,9 @@
     stateVersion = "26.05";
 
     packages = with pkgs; [
-      bat
       gnupg
-      jq
       markdownlint-cli2
       statix
-      tig
-      tree
     ];
   };
 
