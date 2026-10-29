@@ -9,7 +9,6 @@
     ./modules/mise
     ./modules/ruby
     ./modules/tmux
-    ./modules/wezterm
     ./modules/workspaces
     ./modules/zsh
   ];
