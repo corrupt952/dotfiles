@@ -60,6 +60,21 @@ macos-arm64 = { url = "https://dl.google.com/dl/cloudsdk/channels/rapid/download
 "~/.config/git/scripts/git-delete-branch" = { source = "modules/git/delete-branch.sh" }
 "~/.config/git/scripts/git-select-branch" = { source = "modules/git/select-branch.sh" }
 "~/.config/git/scripts/git-ssh" = { source = "modules/git/ssh.sh" }
+"~/.config/fd/ignore" = { source = "modules/fd/ignore" }
+"~/.config/ripgrep/ripgreprc" = { source = "modules/ripgrep/ripgreprc" }
+"~/.config/direnv/direnvrc" = { source = "modules/direnv/direnvrc" }
+"~/.codex/AGENTS.md" = { source = "modules/agent-rules.md" }
+"~/.agents/plugins/marketplace.json" = { source = "modules/codex/marketplace.json" }
+
+[env]
+RIPGREP_CONFIG_PATH = "{{ env.HOME }}/.config/ripgrep/ripgreprc"
+FZF_DEFAULT_COMMAND = "fd --type f --hidden --follow --strip-cwd-prefix"
+FZF_DEFAULT_OPTS = "--exact --cycle --ansi --height=70% --layout=reverse --border"
+FZF_CTRL_T_COMMAND = "fd --type f --hidden --follow --strip-cwd-prefix"
+FZF_CTRL_T_OPTS = "--preview 'bat --color=always --style=numbers --line-range=:200 -- {}'"
+FZF_ALT_C_COMMAND = "fd --type d --hidden --follow --strip-cwd-prefix"
+FZF_ALT_C_OPTS = "--preview 'tree -C -L 2 -- {} | head -n 200'"
+FZF_CTRL_R_OPTS = "--sort"
 
 [settings]
 minimum_release_age = "3d"

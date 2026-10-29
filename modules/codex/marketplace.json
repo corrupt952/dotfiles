@@ -1,0 +1,64 @@
+{
+  "interface": {
+    "displayName": "Labee Standards"
+  },
+  "name": "labee-standards",
+  "plugins": [
+    {
+      "category": "Developer Tools",
+      "name": "labee-core",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/labee-core",
+        "ref": "main",
+        "source": "git-subdir",
+        "url": "https://github.com/LabeeHive/standards.git"
+      }
+    },
+    {
+      "category": "Developer Tools",
+      "name": "labee-swift",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/labee-swift",
+        "ref": "main",
+        "source": "git-subdir",
+        "url": "https://github.com/LabeeHive/standards.git"
+      }
+    },
+    {
+      "category": "Developer Tools",
+      "name": "labee-marketing",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/labee-marketing",
+        "ref": "main",
+        "source": "git-subdir",
+        "url": "https://github.com/LabeeHive/standards.git"
+      }
+    },
+    {
+      "category": "Developer Tools",
+      "name": "labee-authoring",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/labee-authoring",
+        "ref": "main",
+        "source": "git-subdir",
+        "url": "https://github.com/LabeeHive/standards.git"
+      }
+    }
+  ]
+}
