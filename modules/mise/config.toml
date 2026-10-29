@@ -28,6 +28,7 @@ uv = "0.13.5"
 zizmor = "1.31.1"
 python = "3.14.10"
 tmux = "3.7c"
+"github:git-lfs/git-lfs" = "3.8.1"
 
 [tools."http:gcloud"]
 version = "591.0.0"

@@ -41,7 +41,6 @@ let
     runtimeInputs = [
       pkgs.coreutils
       pkgs.git
-      pkgs.git-lfs
     ];
     text = builtins.readFile ./pre-push.sh;
   };
@@ -62,7 +61,10 @@ in
 
   programs.git = {
     enable = true;
-    lfs.enable = true;
+    lfs = {
+      enable = true;
+      package = null;
+    };
 
     includes = [
       { path = "${gitConfigHome}/local"; }

@@ -321,6 +321,16 @@ url = "https://github.com/corrupt952/xckit/releases/download/v0.2.3/xckit_0.2.3_
 url_api = "https://api.github.com/repos/corrupt952/xckit/releases/assets/671222961"
 provenance = "github-attestations"
 
+[[tools."github:git-lfs/git-lfs"]]
+version = "3.8.1"
+backend = "github:git-lfs/git-lfs"
+specifiers = ["3.8.1"]
+
+[tools."github:git-lfs/git-lfs"."platforms.macos-arm64"]
+checksum = "sha256:0ba10e897e0496412cd86eacaed4ed554c97ddc29bc5c709d28faa5eaaa2222c"
+url = "https://github.com/git-lfs/git-lfs/releases/download/v3.8.1/git-lfs-darwin-arm64-v3.8.1.zip"
+url_api = "https://api.github.com/repos/git-lfs/git-lfs/releases/assets/666388058"
+
 [[tools."github:newren/git-filter-repo"]]
 version = "2.47.0"
 backend = "github:newren/git-filter-repo"
@@ -420,6 +430,7 @@ specifiers = ["3.7c"]
 
 [tools.tmux."platforms.macos-arm64"]
 checksum = "sha256:0a763dd0380aa980d239509654da1bc7455843706a3c050f6709c8cd2e13d12d"
+checksum_source = "mise-versions"
 url = "https://github.com/tmux/tmux-builds/releases/download/v3.7c/tmux-3.7c-macos-arm64.tar.gz"
 url_api = "https://api.github.com/repos/tmux/tmux-builds/releases/assets/528734861"
 
