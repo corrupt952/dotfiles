@@ -5,7 +5,7 @@ import tempfile
 import unittest
 
 SCRIPT = Path(__file__).with_name("check-lock.py")
-HERE = Path(__file__).parent
+REPO = Path(__file__).parents[2]
 
 LOCKED_UV = """
 [[tools.uv]]
@@ -76,7 +76,7 @@ class CheckLockTests(unittest.TestCase):
 
     def test_repository_config_is_locked(self):
         result = subprocess.run(
-            [sys.executable, str(SCRIPT), str(HERE / "config.toml"), str(HERE / "mise.lock")],
+            [sys.executable, str(SCRIPT), str(REPO / "config.toml"), str(REPO / "mise.lock")],
             capture_output=True,
             text=True,
         )

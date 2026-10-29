@@ -1,0 +1,343 @@
+{
+  "browser" : {
+    "contentBlocking" : {
+      "allow" : [
+
+      ],
+      "block" : [
+        "doubleclick.net",
+        "googlesyndication.com",
+        "googleadservices.com",
+        "adservice.google.com",
+        "googletagservices.com",
+        "google-analytics.com",
+        "adnxs.com",
+        "adsrvr.org",
+        "rubiconproject.com",
+        "pubmatic.com",
+        "openx.net",
+        "criteo.com",
+        "criteo.net",
+        "casalemedia.com",
+        "indexww.com",
+        "smartadserver.com",
+        "amazon-adsystem.com",
+        "taboola.com",
+        "outbrain.com",
+        "media.net",
+        "moatads.com",
+        "scorecardresearch.com",
+        "quantserve.com",
+        "bluekai.com",
+        "demdex.net",
+        "everesttech.net",
+        "adroll.com",
+        "yieldmo.com",
+        "sharethrough.com",
+        "33across.com",
+        "bidswitch.net",
+        "lijit.com",
+        "sovrn.com",
+        "teads.tv",
+        "spotxchange.com",
+        "advertising.com",
+        "adform.net",
+        "zemanta.com",
+        "popads.net",
+        "propellerads.com",
+        "exoclick.com",
+        "trafficjunky.net",
+        "i-mobile.co.jp",
+        "impact-ad.jp",
+        "microad.jp",
+        "adingo.jp",
+        "fluct.jp",
+        "gmossp-sp.jp",
+        "nend.net",
+        "socdm.com",
+        "ad.yahoo.co.jp",
+        "logly.co.jp",
+        "popin.cc",
+        "im-apps.net"
+      ]
+    },
+    "defaultPage" : "https://www.google.com/",
+    "downloadDirectory" : "~/Downloads",
+    "showFavicons" : true
+  },
+  "colorTheme" : "hybrid",
+  "keyBindings" : {
+    "bindings" : [
+      {
+        "action" : {
+          "kind" : "browser",
+          "name" : "newTab"
+        },
+        "key" : "n",
+        "modifiers" : [
+          "command",
+          "shift"
+        ]
+      },
+      {
+        "action" : {
+          "name" : "toggleSleepPrevention"
+        },
+        "key" : "u",
+        "modifiers" : [
+          "command",
+          "shift"
+        ]
+      },
+      {
+        "action" : {
+          "name" : "toggleAllToolWindows"
+        },
+        "key" : "b",
+        "modifiers" : [
+          "command",
+          "shift"
+        ]
+      },
+      {
+        "action" : {
+          "name" : "closeWorkspace"
+        },
+        "key" : "w",
+        "modifiers" : [
+          "command",
+          "shift"
+        ]
+      }
+    ],
+    "keyTables" : {
+      "leader" : {
+        "bindings" : [
+          {
+            "action" : {
+              "kind" : "terminal",
+              "name" : "newTab"
+            },
+            "key" : "c"
+          },
+          {
+            "action" : {
+              "name" : "activateTabRelative",
+              "offset" : 1
+            },
+            "key" : "n"
+          },
+          {
+            "action" : {
+              "name" : "activateTabRelative",
+              "offset" : -1
+            },
+            "key" : "p"
+          },
+          {
+            "action" : {
+              "name" : "closeCurrentTab"
+            },
+            "key" : "&"
+          },
+          {
+            "action" : {
+              "name" : "splitPaneRight"
+            },
+            "key" : "%"
+          },
+          {
+            "action" : {
+              "name" : "splitPaneDown"
+            },
+            "key" : "\""
+          },
+          {
+            "action" : {
+              "name" : "togglePaneZoom"
+            },
+            "key" : "z"
+          },
+          {
+            "action" : {
+              "name" : "focusPaneLeft"
+            },
+            "key" : "leftArrow"
+          },
+          {
+            "action" : {
+              "name" : "focusPaneRight"
+            },
+            "key" : "rightArrow"
+          },
+          {
+            "action" : {
+              "name" : "focusPaneUp"
+            },
+            "key" : "upArrow"
+          },
+          {
+            "action" : {
+              "name" : "focusPaneDown"
+            },
+            "key" : "downArrow"
+          },
+          {
+            "action" : {
+              "name" : "focusPaneLeft"
+            },
+            "key" : "h"
+          },
+          {
+            "action" : {
+              "name" : "focusPaneDown"
+            },
+            "key" : "j"
+          },
+          {
+            "action" : {
+              "name" : "focusPaneUp"
+            },
+            "key" : "k"
+          },
+          {
+            "action" : {
+              "name" : "focusPaneRight"
+            },
+            "key" : "l"
+          },
+          {
+            "action" : {
+              "name" : "activatePaneRelative",
+              "offset" : 1
+            },
+            "key" : "o"
+          },
+          {
+            "action" : {
+              "name" : "activateLastPane"
+            },
+            "key" : ";"
+          },
+          {
+            "action" : {
+              "name" : "resizePaneLeft"
+            },
+            "key" : "h",
+            "modifiers" : [
+              "shift"
+            ]
+          },
+          {
+            "action" : {
+              "name" : "resizePaneDown"
+            },
+            "key" : "j",
+            "modifiers" : [
+              "shift"
+            ]
+          },
+          {
+            "action" : {
+              "name" : "resizePaneUp"
+            },
+            "key" : "k",
+            "modifiers" : [
+              "shift"
+            ]
+          },
+          {
+            "action" : {
+              "name" : "resizePaneRight"
+            },
+            "key" : "l",
+            "modifiers" : [
+              "shift"
+            ]
+          },
+          {
+            "action" : {
+              "name" : "equalizePanes"
+            },
+            "key" : "="
+          },
+          {
+            "action" : {
+              "name" : "enterPaneSelect"
+            },
+            "key" : "q"
+          },
+          {
+            "disabled" : true,
+            "key" : "escape"
+          }
+        ],
+        "oneShot" : true,
+        "timeoutMilliseconds" : 1000,
+        "unmatched" : "passThrough"
+      }
+    },
+    "leader" : {
+      "key" : "b",
+      "modifiers" : [
+        "control"
+      ],
+      "table" : "leader",
+      "timeoutMilliseconds" : 1000
+    },
+    "useDefaults" : true
+  },
+  "savedCommands" : [
+    { "name" : "Git status", "command" : "git status -sb", "mode" : "run" },
+    { "name" : "Git log (recent)", "command" : "git log --oneline -15", "mode" : "run" },
+    { "name" : "Make test", "command" : "make test", "mode" : "run" },
+    { "name" : "Git checkout", "command" : "git checkout " },
+    { "name" : "Git commit", "command" : "git commit -m \"\"" },
+    { "name" : "Claude resume", "command" : "claude --resume " }
+  ],
+  "schemaVersion" : 1,
+  "sleepPrevention" : {
+    "shouldEnableAtLaunch" : true
+  },
+  "terminal" : {
+    "hoverPreviewSize" : "large",
+    "defaultLaunchProfile" : "manual-check",
+    "font" : {
+      "families" : [
+        "JetBrains Mono",
+        "Hiragino Sans"
+      ],
+      "size" : 13
+    },
+    "hideMouseWhileTyping" : true,
+    "launchProfiles" : {
+      "manual-check" : {
+        "arguments" : [
+          "-l"
+        ],
+        "environment" : {
+          "DIRIGO_LAUNCH_PROFILE" : "manual-check"
+        },
+        "program" : "/bin/zsh"
+      },
+      "shell-integration-check" : {
+        "environment" : {
+          "ZDOTDIR" : "{{ env.HOME }}/.dirigo-clean-zdotdir"
+        },
+        "program" : "/bin/zsh"
+      }
+    }
+  },
+  "workspace" : {
+    "baseFolders" : [
+      {
+        "maxDepth" : 2,
+        "path" : "{{ env.HOME }}/Workspace"
+      },
+      {
+        "maxDepth" : 1,
+        "path" : "{{ env.HOME }}/Obsidian"
+      }
+    ]
+  }
+}

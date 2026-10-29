@@ -49,6 +49,12 @@ postinstall = '"$MISE_TOOL_INSTALL_PATH/google-cloud-sdk/install.sh" --quiet --u
 [tools."http:gcloud".platforms]
 macos-arm64 = { url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-{{ version }}-darwin-arm.tar.gz", checksum = "sha256:85cb726919838faff48bfba7cf676b691b0202bec7c25aabdc116649c6843242", bin_path = "google-cloud-sdk/bin" }
 
+[dotfiles]
+"~/.irbrc" = { source = "modules/ruby/irbrc" }
+"~/.config/tmux/tmux.conf" = { source = "modules/tmux/tmux.conf" }
+"~/.local/bin/tmux-kubectl" = { source = "modules/tmux/kubectl.sh" }
+"~/.config/dirigo/settings.json" = { source = "modules/dirigo/settings.json", mode = "template" }
+
 [settings]
 minimum_release_age = "3d"
 lockfile = true

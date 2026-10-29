@@ -104,6 +104,27 @@ resolve_home_directory() {
   fi
 }
 
+link_mise_config() {
+  local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/mise"
+
+  if [[ -L "$config_dir" && "$(/usr/bin/readlink "$config_dir")" == "$SCRIPT_DIR" ]]; then
+    return
+  fi
+
+  if [[ -d "$config_dir" && ! -L "$config_dir" ]]; then
+    if ! /bin/rmdir "$config_dir" 2>/dev/null; then
+      echo "$config_dir is not empty. Move it aside and run this script again." >&2
+      exit 1
+    fi
+  elif [[ -e "$config_dir" || -L "$config_dir" ]]; then
+    echo "$config_dir already exists. Move it aside and run this script again." >&2
+    exit 1
+  fi
+
+  /bin/mkdir -p "$(dirname -- "$config_dir")"
+  /bin/ln -s "$SCRIPT_DIR" "$config_dir"
+}
+
 load_nix_environment() {
   if command -v nix >/dev/null 2>&1; then
     return
@@ -156,6 +177,7 @@ main() {
   target_user="${1:-$(id -un)}"
   require_1password_app
   write_machine_identity "$target_user"
+  link_mise_config
 
   install_nix
 

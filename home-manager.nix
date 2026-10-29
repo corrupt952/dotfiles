@@ -6,9 +6,6 @@
     ./modules/codex
     ./modules/fzf-direnv
     ./modules/git
-    ./modules/mise
-    ./modules/ruby
-    ./modules/tmux
     ./modules/workspaces
     ./modules/zsh
   ];
