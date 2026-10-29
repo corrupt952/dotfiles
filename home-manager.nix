@@ -1,4 +1,4 @@
-{ identity, pkgs, workspaceIdentities, xckitPackage, closestPackage, tmuxistPackage, sallyportPackage, ... }:
+{ identity, pkgs, workspaceIdentities, ... }:
 
 {
   imports = [
@@ -42,10 +42,6 @@
       tig
       tree
       wget
-      xckitPackage
-      closestPackage
-      tmuxistPackage
-      sallyportPackage
     ];
   };
 

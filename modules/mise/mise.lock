@@ -33,6 +33,50 @@ url = "https://github.com/cli/cli/releases/download/v2.103.2/gh_2.103.2_macOS_ar
 url_api = "https://api.github.com/repos/cli/cli/releases/assets/670305145"
 provenance = "github-attestations"
 
+[[tools."github:corrupt952/closest"]]
+version = "2.0.1"
+backend = "github:corrupt952/closest"
+specifiers = ["2.0.1"]
+
+[tools."github:corrupt952/closest"."platforms.macos-arm64"]
+checksum = "sha256:ba3aa3f0de59808e807c89cc93ecf65d9559e6e8dc13047870464f52dae87cfc"
+url = "https://github.com/corrupt952/closest/releases/download/v2.0.1/closest_2.0.1_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/corrupt952/closest/releases/assets/671227918"
+provenance = "github-attestations"
+
+[[tools."github:corrupt952/sallyport"]]
+version = "0.3.1"
+backend = "github:corrupt952/sallyport"
+specifiers = ["0.3.1"]
+
+[tools."github:corrupt952/sallyport"."platforms.macos-arm64"]
+checksum = "sha256:ba627d937f8f82311f23842304f8fe911bb2b21ea842d607954f11e3b486f2d1"
+url = "https://github.com/corrupt952/sallyport/releases/download/v0.3.1/sallyport_0.3.1_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/corrupt952/sallyport/releases/assets/671221003"
+provenance = "github-attestations"
+
+[[tools."github:corrupt952/tmuxist"]]
+version = "1.3.1"
+backend = "github:corrupt952/tmuxist"
+specifiers = ["1.3.1"]
+
+[tools."github:corrupt952/tmuxist"."platforms.macos-arm64"]
+checksum = "sha256:277a9ce2b086018ee31c6c7c899d5b41ddab58df9cc44703728ca315444275fb"
+url = "https://github.com/corrupt952/tmuxist/releases/download/1.3.1/tmuxist_1.3.1_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/corrupt952/tmuxist/releases/assets/671224486"
+provenance = "github-attestations"
+
+[[tools."github:corrupt952/xckit"]]
+version = "0.2.3"
+backend = "github:corrupt952/xckit"
+specifiers = ["0.2.3"]
+
+[tools."github:corrupt952/xckit"."platforms.macos-arm64"]
+checksum = "sha256:97f28396b453030d0ef7e2344bddb176bb9a34ec3e1844eba2dc6521b5f60a83"
+url = "https://github.com/corrupt952/xckit/releases/download/v0.2.3/xckit_0.2.3_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/corrupt952/xckit/releases/assets/671222961"
+provenance = "github-attestations"
+
 [[tools.node]]
 version = "22.23.4"
 backend = "core:node"

@@ -252,10 +252,6 @@ in
           zle reset-prompt
         }
         zle -N widget::fzf::workspace
-
-        if (( $+commands[sallyport] )); then
-          eval "$(sallyport hook zsh)"
-        fi
       '')
 
       (lib.mkOrder 1100 ''
@@ -269,6 +265,10 @@ in
       (lib.mkOrder 1400 ''
         if [[ -x "$HOME/.local/bin/mise" ]]; then
           eval "$("$HOME/.local/bin/mise" activate zsh)"
+        fi
+
+        if (( $+commands[sallyport] )); then
+          eval "$(sallyport hook zsh)"
         fi
       '')
 

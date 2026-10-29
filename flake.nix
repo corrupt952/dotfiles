@@ -16,30 +16,10 @@
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    xckit = {
-      url = "github:corrupt952/xckit/v0.2.3";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    closest = {
-      url = "github:corrupt952/closest/v2.0.1";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    tmuxist = {
-      url = "github:corrupt952/tmuxist/1.3.1";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    sallyport = {
-      url = "github:corrupt952/sallyport/v0.3.1";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
-    { nixpkgs, nixpkgs-unstable, nix-darwin, home-manager, xckit, closest, tmuxist, sallyport, ... }:
+    { nixpkgs, nixpkgs-unstable, nix-darwin, home-manager, ... }:
     let
       readIdentity = path:
         nixpkgs.lib.removeSuffix "\n" (builtins.readFile path);
@@ -70,10 +50,6 @@
         config = { inherit allowUnfreePredicate; };
         overlays = [ containerOverlay ];
       };
-      xckitPackage = xckit.packages.${system}.default;
-      closestPackage = closest.packages.${system}.default;
-      tmuxistPackage = tmuxist.packages.${system}.default;
-      sallyportPackage = sallyport.packages.${system}.default;
     in
     {
       darwinConfigurations.workstation = nix-darwin.lib.darwinSystem {
@@ -86,7 +62,7 @@
             nixpkgs.overlays = [ containerOverlay ];
 
             home-manager = {
-              extraSpecialArgs = { inherit identity workspaceIdentities xckitPackage closestPackage tmuxistPackage sallyportPackage; };
+              extraSpecialArgs = { inherit identity workspaceIdentities; };
               useGlobalPkgs = true;
               useUserPackages = true;
               backupFileExtension = "backup";
@@ -99,7 +75,7 @@
       # Keep a standalone output for evaluation and recovery without darwin-rebuild.
       homeConfigurations.workstation = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-        extraSpecialArgs = { inherit identity workspaceIdentities xckitPackage closestPackage tmuxistPackage sallyportPackage; };
+        extraSpecialArgs = { inherit identity workspaceIdentities; };
         modules = [
           ./home-manager.nix
           {
