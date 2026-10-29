@@ -27,40 +27,6 @@ in
     enable = true;
     dotDir = "${config.xdg.configHome}/zsh";
 
-    zsh-abbr = {
-      enable = true;
-
-      abbreviations = {
-        bvim = "vim -b";
-        c = "code";
-        clip = "command::clip";
-        dk = "docker";
-        dkc = "docker compose";
-        g = "git";
-        gd = "git fdelete";
-        gr = "grep";
-        gs = "git fselect";
-        k = "kubectl";
-        kctx = "kubectx";
-        kns = "kubens";
-        l = "ls";
-        ll = "ls -lh";
-        loop = "command::loop";
-        reboot = "sudo reboot";
-        reload = "exec zsh -l";
-        shutdown = "sudo shutdown";
-        tf = "terraform";
-        tk = "tmuxist";
-        vi = "vim";
-      };
-
-      globalAbbreviations = {
-        G = "| grep";
-        now = "$(date \"+%Y-%m-%dT%H:%M:%S%z\")";
-        today = "$(date \"+%Y-%m-%d\")";
-      };
-    };
-
     autocd = true;
     defaultKeymap = "emacs";
     enableCompletion = true;
@@ -258,6 +224,7 @@ in
       '')
 
       (lib.mkOrder 1100 ''
+        source ${./abbr.zsh}
         bindkey '^[[Z' reverse-menu-complete
         bindkey '^S' history-incremental-search-forward
         bindkey '^R' fzf-history-widget

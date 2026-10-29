@@ -33,7 +33,6 @@
       system = "aarch64-darwin";
       allowUnfreePredicate = pkg:
         builtins.elem (nixpkgs.lib.getName pkg) [
-          "zsh-abbr"
         ];
       pkgs = import nixpkgs {
         inherit system;
