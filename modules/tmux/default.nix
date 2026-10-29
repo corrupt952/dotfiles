@@ -11,6 +11,7 @@ in
 
   programs.tmux = {
     enable = true;
+    package = null;
     baseIndex = 1;
     escapeTime = 100;
     keyMode = "vi";
