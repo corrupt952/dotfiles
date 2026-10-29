@@ -21,7 +21,6 @@
     packages = with pkgs; [
       _1password-cli
       bat
-      container
       gnupg
       jq
       markdownlint-cli2

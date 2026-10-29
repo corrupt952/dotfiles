@@ -221,6 +221,16 @@ conda_deps = [
     "libiconv-1.18-he4c29f2_3",
 ]
 
+[[tools.container]]
+version = "1.6.1"
+backend = "aqua:apple/container"
+specifiers = ["1.6.1"]
+
+[tools.container."platforms.macos-arm64"]
+checksum = "sha256:cd47846819f06478d067060efe21e516b562ac0a9af8eecad6d5fea0b556b200"
+url = "https://github.com/apple/container/releases/download/1.6.1/container-1.6.1-installer-signed.pkg"
+url_api = "https://api.github.com/repos/apple/container/releases/assets/670899125"
+
 [[tools.duckdb]]
 version = "2.0.0"
 backend = "aqua:duckdb/duckdb"
