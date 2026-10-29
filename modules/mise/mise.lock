@@ -289,6 +289,39 @@ conda_deps = [
     "ncurses-6.6-he64c551_1",
 ]
 
+[[tools."conda:gnupg"]]
+version = "2.5.24"
+backend = "conda:gnupg"
+specifiers = ["2.5.24"]
+
+[tools."conda:gnupg".options]
+channel = "conda-forge"
+
+[tools."conda:gnupg"."platforms.macos-arm64"]
+checksum = "sha256:3e1b9115df3d4213b19b1fe10022b0584cbf3134348e60335346c7ee5359438d"
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/gnupg-2.5.24-h1775f82_0.conda"
+conda_deps = [
+    "npth-1.8-h286801f_0",
+    "libassuan-3.0.2-h286801f_0",
+    "libksba-1.6.7-h00cdb27_0",
+    "ntbtls-0.3.2-h1059232_0",
+    "bzip2-1.0.8-h4e30115_10",
+    "readline-8.3-h8b90a29_1",
+    "libiconv-1.18-he4c29f2_3",
+    "sqlite-3.54.1-hdb6324b_101",
+    "libsqlite-3.54.1-h34a968b_101",
+    "libgpg-error-1.61-hdca3b7d_2",
+    "libintl-1.0-hae62183_0",
+    "libgcrypt-lib-1.12.2-hb001647_2",
+    "libcxx-23.1.4-h55c6f16_2",
+    "ncurses-6.6-he64c551_1",
+    "libzlib-1.3.2-h8088a28_3",
+    "zlib-1.3.2-h8088a28_3",
+    "libgcrypt-1.12.2-hce30654_2",
+    "libgcrypt-tools-1.12.2-hb001647_2",
+    "libgcrypt-devel-1.12.2-hb001647_2",
+]
+
 [[tools."conda:grep"]]
 version = "3.12"
 backend = "conda:grep"

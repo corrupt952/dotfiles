@@ -18,7 +18,6 @@
     stateVersion = "26.05";
 
     packages = with pkgs; [
-      gnupg
       markdownlint-cli2
       statix
     ];
