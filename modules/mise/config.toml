@@ -1,5 +1,6 @@
 [tools]
 bun = "1.4.4"
+cmake = "4.4.4"
 "conda:automake" = "1.19"
 "conda:curl" = "8.23.0"
 "conda:grep" = "3.12"

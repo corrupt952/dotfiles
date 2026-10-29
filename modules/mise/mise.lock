@@ -103,6 +103,17 @@ specifiers = ["1.4.4"]
 checksum = "sha256:c240d7f0ccb90c263a849fcdb09b7ee62630d921348ed6aafda86b9d577bc510"
 url = "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-darwin-aarch64.zip"
 
+[[tools.cmake]]
+version = "4.4.4"
+backend = "aqua:Kitware/CMake"
+specifiers = ["4.4.4"]
+
+[tools.cmake."platforms.macos-arm64"]
+checksum = "sha256:4b7b73704b1db9b374e5c9ab8e17ac6148b817b6396ee75cd94a852cbac9d305"
+checksum_source = "mise-versions"
+url = "https://github.com/Kitware/CMake/releases/download/v4.4.4/cmake-4.4.4-macos-universal.tar.gz"
+url_api = "https://api.github.com/repos/Kitware/CMake/releases/assets/605993514"
+
 [[tools."conda:automake"]]
 version = "1.19"
 backend = "conda:automake"

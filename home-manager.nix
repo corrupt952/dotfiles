@@ -20,17 +20,14 @@
 
     packages = with pkgs; [
       _1password-cli
-      arp-scan
       bat
       btop
-      cmake
       cocoapods
       container
       git-filter-repo
       gnupg
       jq
       markdownlint-cli2
-      mas
       statix
       tig
       tree
