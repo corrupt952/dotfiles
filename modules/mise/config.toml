@@ -1,0 +1,14 @@
+[tools]
+bun = "latest"
+node = "22.23.4"
+
+[settings]
+minimum_release_age = "3d"
+
+lockfile = true
+locked = true
+
+paranoid = true
+
+[settings.self_update]
+auto = true

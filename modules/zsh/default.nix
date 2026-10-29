@@ -21,11 +21,6 @@ in
     };
   };
 
-  programs.mise = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
   programs.zsh = {
     enable = true;
     dotDir = "${config.xdg.configHome}/zsh";
@@ -269,6 +264,12 @@ in
         bindkey '^R' fzf-history-widget
         bindkey '^xb' widget::fzf::cdr
         bindkey '^xo' widget::fzf::workspace
+      '')
+
+      (lib.mkOrder 1400 ''
+        if [[ -x "$HOME/.local/bin/mise" ]]; then
+          eval "$("$HOME/.local/bin/mise" activate zsh)"
+        fi
       '')
 
       (lib.mkOrder 1500 ''
