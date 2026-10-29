@@ -59,3 +59,124 @@ npm.package_manager = "bun"
 
 [settings.self_update]
 auto = true
+
+[bootstrap.macos.dock]
+autohide = true
+largesize = 64
+magnification = false
+mru_spaces = false
+orientation = "bottom"
+show_recents = false
+tilesize = 64
+
+[bootstrap.macos.finder]
+show_all_files = true
+show_extensions_warning = false
+preferred_view_style = "list"
+show_pathbar = true
+show_status_bar = true
+
+[bootstrap.macos.keyboard]
+press_and_hold = false
+automatic_capitalization = false
+automatic_spelling_correction = false
+
+[bootstrap.macos.trackpad]
+tap_to_click = true
+
+[bootstrap.macos.defaults.NSGlobalDomain]
+AppleInterfaceStyle = "Dark"
+AppleEnableSwipeNavigateWithScrolls = true
+NSAutomaticDashSubstitutionEnabled = false
+NSAutomaticInlinePredictionEnabled = false
+NSAutomaticPeriodSubstitutionEnabled = false
+NSAutomaticQuoteSubstitutionEnabled = false
+NSAutomaticWindowAnimationsEnabled = false
+NSSmartReplyEnabled = false
+"com.apple.swipescrolldirection" = false
+
+[bootstrap.macos.defaults."com.apple.menuextra.clock"]
+Show24Hour = true
+ShowDayOfWeek = false
+ShowSeconds = false
+
+[bootstrap.macos.defaults."com.apple.dock"]
+launchanim = false
+mineffect = "scale"
+
+[bootstrap.macos.defaults."com.apple.finder"]
+AppleShowAllExtensions = true
+CreateDesktop = false
+
+[bootstrap.macos.defaults."com.apple.AppleMultitouchTrackpad"]
+TrackpadRightClick = true
+
+[bootstrap.macos.defaults."com.apple.driver.AppleBluetoothMultitouch.trackpad"]
+TrackpadRightClick = true
+
+[bootstrap.macos.defaults."com.apple.WindowManager"]
+EnableTiledWindowMargins = false
+
+[bootstrap.macos.defaults."com.apple.universalcontrol"]
+Disable = true
+DisableMagicEdges = true
+DisableNearbyInteraction = true
+
+[bootstrap.macos.defaults."com.apple.inputmethod.Kotoeri"]
+JIMPrefAutocorrectionKey = 0
+JIMPrefLiveConversionKey = 0
+JIMPrefPredictiveCandidateKey = 0
+JIMPrefPrivNoLearningKey = 1
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "AirDrop"
+host = "current"
+value = 24
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "BatteryShowPercentage"
+host = "current"
+value = false
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "Bluetooth"
+host = "current"
+value = 24
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "FocusModes"
+host = "current"
+value = 24
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "NowPlaying"
+host = "current"
+value = 24
+
+[[bootstrap.macos.defaults_entries]]
+domain = "com.apple.controlcenter"
+key = "Sound"
+host = "current"
+value = 24
+
+[bootstrap.files."/etc/pam.d/sudo_local"]
+content = """
+auth       sufficient     pam_tid.so
+"""
+owner = "root"
+group = "wheel"
+mode = "0444"
+os = "macos"
+replace = true
+
+[bootstrap.hooks]
+pre-defaults = 'mise bootstrap macos defaults status --missing >/dev/null 2>&1 || touch "${TMPDIR:-/tmp}/mise-defaults-changed"'
+post-defaults = 'if [ -e "${TMPDIR:-/tmp}/mise-defaults-changed" ]; then rm -f "${TMPDIR:-/tmp}/mise-defaults-changed"; killall Dock Finder SystemUIServer JapaneseIM-RomajiTyping || true; fi'
+
+[tasks.bootstrap]
+run = "if mdutil -a -s | grep -q 'Indexing enabled'; then sudo mdutil -a -d; fi"
