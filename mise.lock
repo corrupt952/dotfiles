@@ -530,6 +530,16 @@ url = "https://github.com/cli/cli/releases/download/v2.103.2/gh_2.103.2_macOS_ar
 url_api = "https://api.github.com/repos/cli/cli/releases/assets/670305145"
 provenance = "github-attestations"
 
+[[tools."github:JetBrains/JetBrainsMono"]]
+version = "2.304"
+backend = "github:JetBrains/JetBrainsMono"
+specifiers = ["2.304"]
+
+[tools."github:JetBrains/JetBrainsMono"."platforms.macos-arm64"]
+checksum = "sha256:6f6376c6ed2960ea8a963cd7387ec9d76e3f629125bc33d1fdcd7eb7012f7bbf"
+url = "https://github.com/JetBrains/JetBrainsMono/releases/download/v2.304/JetBrainsMono-2.304.zip"
+url_api = "https://api.github.com/repos/JetBrains/JetBrainsMono/releases/assets/91681614"
+
 [[tools."github:corrupt952/closest"]]
 version = "2.0.1"
 backend = "github:corrupt952/closest"

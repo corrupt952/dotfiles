@@ -54,6 +54,10 @@ uv = "0.13.5"
 vim = "9.2.1054"
 zizmor = "1.31.1"
 
+[tools."github:JetBrains/JetBrainsMono"]
+version = "2.304"
+postinstall = 'mkdir -p "$HOME/Library/Fonts/JetBrainsMono" && rsync -a --delete "$MISE_TOOL_INSTALL_PATH/fonts/ttf/" "$HOME/Library/Fonts/JetBrainsMono/"'
+
 [tools."http:gcloud"]
 version = "591.0.0"
 postinstall = '"$MISE_TOOL_INSTALL_PATH/google-cloud-sdk/install.sh" --quiet --usage-reporting=false --path-update=false --command-completion=false'
