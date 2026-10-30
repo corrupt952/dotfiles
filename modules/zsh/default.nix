@@ -1,9 +1,5 @@
 { config, lib, pkgs, ... }:
 
-let
-  bat = lib.getExe pkgs.bat;
-  fd = lib.getExe pkgs.fd;
-in
 {
   xdg.enable = true;
 
@@ -212,9 +208,9 @@ in
         widget::fzf::workspace() {
           local selected
           selected=$(
-            ${fd} --type d --min-depth 2 --max-depth 2 . "$HOME/Workspace" |
+            fd --type d --min-depth 2 --max-depth 2 . "$HOME/Workspace" |
               fzf --select-1 --exit-0 \
-                --preview '${bat} --color=always {}/README.md 2>&1'
+                --preview 'bat --color=always {}/README.md 2>&1'
           )
           [[ -n "$selected" ]] || return
           cd -- "$selected" || return
