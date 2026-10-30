@@ -1,10 +1,6 @@
 { identity, ... }:
 
 {
-  imports = [
-    ./modules/fzf-direnv
-  ];
-
   home = {
     inherit (identity) homeDirectory username;
     stateVersion = "26.05";

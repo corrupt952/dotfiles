@@ -1,3 +1,7 @@
+if [[ -r "${XDG_DATA_HOME:-$HOME/.local/share}/nix-direnv/direnvrc" ]]; then
+  source "${XDG_DATA_HOME:-$HOME/.local/share}/nix-direnv/direnvrc"
+fi
+
 aws() {
   export AWS_PROFILE="$1"
 }
