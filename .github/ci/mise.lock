@@ -13,12 +13,6 @@ url = "https://github.com/jdx/jactionlint/releases/download/v2.3.0/jactionlint_2
 signer = "sigstore-oidc:https://github.com/jdx/jactionlint/.github/workflows/release.yaml"
 repository_ids = { repository = "1404951382" }
 
-[tools.jactionlint."platforms.macos-arm64"]
-checksum = "sha256:f96afa36578b21290203ae8df4fa7ac3bf5aba08ed288df28cb0530af7ca6e55"
-url = "https://github.com/jdx/jactionlint/releases/download/v2.3.0/jactionlint_2.3.0_darwin_arm64.tar.gz"
-signer = "sigstore-oidc:https://github.com/jdx/jactionlint/.github/workflows/release.yaml"
-repository_ids = { repository = "1404951382" }
-
 [[tools.python]]
 version = "3.15.2"
 backend = "core:python"
@@ -40,12 +34,6 @@ checksum_source = "mise-versions"
 url = "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz"
 url_api = "https://api.github.com/repos/koalaman/shellcheck/releases/assets/279056942"
 
-[tools.shellcheck."platforms.macos-arm64"]
-checksum = "sha256:56affdd8de5527894dca6dc3d7e0a99a873b0f004d7aabc30ae407d3f48b0a79"
-checksum_source = "mise-versions"
-url = "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.darwin.aarch64.tar.xz"
-url_api = "https://api.github.com/repos/koalaman/shellcheck/releases/assets/279056932"
-
 [[tools.zizmor]]
 version = "1.31.1"
 backend = "aqua:zizmorcore/zizmor"
@@ -55,10 +43,4 @@ specifiers = ["1.31.1"]
 checksum = "sha256:d185f726bdaf92df78273217dfdd24ebcd6b0ef48cf3ce776ff5762b6e138c99"
 url = "https://github.com/zizmorcore/zizmor/releases/download/v1.31.1/zizmor-x86_64-unknown-linux-gnu.tar.gz"
 url_api = "https://api.github.com/repos/zizmorcore/zizmor/releases/assets/645467284"
-provenance = "github-attestations"
-
-[tools.zizmor."platforms.macos-arm64"]
-checksum = "sha256:ad5aa633cd56215b11e6c51d51f90c7e6b22904a75047d1215abbd422f61d698"
-url = "https://github.com/zizmorcore/zizmor/releases/download/v1.31.1/zizmor-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/zizmorcore/zizmor/releases/assets/645467283"
 provenance = "github-attestations"
