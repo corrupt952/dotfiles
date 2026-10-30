@@ -16,18 +16,16 @@ fi
 readonly DOTFILES_DIR
 readonly MISE_LOCAL_CONFIG="$DOTFILES_DIR/mise.local.toml"
 
-require_1password_app() {
+warn_1password_app() {
   if [[ -d /Applications/1Password.app ]]; then
     return
   fi
 
   cat >&2 <<'EOF'
-1Password for Mac is required before running this setup.
-Install the app and enable Settings > Developer > Integrate with 1Password CLI.
-The `op` executable itself is managed by mise. Then run this script again.
+1Password for Mac is not installed. Commit signing and SSH through 1Password will fail until it is.
+Install the app and enable Settings > Developer > Use the SSH Agent and Integrate with 1Password CLI.
 https://1password.com/downloads/mac/
 EOF
-  exit 1
 }
 
 require_command_line_tools() {
@@ -170,7 +168,6 @@ main() {
     exit 1
   fi
 
-  require_1password_app
   require_command_line_tools
   install_mise
   clone_dotfiles
@@ -178,6 +175,7 @@ main() {
   link_mise_config
   "$MISE_BIN" bootstrap --yes
   install_nix
+  warn_1password_app
 }
 
 main "$@"

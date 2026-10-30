@@ -8,7 +8,7 @@ Personal macOS workstation configuration. [mise](https://mise.jdx.dev/) installs
 ## Requirements
 
 - macOS on Apple Silicon
-- [1Password for Mac](https://1password.com/downloads/mac/), with **Settings > Developer > Integrate with 1Password CLI** enabled
+- [1Password for Mac](https://1password.com/downloads/mac/) for commit signing and SSH, with **Settings > Developer > Use the SSH Agent** and **Integrate with 1Password CLI** enabled. The install runs without it and warns at the end.
 
 ## Install
 
@@ -26,12 +26,13 @@ bash install.sh
 
 The script runs only once it has been downloaded in full. It:
 
-1. Checks for 1Password for Mac and the Xcode Command Line Tools
+1. Checks for the Xcode Command Line Tools
 2. Installs mise to `~/.local/bin/mise` and checks its Developer ID signature and notarization (and the installer's GPG signature when `gpg` is available)
 3. Clones this repository to `~/Workspace/corrupt952/dotfiles` and links `~/.config/mise` to it
 4. Writes an empty `mise.local.toml` (gitignored) for machine-local settings
 5. Runs `mise bootstrap`: tools, dotfiles, plugin repositories, macOS settings, the Nix gc and optimise agents
 6. Installs Lix if it is missing
+7. Warns if 1Password for Mac is not installed
 
 Run `./install.sh` from the checkout to apply changes again.
 
