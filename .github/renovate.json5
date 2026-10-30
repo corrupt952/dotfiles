@@ -3,6 +3,9 @@
   extends: [
     "github>corrupt952/renovate-config:default.json5",
   ],
+  mise: {
+    managerFilePatterns: ["/^config\\.toml$/"],
+  },
   customManagers: [
     {
       customType: "regex",
