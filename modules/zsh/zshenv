@@ -1,0 +1,18 @@
+typeset -U path
+
+export LANG="en_US.UTF-8"
+export XDG_BIN_HOME="$HOME/.local/bin"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_STATE_HOME="$HOME/.local/state"
+export CLOUDSDK_PYTHON="$HOME/.local/share/mise/installs/python/global/bin/python3"
+export SSL_CERT_FILE="$HOME/.local/share/mise/installs/conda-ca-certificates/global/ssl/cacert.pem"
+export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+path=("$HOME/.local/bin" "$HOME/bin" $path)
+
+export ZDOTDIR="$HOME/.config/zsh"
+
+if [[ -r "$ZDOTDIR/.zshenv.local" ]]; then
+  source "$ZDOTDIR/.zshenv.local"
+fi

@@ -4,7 +4,6 @@
   imports = [
     ./modules/fzf-direnv
     ./modules/workspaces
-    ./modules/zsh
   ];
 
   home = {

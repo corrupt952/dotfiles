@@ -93,9 +93,13 @@ RIPGREP_CONFIG_PATH = "{{ env.HOME }}/.config/ripgrep/ripgreprc"
 "~/.config/git/scripts/git-ssh" = { source = "modules/git/ssh.sh" }
 "~/.config/ripgrep/ripgreprc" = { source = "modules/ripgrep/ripgreprc" }
 "~/.config/tmux/tmux.conf" = { source = "modules/tmux/tmux.conf" }
+"~/.config/zsh/.zshenv" = { source = "modules/zsh/zshenv" }
+"~/.config/zsh/.zshrc" = { source = "modules/zsh/zshrc" }
+"~/.config/zsh/abbr.zsh" = { source = "modules/zsh/abbr.zsh" }
 "~/.irbrc" = { source = "modules/ruby/irbrc" }
 "~/.local/bin/tmux-kubectl" = { source = "modules/tmux/kubectl.sh" }
 "~/.local/libexec/claude-bash-guard" = { source = "modules/claude/claude-bash-guard.py" }
+"~/.zshenv" = { source = "modules/zsh/zshenv-home" }
 
 [bootstrap.files."/etc/pam.d/sudo_local"]
 content = """
@@ -107,7 +111,13 @@ mode = "0444"
 os = "macos"
 replace = true
 
+[bootstrap.repos]
+"~/.local/share/zsh/zsh-autosuggestions" = { url = "https://github.com/zsh-users/zsh-autosuggestions.git", ref = "v0.7.1" }
+"~/.local/share/zsh/zsh-completions" = { url = "https://github.com/zsh-users/zsh-completions.git", ref = "0.35.0" }
+"~/.local/share/zsh/zsh-syntax-highlighting" = { url = "https://github.com/zsh-users/zsh-syntax-highlighting.git", ref = "0.8.0" }
+
 [bootstrap.hooks]
+post-dotfiles = 'rm -f "$HOME/.config/zsh/.zcompdump"*'
 pre-defaults = 'mise bootstrap macos defaults status --missing >/dev/null 2>&1 || touch "${TMPDIR:-/tmp}/mise-defaults-changed"'
 post-defaults = 'if [ -e "${TMPDIR:-/tmp}/mise-defaults-changed" ]; then rm -f "${TMPDIR:-/tmp}/mise-defaults-changed"; killall Dock Finder SystemUIServer JapaneseIM-RomajiTyping || true; fi'
 

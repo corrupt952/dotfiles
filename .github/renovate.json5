@@ -3,4 +3,14 @@
   extends: [
     "github>corrupt952/renovate-config:default.json5",
   ],
+  customManagers: [
+    {
+      customType: "regex",
+      managerFilePatterns: ["/^config\\.toml$/"],
+      matchStrings: [
+        'url = "https://github\\.com/(?<depName>[^"]+)\\.git", ref = "(?<currentValue>[^"]+)"',
+      ],
+      datasourceTemplate: "github-tags",
+    },
+  ],
 }
