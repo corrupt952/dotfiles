@@ -1,46 +1,58 @@
+[settings]
+lockfile = true
+lockfile_platforms = ["macos-arm64"]
+locked = true
+minimum_release_age = "3d"
+npm.package_manager = "bun"
+paranoid = true
+ruby.compile = false
+
+[settings.self_update]
+auto = true
+
 [tools]
 "aqua:1password/cli" = "2.41.1"
 aws-cli = { version = "2.38.6", symlink_bins = "true" }
+bat = "0.26.1"
 bun = "1.4.4"
 cmake = "4.4.4"
 "conda:automake" = "1.19"
 "conda:ca-certificates" = "2026.10.23"
 "conda:curl" = "8.23.0"
+"conda:git" = "2.56.0"
+"conda:gnupg" = "2.5.24"
 "conda:grep" = "3.12"
 "conda:libtool" = "2.5.4"
 "conda:sed" = "4.10"
+"conda:tig" = "2.6.1"
+"conda:tree" = "2.3.2"
 container = "1.6.1"
+delta = "0.20.1"
+direnv = "2.38.2"
 duckdb = "2.0.0"
+fd = "10.5.0"
+fzf = "0.74.5"
 "gem:cocoapods" = "1.17.0"
 gh = "2.103.2"
 "github:corrupt952/closest" = "2.0.1"
 "github:corrupt952/sallyport" = "0.3.1"
 "github:corrupt952/tmuxist" = "1.3.1"
 "github:corrupt952/xckit" = "0.2.3"
+"github:git-lfs/git-lfs" = "3.8.1"
 "github:newren/git-filter-repo" = "2.47.0"
 jactionlint = { version = "2.3.0", workflow = "release.yaml" }
+jq = "1.8.2"
 node = "22.23.4"
 "npm:cf" = "1.0.0-beta.25"
+python = "3.14.10"
+ripgrep = "15.2.0"
 ruby = "3.4.12"
 shellcheck = "0.11.0"
 swiftlint = "0.65.1"
-uv = "0.13.5"
-zizmor = "1.31.1"
-python = "3.14.10"
 tmux = "3.7c"
-"github:git-lfs/git-lfs" = "3.8.1"
-fzf = "0.74.5"
-ripgrep = "15.2.0"
-fd = "10.5.0"
-bat = "0.26.1"
-jq = "1.8.2"
-delta = "0.20.1"
-direnv = "2.38.2"
+uv = "0.13.5"
 vim = "9.2.1054"
-"conda:tree" = "2.3.2"
-"conda:tig" = "2.6.1"
-"conda:git" = "2.56.0"
-"conda:gnupg" = "2.5.24"
+zizmor = "1.31.1"
 
 [tools."http:gcloud"]
 version = "591.0.0"
@@ -49,49 +61,51 @@ postinstall = '"$MISE_TOOL_INSTALL_PATH/google-cloud-sdk/install.sh" --quiet --u
 [tools."http:gcloud".platforms]
 macos-arm64 = { url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-{{ version }}-darwin-arm.tar.gz", checksum = "sha256:85cb726919838faff48bfba7cf676b691b0202bec7c25aabdc116649c6843242", bin_path = "google-cloud-sdk/bin" }
 
-[dotfiles]
-"~/.irbrc" = { source = "modules/ruby/irbrc" }
-"~/.config/tmux/tmux.conf" = { source = "modules/tmux/tmux.conf" }
-"~/.local/bin/tmux-kubectl" = { source = "modules/tmux/kubectl.sh" }
-"~/.config/dirigo/settings.json" = { source = "modules/dirigo/settings.json", mode = "template" }
-"~/.config/claude/settings.json" = { source = "modules/claude/settings.json", mode = "template" }
-"~/.config/claude/CLAUDE.md" = { source = "modules/agent-rules.md" }
-"~/.config/claude/output-styles/Global Rules.md" = { source = "modules/claude/global-rules.md" }
-"~/.config/claude/mods" = { source = "modules/claude/mods" }
-"~/.local/libexec/claude-bash-guard" = { source = "modules/claude/claude-bash-guard.py" }
-"~/.config/git/config" = { source = "modules/git/config" }
-"~/.config/git/ignore" = { source = "modules/git/ignore" }
-"~/.config/git/hooks/pre-push" = { source = "modules/git/pre-push.sh" }
-"~/.config/git/scripts/git-delete-branch" = { source = "modules/git/delete-branch.sh" }
-"~/.config/git/scripts/git-select-branch" = { source = "modules/git/select-branch.sh" }
-"~/.config/git/scripts/git-ssh" = { source = "modules/git/ssh.sh" }
-"~/.config/fd/ignore" = { source = "modules/fd/ignore" }
-"~/.config/ripgrep/ripgreprc" = { source = "modules/ripgrep/ripgreprc" }
-"~/.config/direnv/direnvrc" = { source = "modules/direnv/direnvrc" }
-"~/.codex/AGENTS.md" = { source = "modules/agent-rules.md" }
-"~/.agents/plugins/marketplace.json" = { source = "modules/codex/marketplace.json" }
-
 [env]
-RIPGREP_CONFIG_PATH = "{{ env.HOME }}/.config/ripgrep/ripgreprc"
-FZF_DEFAULT_COMMAND = "fd --type f --hidden --follow --strip-cwd-prefix"
-FZF_DEFAULT_OPTS = "--exact --cycle --ansi --height=70% --layout=reverse --border"
-FZF_CTRL_T_COMMAND = "fd --type f --hidden --follow --strip-cwd-prefix"
-FZF_CTRL_T_OPTS = "--preview 'bat --color=always --style=numbers --line-range=:200 -- {}'"
 FZF_ALT_C_COMMAND = "fd --type d --hidden --follow --strip-cwd-prefix"
 FZF_ALT_C_OPTS = "--preview 'tree -C -L 2 -- {} | head -n 200'"
 FZF_CTRL_R_OPTS = "--sort"
+FZF_CTRL_T_COMMAND = "fd --type f --hidden --follow --strip-cwd-prefix"
+FZF_CTRL_T_OPTS = "--preview 'bat --color=always --style=numbers --line-range=:200 -- {}'"
+FZF_DEFAULT_COMMAND = "fd --type f --hidden --follow --strip-cwd-prefix"
+FZF_DEFAULT_OPTS = "--exact --cycle --ansi --height=70% --layout=reverse --border"
+RIPGREP_CONFIG_PATH = "{{ env.HOME }}/.config/ripgrep/ripgreprc"
 
-[settings]
-minimum_release_age = "3d"
-lockfile = true
-lockfile_platforms = ["macos-arm64"]
-locked = true
-paranoid = true
-ruby.compile = false
-npm.package_manager = "bun"
+[dotfiles]
+"~/.agents/plugins/marketplace.json" = { source = "modules/codex/marketplace.json" }
+"~/.codex/AGENTS.md" = { source = "modules/agent-rules.md" }
+"~/.config/claude/CLAUDE.md" = { source = "modules/agent-rules.md" }
+"~/.config/claude/mods" = { source = "modules/claude/mods" }
+"~/.config/claude/output-styles/Global Rules.md" = { source = "modules/claude/global-rules.md" }
+"~/.config/claude/settings.json" = { source = "modules/claude/settings.json", mode = "template" }
+"~/.config/direnv/direnvrc" = { source = "modules/direnv/direnvrc" }
+"~/.config/dirigo/settings.json" = { source = "modules/dirigo/settings.json", mode = "template" }
+"~/.config/fd/ignore" = { source = "modules/fd/ignore" }
+"~/.config/git/config" = { source = "modules/git/config" }
+"~/.config/git/hooks/pre-push" = { source = "modules/git/pre-push.sh" }
+"~/.config/git/ignore" = { source = "modules/git/ignore" }
+"~/.config/git/scripts/git-delete-branch" = { source = "modules/git/delete-branch.sh" }
+"~/.config/git/scripts/git-select-branch" = { source = "modules/git/select-branch.sh" }
+"~/.config/git/scripts/git-ssh" = { source = "modules/git/ssh.sh" }
+"~/.config/ripgrep/ripgreprc" = { source = "modules/ripgrep/ripgreprc" }
+"~/.config/tmux/tmux.conf" = { source = "modules/tmux/tmux.conf" }
+"~/.irbrc" = { source = "modules/ruby/irbrc" }
+"~/.local/bin/tmux-kubectl" = { source = "modules/tmux/kubectl.sh" }
+"~/.local/libexec/claude-bash-guard" = { source = "modules/claude/claude-bash-guard.py" }
 
-[settings.self_update]
-auto = true
+[bootstrap.files."/etc/pam.d/sudo_local"]
+content = """
+auth       sufficient     pam_tid.so
+"""
+owner = "root"
+group = "wheel"
+mode = "0444"
+os = "macos"
+replace = true
+
+[bootstrap.hooks]
+pre-defaults = 'mise bootstrap macos defaults status --missing >/dev/null 2>&1 || touch "${TMPDIR:-/tmp}/mise-defaults-changed"'
+post-defaults = 'if [ -e "${TMPDIR:-/tmp}/mise-defaults-changed" ]; then rm -f "${TMPDIR:-/tmp}/mise-defaults-changed"; killall Dock Finder SystemUIServer JapaneseIM-RomajiTyping || true; fi'
 
 [bootstrap.macos.dock]
 autohide = true
@@ -103,63 +117,63 @@ show_recents = false
 tilesize = 64
 
 [bootstrap.macos.finder]
+preferred_view_style = "list"
 show_all_files = true
 show_extensions_warning = false
-preferred_view_style = "list"
 show_pathbar = true
 show_status_bar = true
 
 [bootstrap.macos.keyboard]
-press_and_hold = false
 automatic_capitalization = false
 automatic_spelling_correction = false
+press_and_hold = false
 
 [bootstrap.macos.trackpad]
 tap_to_click = true
 
 [bootstrap.macos.defaults.NSGlobalDomain]
-AppleInterfaceStyle = "Dark"
 AppleEnableSwipeNavigateWithScrolls = true
+AppleInterfaceStyle = "Dark"
+"com.apple.swipescrolldirection" = false
 NSAutomaticDashSubstitutionEnabled = false
 NSAutomaticInlinePredictionEnabled = false
 NSAutomaticPeriodSubstitutionEnabled = false
 NSAutomaticQuoteSubstitutionEnabled = false
 NSAutomaticWindowAnimationsEnabled = false
 NSSmartReplyEnabled = false
-"com.apple.swipescrolldirection" = false
 
-[bootstrap.macos.defaults."com.apple.menuextra.clock"]
-Show24Hour = true
-ShowDayOfWeek = false
-ShowSeconds = false
+[bootstrap.macos.defaults."com.apple.AppleMultitouchTrackpad"]
+TrackpadRightClick = true
 
 [bootstrap.macos.defaults."com.apple.dock"]
 launchanim = false
 mineffect = "scale"
 
-[bootstrap.macos.defaults."com.apple.finder"]
-AppleShowAllExtensions = true
-CreateDesktop = false
-
-[bootstrap.macos.defaults."com.apple.AppleMultitouchTrackpad"]
-TrackpadRightClick = true
-
 [bootstrap.macos.defaults."com.apple.driver.AppleBluetoothMultitouch.trackpad"]
 TrackpadRightClick = true
 
-[bootstrap.macos.defaults."com.apple.WindowManager"]
-EnableTiledWindowMargins = false
-
-[bootstrap.macos.defaults."com.apple.universalcontrol"]
-Disable = true
-DisableMagicEdges = true
-DisableNearbyInteraction = true
+[bootstrap.macos.defaults."com.apple.finder"]
+AppleShowAllExtensions = true
+CreateDesktop = false
 
 [bootstrap.macos.defaults."com.apple.inputmethod.Kotoeri"]
 JIMPrefAutocorrectionKey = 0
 JIMPrefLiveConversionKey = 0
 JIMPrefPredictiveCandidateKey = 0
 JIMPrefPrivNoLearningKey = 1
+
+[bootstrap.macos.defaults."com.apple.menuextra.clock"]
+Show24Hour = true
+ShowDayOfWeek = false
+ShowSeconds = false
+
+[bootstrap.macos.defaults."com.apple.universalcontrol"]
+Disable = true
+DisableMagicEdges = true
+DisableNearbyInteraction = true
+
+[bootstrap.macos.defaults."com.apple.WindowManager"]
+EnableTiledWindowMargins = false
 
 [[bootstrap.macos.defaults_entries]]
 domain = "com.apple.controlcenter"
@@ -196,20 +210,6 @@ domain = "com.apple.controlcenter"
 key = "Sound"
 host = "current"
 value = 24
-
-[bootstrap.files."/etc/pam.d/sudo_local"]
-content = """
-auth       sufficient     pam_tid.so
-"""
-owner = "root"
-group = "wheel"
-mode = "0444"
-os = "macos"
-replace = true
-
-[bootstrap.hooks]
-pre-defaults = 'mise bootstrap macos defaults status --missing >/dev/null 2>&1 || touch "${TMPDIR:-/tmp}/mise-defaults-changed"'
-post-defaults = 'if [ -e "${TMPDIR:-/tmp}/mise-defaults-changed" ]; then rm -f "${TMPDIR:-/tmp}/mise-defaults-changed"; killall Dock Finder SystemUIServer JapaneseIM-RomajiTyping || true; fi'
 
 [tasks.bootstrap]
 run = "if mdutil -a -s | grep -q 'Indexing enabled'; then sudo mdutil -a -d; fi"
