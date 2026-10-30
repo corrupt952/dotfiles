@@ -34,22 +34,22 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
-      - name: shellcheck
-        run: |
-          mapfile -t scripts < <(find . -name '*.sh' -not -path './.git/*' | sort)
-          nix shell "$NIXPKGS#shellcheck" --command shellcheck "${scripts[@]}"
-
       - uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
         with:
           working_directory: .github/ci
         env:
           MISE_TRUSTED_CONFIG_PATHS: ${{ github.workspace }}/.github/ci
 
+      - name: shellcheck
+        run: |
+          mapfile -t scripts < <(find . -name '*.sh' -not -path './.git/*' | sort)
+          shellcheck "${scripts[@]}"
+
       - name: jactionlint
         run: jactionlint --format github
 
       - name: zizmor
-        run: nix shell "$NIXPKGS#zizmor" --command zizmor .
+        run: zizmor .
 
       - name: statix
         run: nix shell "$NIXPKGS#statix" --command statix check .
@@ -63,19 +63,19 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+      - uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
+        with:
+          working_directory: .github/ci
+        env:
+          MISE_TRUSTED_CONFIG_PATHS: ${{ github.workspace }}/.github/ci
 
       # The guard decides which Bash commands Claude Code may run, so a rule
       # that silently stops matching is a hole rather than a broken test.
       - name: claude bash guard
-        run: |
-          nix shell "$NIXPKGS#python3Minimal" \
-            --command python3 modules/claude/claude-bash-guard.test.py
+        run: python3 modules/claude/claude-bash-guard.test.py
 
       - name: mise lock
-        run: |
-          nix shell "$NIXPKGS#python3Minimal" \
-            --command python3 modules/mise/check-lock.test.py
+        run: python3 modules/mise/check-lock.test.py
 
   ci-result:
     name: CI Result
