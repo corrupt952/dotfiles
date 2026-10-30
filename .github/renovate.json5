@@ -6,6 +6,18 @@
   mise: {
     managerFilePatterns: ["/^config\\.toml$/"],
   },
+  packageRules: [
+    {
+      matchManagers: ["mise"],
+      matchDatasources: ["conda"],
+      registryUrls: ["https://api.anaconda.org/package/conda-forge/"],
+    },
+    {
+      matchManagers: ["mise"],
+      matchDepNames: ["aqua:1password/cli"],
+      enabled: false,
+    },
+  ],
   customManagers: [
     {
       customType: "regex",
