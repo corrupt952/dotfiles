@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./modules/claude
     ./modules/fzf-direnv
     ./modules/workspaces
     ./modules/zsh

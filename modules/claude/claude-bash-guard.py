@@ -1,4 +1,4 @@
-#!@python3@
+#!/usr/bin/env python3
 """PreToolUse guard for the Bash tool.
 
 Replaces the Bash entries of permissions.deny. A deny rule can only say "no",

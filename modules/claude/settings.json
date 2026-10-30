@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "agentPushNotifEnabled": true,
+  "alwaysThinkingEnabled": true,
+  "attribution": {
+    "sessionUrl": false
+  },
+  "autoMemoryEnabled": false,
+  "autoUpdatesChannel": "latest",
+  "awaySummaryEnabled": false,
+  "effortLevel": "high",
+  "enabledPlugins": {
+    "classify-hint@dotfiles-mods": true,
+    "dirigo-activity@dirigo": true,
+    "document-skills@anthropic-agent-skills": true,
+    "frontend-design@claude-plugins-official": true,
+    "labee-authoring@labee-standards": true,
+    "labee-core@labee-standards": true,
+    "labee-marketing@labee-standards": true,
+    "labee-swift@labee-standards": true,
+    "verify-reports@dotfiles-mods": true
+  },
+  "env": {
+    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
+    "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS": "1",
+    "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1",
+    "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION": "5000",
+    "CLAUDE_CODE_THRIFTY_SONIC": "0",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1"
+  },
+  "extraKnownMarketplaces": {
+    "anthropic-agent-skills": {
+      "autoUpdate": true,
+      "source": {
+        "repo": "anthropics/skills",
+        "source": "github"
+      }
+    },
+    "dirigo": {
+      "source": {
+        "path": "{{ env.HOME }}/Applications/Dirigo.app/Contents/Resources/AgentPlugins",
+        "source": "directory"
+      }
+    },
+    "dotfiles-mods": {
+      "source": {
+        "path": "{{ env.HOME }}/.config/claude/mods",
+        "source": "directory"
+      }
+    },
+    "labee-standards": {
+      "autoUpdate": true,
+      "source": {
+        "repo": "LabeeHive/standards",
+        "source": "github"
+      }
+    }
+  },
+  "fallbackModel": [
+    "claude-opus-5"
+  ],
+  "feedbackDrafts": "off",
+  "feedbackSurveyRate": 0,
+  "fileCheckpointingEnabled": false,
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "jq -re '.tool_input.file_path | select(endswith(\".swift\"))' | xargs xcrun swift-format --in-place",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "{{ env.HOME }}/.local/share/mise/installs/python/global/bin/python3 {{ env.HOME }}/.local/libexec/claude-bash-guard",
+            "timeout": 5,
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      },
+      {
+        "hooks": [
+          {
+            "command": "jq -re '.tool_input.query | select(test(\"202[0-4]\"))' > /dev/null && { echo \"Query contains outdated year. Current year is $(date +%Y). Fix it.\" >&2; exit 2; } || exit 0",
+            "timeout": 5,
+            "type": "command"
+          }
+        ],
+        "matcher": "WebSearch"
+      },
+      {
+        "hooks": [
+          {
+            "command": "jq -re '.tool_input.filter | select(. == \"all\")' > /dev/null && { echo 'filter \"all\" is not allowed. Use vigilare_get_lists first, then filter by list_id.' >&2; exit 2; } || exit 0",
+            "timeout": 5,
+            "type": "command"
+          }
+        ],
+        "matcher": "mcp__vigilare__vigilare_get_reminders"
+      },
+      {
+        "hooks": [
+          {
+            "continueOnBlock": true,
+            "prompt": "The assistant is about to call vigilare_add_comment. Tool call payload is in $ARGUMENTS. vigilare_add_comment appends to a task's append-only conversation log (comments section). The alternative vigilare_update_reminder(notes=...) replaces the task's notes field (persistent task body). Based on the comment content in the payload and the recent conversation context, judge whether add_comment matches the user's actual intent, or whether the assistant likely meant to update the task notes. Output {\"ok\": true} when add_comment is appropriate (e.g., progress log, status update, conversation entry). Output {\"ok\": false, \"reason\": \"<one-sentence reason>, use vigilare_update_reminder(notes=...) instead\"} when the content reads like a body/notes edit (e.g., revising the task description, fixing requirements, restructuring the task definition).",
+            "type": "prompt"
+          }
+        ],
+        "matcher": "mcp__vigilare__vigilare_add_comment"
+      }
+    ],
+    "UserPromptSubmit": []
+  },
+  "inputNeededNotifEnabled": true,
+  "language": "日本語",
+  "model": "claude-opus-5-5[1m]",
+  "modelSettings": {
+    "claude-fable-5": {
+      "effortLevel": "low"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    }
+  },
+  "outputStyle": "Global Rules",
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git switch *)",
+      "Bash(git branch *)",
+      "Bash(git fetch *)"
+    ],
+    "defaultMode": "default",
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/secrets/**)",
+      "Read(**/config/credentials.json)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)"
+    ]
+  },
+  "preferredNotifChannel": "notifications_disabled",
+  "promptSuggestionEnabled": false,
+  "remoteControlAtStartup": true,
+  "sandbox": {
+    "autoAllowBashIfSandboxed": true,
+    "enableWeakerNetworkIsolation": true,
+    "enabled": true,
+    "excludedCommands": [
+      "docker:*",
+      "bun run:*",
+      "bun test:*",
+      "xcodebuild:*",
+      "git push:*",
+      "git fetch:*"
+    ],
+    "filesystem": {
+      "allowWrite": [
+        "~/.bun",
+        "{{ env.HOME }}/.config/claude/output-styles",
+        "~/Obsidian",
+        "~/Library/Caches"
+      ],
+      "denyRead": [
+        "~/.aws",
+        "~/.ssh",
+        "~/Workspace/**/.aws",
+        "~/Workspace/**/.ssh"
+      ]
+    },
+    "network": {
+      "allowLocalBinding": true,
+      "allowUnixSockets": [
+        "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+      ],
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "*.githubusercontent.com",
+        "ghcr.io",
+        "formulae.brew.sh",
+        "*.npmjs.org",
+        "registry.yarnpkg.com",
+        "pypi.org",
+        "*.pythonhosted.org",
+        "rubygems.org",
+        "api.rubygems.org",
+        "proxy.golang.org",
+        "sum.golang.org",
+        "pub.dev",
+        "cdn.cocoapods.org",
+        "packages.unity.com",
+        "nuget.org",
+        "api.nuget.org",
+        "registry-1.docker.io",
+        "auth.docker.io",
+        "deno.land"
+      ]
+    }
+  },
+  "skipWorkflowUsageWarning": true,
+  "spinnerTipsEnabled": false,
+  "tui": "fullscreen",
+  "useAutoModeDuringPlan": false,
+  "voice": {
+    "enabled": true
+  },
+  "worktree": {
+    "baseRef": "head"
+  }
+}

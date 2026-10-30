@@ -54,6 +54,11 @@ macos-arm64 = { url = "https://dl.google.com/dl/cloudsdk/channels/rapid/download
 "~/.config/tmux/tmux.conf" = { source = "modules/tmux/tmux.conf" }
 "~/.local/bin/tmux-kubectl" = { source = "modules/tmux/kubectl.sh" }
 "~/.config/dirigo/settings.json" = { source = "modules/dirigo/settings.json", mode = "template" }
+"~/.config/claude/settings.json" = { source = "modules/claude/settings.json", mode = "template" }
+"~/.config/claude/CLAUDE.md" = { source = "modules/agent-rules.md" }
+"~/.config/claude/output-styles/Global Rules.md" = { source = "modules/claude/global-rules.md" }
+"~/.config/claude/mods" = { source = "modules/claude/mods" }
+"~/.local/libexec/claude-bash-guard" = { source = "modules/claude/claude-bash-guard.py" }
 "~/.config/git/config" = { source = "modules/git/config" }
 "~/.config/git/ignore" = { source = "modules/git/ignore" }
 "~/.config/git/hooks/pre-push" = { source = "modules/git/pre-push.sh" }
