@@ -3,12 +3,22 @@
 set -Ceuo pipefail
 
 readonly CONFIG_NAME="workstation"
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-readonly SCRIPT_DIR
-readonly MACHINE_LOCAL_DIR="$SCRIPT_DIR/machine-local"
-readonly MACHINE_IDENTITIES_FILE="$MACHINE_LOCAL_DIR/identities.nix"
+readonly DOTFILES_REPO="https://github.com/corrupt952/dotfiles.git"
 readonly NIX_FEATURES="nix-command flakes"
 readonly NIX_DARWIN="github:nix-darwin/nix-darwin/nix-darwin-26.05"
+readonly MISE_BIN="$HOME/.local/bin/mise"
+readonly MISE_TEAM_ID="4993Y37DX6"
+readonly MISE_RELEASE_KEY="24853EC9F655CE80B48E6C3A8B81C9D17413A06D"
+readonly MISE_MINIMUM_RELEASE_AGE="3d"
+
+if [[ -f "${BASH_SOURCE[0]:-}" ]]; then
+  DOTFILES_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+else
+  DOTFILES_DIR="${DOTFILES_DIR:-$HOME/Workspace/corrupt952/dotfiles}"
+fi
+readonly DOTFILES_DIR
+readonly MACHINE_LOCAL_DIR="$DOTFILES_DIR/machine-local"
+readonly MISE_LOCAL_CONFIG="$DOTFILES_DIR/config.local.toml"
 
 require_1password_app() {
   if [[ -d /Applications/1Password.app ]]; then
@@ -22,6 +32,95 @@ The `op` executable itself is managed by mise. Then run this script again.
 https://1password.com/downloads/mac/
 EOF
   exit 1
+}
+
+require_command_line_tools() {
+  if /usr/bin/xcode-select -p >/dev/null 2>&1; then
+    return
+  fi
+
+  /usr/bin/xcode-select --install || true
+  echo "Finish installing the Command Line Tools, then run this script again." >&2
+  exit 1
+}
+
+verify_mise() {
+  local team_id
+
+  if ! /usr/bin/codesign --verify --strict "$MISE_BIN" 2>/dev/null; then
+    echo "$MISE_BIN has no valid code signature." >&2
+    return 1
+  fi
+
+  team_id="$(/usr/bin/codesign -dv "$MISE_BIN" 2>&1 | /usr/bin/sed -n 's/^TeamIdentifier=//p')"
+  if [[ "$team_id" != "$MISE_TEAM_ID" ]]; then
+    echo "$MISE_BIN is signed by team '$team_id', expected $MISE_TEAM_ID." >&2
+    return 1
+  fi
+
+  if ! /usr/sbin/spctl --assess --type install "$MISE_BIN" 2>/dev/null; then
+    echo "$MISE_BIN is not notarized." >&2
+    return 1
+  fi
+}
+
+download_mise_installer() {
+  local work_dir="$1"
+
+  if ! command -v gpg >/dev/null 2>&1; then
+    /usr/bin/curl --proto '=https' --tlsv1.2 -fsSL https://mise.run -o "$work_dir/install.sh"
+    return
+  fi
+
+  /usr/bin/curl --proto '=https' --tlsv1.2 -fsSL https://mise.jdx.dev/install.sh.sig -o "$work_dir/install.sh.sig"
+  /usr/bin/curl --proto '=https' --tlsv1.2 -fsSL \
+    "https://keys.openpgp.org/vks/v1/by-fingerprint/$MISE_RELEASE_KEY" -o "$work_dir/release.asc"
+  /bin/mkdir -m 700 "$work_dir/gnupg"
+  GNUPGHOME="$work_dir/gnupg" gpg --batch --quiet --import "$work_dir/release.asc"
+  if ! GNUPGHOME="$work_dir/gnupg" gpg --batch --status-fd 1 \
+    --output "$work_dir/install.sh" --decrypt "$work_dir/install.sh.sig" 2>/dev/null \
+    | /usr/bin/grep -q "^\[GNUPG:\] VALIDSIG .*$MISE_RELEASE_KEY"; then
+    echo "The mise installer is not signed by the mise release key." >&2
+    exit 1
+  fi
+}
+
+install_mise() {
+  local work_dir
+
+  if [[ -x "$MISE_BIN" ]]; then
+    if verify_mise; then
+      return
+    fi
+    exit 1
+  fi
+
+  work_dir="$(/usr/bin/mktemp -d)"
+  download_mise_installer "$work_dir"
+  MISE_INSTALL_PATH="$MISE_BIN" \
+    MISE_SELF_UPDATE_MINIMUM_RELEASE_AGE="$MISE_MINIMUM_RELEASE_AGE" \
+    MISE_INSTALL_HELP=0 \
+    /bin/sh "$work_dir/install.sh"
+  /bin/rm -r -- "$work_dir"
+
+  if ! verify_mise; then
+    /bin/rm -- "$MISE_BIN"
+    exit 1
+  fi
+}
+
+clone_dotfiles() {
+  if [[ -d "$DOTFILES_DIR/.git" ]]; then
+    return
+  fi
+
+  if [[ -e "$DOTFILES_DIR" ]]; then
+    echo "$DOTFILES_DIR exists but is not a git checkout." >&2
+    exit 1
+  fi
+
+  /bin/mkdir -p "$(dirname -- "$DOTFILES_DIR")"
+  /usr/bin/git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
 }
 
 write_machine_identity() {
@@ -43,33 +142,14 @@ write_machine_identity() {
   /bin/chmod 700 "$MACHINE_LOCAL_DIR"
   printf '%s\n' "$target_user" >| "$MACHINE_LOCAL_DIR/username"
   printf '%s\n' "$target_home" >| "$MACHINE_LOCAL_DIR/home-directory"
-
-  if [[ ! -e "$MACHINE_IDENTITIES_FILE" ]]; then
-    cat > "$MACHINE_IDENTITIES_FILE" <<'EOF'
-{
-  corrupt952 = { };
-  labee = { };
-
-  # example = {
-  #   directory = "example";
-  #   git = {
-  #     name = "Example User";
-  #     email = "user@example.com";
-  #     signingKey = null;
-  #   };
-  #   sallyport = {
-  #     expand = false;
-  #     env = { };
-  #   };
-  # };
-}
-EOF
-  fi
-
   /bin/chmod 600 \
     "$MACHINE_LOCAL_DIR/username" \
-    "$MACHINE_LOCAL_DIR/home-directory" \
-    "$MACHINE_IDENTITIES_FILE"
+    "$MACHINE_LOCAL_DIR/home-directory"
+
+  if [[ ! -e "$MISE_LOCAL_CONFIG" ]]; then
+    printf '[dotfiles]\n' > "$MISE_LOCAL_CONFIG"
+    /bin/chmod 600 "$MISE_LOCAL_CONFIG"
+  fi
 }
 
 resolve_home_directory() {
@@ -107,7 +187,7 @@ resolve_home_directory() {
 link_mise_config() {
   local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/mise"
 
-  if [[ -L "$config_dir" && "$(/usr/bin/readlink "$config_dir")" == "$SCRIPT_DIR" ]]; then
+  if [[ -L "$config_dir" && "$(/usr/bin/readlink "$config_dir")" == "$DOTFILES_DIR" ]]; then
     return
   fi
 
@@ -122,7 +202,7 @@ link_mise_config() {
   fi
 
   /bin/mkdir -p "$(dirname -- "$config_dir")"
-  /bin/ln -s "$SCRIPT_DIR" "$config_dir"
+  /bin/ln -s "$DOTFILES_DIR" "$config_dir"
 }
 
 load_nix_environment() {
@@ -170,14 +250,18 @@ main() {
   fi
 
   if (( $# > 1 )); then
-    echo "Usage: $0 [username]" >&2
+    echo "Usage: install.sh [username]" >&2
     exit 1
   fi
 
   target_user="${1:-$(id -un)}"
   require_1password_app
+  require_command_line_tools
+  install_mise
+  clone_dotfiles
   write_machine_identity "$target_user"
   link_mise_config
+  "$MISE_BIN" bootstrap --yes
 
   install_nix
 
@@ -192,7 +276,7 @@ main() {
   sudo -H "$nix_bin" \
     --extra-experimental-features "$NIX_FEATURES" \
     run "$NIX_DARWIN#darwin-rebuild" -- \
-    switch --flake "path:$SCRIPT_DIR#$CONFIG_NAME"
+    switch --flake "path:$DOTFILES_DIR#$CONFIG_NAME"
 }
 
 main "$@"
