@@ -3,9 +3,6 @@
   extends: [
     "github>corrupt952/renovate-config:default.json5",
   ],
-  mise: {
-    managerFilePatterns: ["/^config\\.toml$/"],
-  },
   packageRules: [
     {
       matchManagers: ["mise"],
@@ -21,7 +18,7 @@
   customManagers: [
     {
       customType: "regex",
-      managerFilePatterns: ["/^config\\.toml$/"],
+      managerFilePatterns: ["/^mise\\.toml$/"],
       matchStrings: [
         'url = "https://github\\.com/(?<depName>[^"]+)\\.git", ref = "(?<currentValue>[^"]+)"',
       ],

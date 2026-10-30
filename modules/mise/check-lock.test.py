@@ -25,7 +25,7 @@ class CheckLockTests(unittest.TestCase):
         self.root = Path(self.directory.name)
 
     def run_check(self, config, lock):
-        config_path = self.root / "config.toml"
+        config_path = self.root / "mise.toml"
         lock_path = self.root / "mise.lock"
         config_path.write_text(config, encoding="utf-8")
         lock_path.write_text(lock, encoding="utf-8")
@@ -76,7 +76,7 @@ class CheckLockTests(unittest.TestCase):
 
     def test_repository_config_is_locked(self):
         result = subprocess.run(
-            [sys.executable, str(SCRIPT), str(REPO / "config.toml"), str(REPO / "mise.lock")],
+            [sys.executable, str(SCRIPT), str(REPO / "mise.toml"), str(REPO / "mise.lock")],
             capture_output=True,
             text=True,
         )

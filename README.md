@@ -29,7 +29,7 @@ The script runs only once it has been downloaded in full. It:
 1. Checks for 1Password for Mac and the Xcode Command Line Tools
 2. Installs mise to `~/.local/bin/mise` and checks its Developer ID signature and notarization (and the installer's GPG signature when `gpg` is available)
 3. Clones this repository to `~/Workspace/corrupt952/dotfiles` and links `~/.config/mise` to it
-4. Writes an empty `config.local.toml` (gitignored) for machine-local settings
+4. Writes an empty `mise.local.toml` (gitignored) for machine-local settings
 5. Runs `mise bootstrap`: tools, dotfiles, plugin repositories, macOS settings, the Nix gc and optimise agents
 6. Installs Lix if it is missing
 
@@ -37,7 +37,7 @@ Run `./install.sh` from the checkout to apply changes again.
 
 ## Machine-local settings
 
-`config.local.toml` holds what differs per machine and stays out of git, such as the per-workspace Git identities and [sallyport](https://github.com/corrupt952/sallyport) files, as inline `[dotfiles]` entries:
+`mise.local.toml` holds what differs per machine and stays out of git, such as the per-workspace Git identities and [sallyport](https://github.com/corrupt952/sallyport) files, as inline `[dotfiles]` entries:
 
 ```toml
 [dotfiles]
@@ -52,7 +52,7 @@ Run `./install.sh` from the checkout to apply changes again.
 
 ```text
 install.sh          # bootstrap a new Mac, or re-apply on this one
-config.toml         # global mise config: tools, env, dotfiles, bootstrap
+mise.toml           # global mise config: tools, env, dotfiles, bootstrap
 mise.lock           # pinned versions, URLs and checksums
 modules/            # files deployed by [dotfiles], grouped by tool
 ```

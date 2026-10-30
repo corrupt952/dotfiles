@@ -14,7 +14,7 @@ else
   DOTFILES_DIR="${DOTFILES_DIR:-$HOME/Workspace/corrupt952/dotfiles}"
 fi
 readonly DOTFILES_DIR
-readonly MISE_LOCAL_CONFIG="$DOTFILES_DIR/config.local.toml"
+readonly MISE_LOCAL_CONFIG="$DOTFILES_DIR/mise.local.toml"
 
 require_1password_app() {
   if [[ -d /Applications/1Password.app ]]; then

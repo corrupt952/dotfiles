@@ -8,7 +8,7 @@ local
 
 # Nix (home-manager/nix-darwin) migration
 /machine-local/
-/config.local.toml
+/mise.local.toml
 
 # Created by https://www.toptal.com/developers/gitignore/api/homebrew,visualstudiocode,git,zsh
 # Edit at https://www.toptal.com/developers/gitignore?templates=homebrew,visualstudiocode,git,zsh
