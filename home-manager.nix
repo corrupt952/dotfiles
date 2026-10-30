@@ -1,9 +1,8 @@
-{ identity, pkgs, workspaceIdentities, ... }:
+{ identity, pkgs, ... }:
 
 {
   imports = [
     ./modules/fzf-direnv
-    ./modules/workspaces
   ];
 
   home = {
@@ -17,6 +16,4 @@
   };
 
   programs.home-manager.enable = true;
-
-  workspaces.identities = workspaceIdentities;
 }

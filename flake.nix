@@ -24,12 +24,6 @@
         username = readIdentity ./machine-local/username;
         homeDirectory = readIdentity ./machine-local/home-directory;
       };
-      workspaceIdentitiesPath = ./machine-local + "/identities.nix";
-      workspaceIdentities =
-        if builtins.pathExists workspaceIdentitiesPath then
-          import workspaceIdentitiesPath
-        else
-          { };
       system = "aarch64-darwin";
       allowUnfreePredicate = pkg:
         builtins.elem (nixpkgs.lib.getName pkg) [
@@ -50,7 +44,7 @@
             nixpkgs.config = { inherit allowUnfreePredicate; };
 
             home-manager = {
-              extraSpecialArgs = { inherit identity workspaceIdentities; };
+              extraSpecialArgs = { inherit identity; };
               useGlobalPkgs = true;
               useUserPackages = true;
               backupFileExtension = "backup";
@@ -63,7 +57,7 @@
       # Keep a standalone output for evaluation and recovery without darwin-rebuild.
       homeConfigurations.workstation = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-        extraSpecialArgs = { inherit identity workspaceIdentities; };
+        extraSpecialArgs = { inherit identity; };
         modules = [
           ./home-manager.nix
           {
