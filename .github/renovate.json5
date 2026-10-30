@@ -6,6 +6,11 @@
   packageRules: [
     {
       matchManagers: ["mise"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "mise tools",
+    },
+    {
+      matchManagers: ["mise"],
       matchDatasources: ["conda"],
       registryUrls: ["https://api.anaconda.org/package/conda-forge/"],
     },
