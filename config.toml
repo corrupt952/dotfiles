@@ -123,6 +123,18 @@ post-dotfiles = 'rm -f "$HOME/.config/zsh/.zcompdump"*'
 pre-defaults = 'mise bootstrap macos defaults status --missing >/dev/null 2>&1 || touch "${TMPDIR:-/tmp}/mise-defaults-changed"'
 post-defaults = 'if [ -e "${TMPDIR:-/tmp}/mise-defaults-changed" ]; then rm -f "${TMPDIR:-/tmp}/mise-defaults-changed"; killall Dock Finder SystemUIServer JapaneseIM-RomajiTyping || true; fi'
 
+[bootstrap.macos.launchd.agents.nix-gc]
+program = "/nix/var/nix/profiles/default/bin/nix-collect-garbage"
+args = ["--delete-older-than", "30d"]
+start_calendar_interval = [{ weekday = 7, hour = 3, minute = 15 }]
+process_type = "Background"
+
+[bootstrap.macos.launchd.agents.nix-optimise]
+program = "/nix/var/nix/profiles/default/bin/nix-store"
+args = ["--optimise"]
+start_calendar_interval = [{ weekday = 7, hour = 4, minute = 15 }]
+process_type = "Background"
+
 [bootstrap.macos.dock]
 autohide = true
 largesize = 64

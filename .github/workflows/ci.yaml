@@ -17,11 +17,6 @@ defaults:
   run:
     shell: bash
 
-env:
-  # Every tool comes from one pinned nixpkgs so a channel bump moves both jobs
-  # together.
-  NIXPKGS: github:NixOS/nixpkgs/nixpkgs-26.05-darwin
-
 jobs:
   lint:
     name: Lint
@@ -31,8 +26,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
-      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
       - uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
         with:
@@ -50,9 +43,6 @@ jobs:
 
       - name: zizmor
         run: zizmor .
-
-      - name: statix
-        run: nix shell "$NIXPKGS#statix" --command statix check .
 
   test:
     name: Test

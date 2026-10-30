@@ -3,7 +3,7 @@
 [![CI](https://github.com/corrupt952/dotfiles/actions/workflows/ci.yaml/badge.svg)](https://github.com/corrupt952/dotfiles/actions/workflows/ci.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Personal macOS workstation configuration. [mise](https://mise.jdx.dev/) installs the tools, deploys the dotfiles and applies the macOS settings; [nix-darwin](https://github.com/nix-darwin/nix-darwin) and [home-manager](https://github.com/nix-community/home-manager) still provide Nix itself, nix-direnv and a few packages.
+Personal macOS workstation configuration. [mise](https://mise.jdx.dev/) installs the tools, deploys the dotfiles and applies the macOS settings. [Lix](https://lix.systems/) is installed on its own for projects that ship a Nix dev shell, loaded through [nix-direnv](https://github.com/nix-community/nix-direnv).
 
 ## Requirements
 
@@ -29,9 +29,9 @@ The script runs only once it has been downloaded in full. It:
 1. Checks for 1Password for Mac and the Xcode Command Line Tools
 2. Installs mise to `~/.local/bin/mise` and checks its Developer ID signature and notarization (and the installer's GPG signature when `gpg` is available)
 3. Clones this repository to `~/Workspace/corrupt952/dotfiles` and links `~/.config/mise` to it
-4. Writes the machine-local files (`machine-local/`, `config.local.toml`), both gitignored
-5. Runs `mise bootstrap`: tools, dotfiles, plugin repositories, macOS settings
-6. Installs Nix via [Lix](https://lix.systems/) and runs `darwin-rebuild switch`
+4. Writes an empty `config.local.toml` (gitignored) for machine-local settings
+5. Runs `mise bootstrap`: tools, dotfiles, plugin repositories, macOS settings, the Nix gc and optimise agents
+6. Installs Lix if it is missing
 
 Run `./install.sh` from the checkout to apply changes again.
 
@@ -50,19 +50,16 @@ Run `./install.sh` from the checkout to apply changes again.
 
 ## Structure
 
-```
+```text
 install.sh          # bootstrap a new Mac, or re-apply on this one
 config.toml         # global mise config: tools, env, dotfiles, bootstrap
 mise.lock           # pinned versions, URLs and checksums
 modules/            # files deployed by [dotfiles], grouped by tool
-flake.nix           # nix-darwin + home-manager
-darwin.nix          # Nix settings and the user
-home-manager.nix    # the packages still taken from nixpkgs
 ```
 
 ## CI
 
-Pushes run shellcheck, [jactionlint](https://github.com/jdx/jactionlint), [zizmor](https://zizmor.sh/) and [statix](https://github.com/oppiliappan/statix), plus the tests for the Claude Code bash guard and the mise lock check; see `.github/workflows/ci.yaml`.
+Pushes run shellcheck, [jactionlint](https://github.com/jdx/jactionlint), and [zizmor](https://zizmor.sh/), plus the tests for the Claude Code bash guard and the mise lock check; see `.github/workflows/ci.yaml`.
 
 ## License
 
