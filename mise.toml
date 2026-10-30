@@ -58,13 +58,6 @@ zizmor = "1.31.1"
 version = "2.304"
 postinstall = 'mkdir -p "$HOME/Library/Fonts/JetBrainsMono" && rsync -a --delete "$MISE_TOOL_INSTALL_PATH/fonts/ttf/" "$HOME/Library/Fonts/JetBrainsMono/"'
 
-[tools."http:gcloud"]
-version = "591.0.0"
-postinstall = '"$MISE_TOOL_INSTALL_PATH/google-cloud-sdk/install.sh" --quiet --usage-reporting=false --path-update=false --command-completion=false'
-
-[tools."http:gcloud".platforms]
-macos-arm64 = { url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-{{ version }}-darwin-arm.tar.gz", checksum = "sha256:85cb726919838faff48bfba7cf676b691b0202bec7c25aabdc116649c6843242", bin_path = "google-cloud-sdk/bin" }
-
 [env]
 FZF_ALT_C_COMMAND = "fd --type d --hidden --follow --strip-cwd-prefix"
 FZF_ALT_C_OPTS = "--preview 'tree -C -L 2 -- {} | head -n 200'"

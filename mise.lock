@@ -605,15 +605,6 @@ checksum = "sha256:4662cbe5918196a9f1b5b3e1211a32e61cff1812419c21df4f47c5439f09e
 url = "https://github.com/newren/git-filter-repo/releases/download/v2.47.0/git-filter-repo-2.47.0.tar.xz"
 url_api = "https://api.github.com/repos/newren/git-filter-repo/releases/assets/210902120"
 
-[[tools."http:gcloud"]]
-version = "591.0.0"
-backend = "http:gcloud"
-specifiers = ["591.0.0"]
-
-[tools."http:gcloud"."platforms.macos-arm64"]
-checksum = "sha256:85cb726919838faff48bfba7cf676b691b0202bec7c25aabdc116649c6843242"
-url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-591.0.0-darwin-arm.tar.gz"
-
 [[tools.jactionlint]]
 version = "2.3.0"
 backend = "packslip:github.com/jdx/jactionlint"
