@@ -1,6 +1,5 @@
 [settings]
 lockfile = true
-locked = true
 minimum_release_age = "3d"
 npm.package_manager = "bun"
 paranoid = true
@@ -8,6 +7,9 @@ ruby.compile = false
 
 [settings.self_update]
 auto = true
+
+[tool_config]
+locked = true
 
 [tools]
 "aqua:1password/cli" = "2.41.1"
