@@ -569,6 +569,17 @@ checksum = "sha256:4662cbe5918196a9f1b5b3e1211a32e61cff1812419c21df4f47c5439f09e
 url = "https://github.com/newren/git-filter-repo/releases/download/v2.47.0/git-filter-repo-2.47.0.tar.xz"
 url_api = "https://api.github.com/repos/newren/git-filter-repo/releases/assets/210902120"
 
+[[tools."github:tang3cko/Caim"]]
+version = "0.2.0"
+backend = "github:tang3cko/Caim"
+specifiers = ["0.2.0"]
+
+[tools."github:tang3cko/Caim"."platforms.macos-arm64"]
+checksum = "sha256:2d77e1b8d56b2409d8cb0014acf512105286018ef1dc97a0307323f1fb46f1a9"
+url = "https://github.com/tang3cko/Caim/releases/download/v0.2.0/caim-v0.2.0-macos-arm64.tar.gz"
+url_api = "https://api.github.com/repos/tang3cko/Caim/releases/assets/711830679"
+provenance = "github-attestations"
+
 [[tools.jactionlint]]
 version = "2.3.0"
 backend = "packslip:github.com/jdx/jactionlint"

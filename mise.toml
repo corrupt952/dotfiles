@@ -41,6 +41,7 @@ gh = "2.103.3"
 "github:corrupt952/xckit" = "0.2.3"
 "github:git-lfs/git-lfs" = "3.8.1"
 "github:newren/git-filter-repo" = "2.47.0"
+"github:tang3cko/Caim" = "0.2.0"
 jactionlint = { version = "2.3.0", workflow = "release.yaml" }
 jq = "1.8.2"
 node = "26.13.0"
