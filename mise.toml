@@ -166,6 +166,9 @@ NSAutomaticQuoteSubstitutionEnabled = false
 NSAutomaticWindowAnimationsEnabled = false
 NSSmartReplyEnabled = false
 
+[bootstrap.macos.defaults."com.apple.AdLib"]
+allowApplePersonalizedAdvertising = false
+
 [bootstrap.macos.defaults."com.apple.AppleMultitouchTrackpad"]
 TrackpadRightClick = true
 
@@ -189,7 +192,11 @@ JIMPrefPrivNoLearningKey = 1
 [bootstrap.macos.defaults."com.apple.menuextra.clock"]
 Show24Hour = true
 ShowDayOfWeek = false
+ShowDate = 0
 ShowSeconds = false
+
+[bootstrap.macos.defaults."com.apple.Siri"]
+StatusMenuVisible = false
 
 [bootstrap.macos.defaults."com.apple.universalcontrol"]
 Disable = true
