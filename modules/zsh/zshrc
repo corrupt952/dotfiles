@@ -2,7 +2,7 @@ typeset -U path cdpath fpath manpath
 for profile in ${(z)NIX_PROFILES}; do
   fpath+=($profile/share/zsh/site-functions $profile/share/zsh/$ZSH_VERSION/functions $profile/share/zsh/vendor-completions)
 done
-fpath=("$XDG_DATA_HOME/zsh/zsh-completions/src" $fpath)
+fpath=("$XDG_DATA_HOME/zsh/site-functions" "$XDG_DATA_HOME/zsh/zsh-completions/src" $fpath)
 
 HELPDIR="/usr/share/zsh/$ZSH_VERSION/help"
 

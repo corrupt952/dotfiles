@@ -115,6 +115,7 @@ replace = true
 
 [bootstrap.hooks]
 post-dotfiles = 'rm -f "$HOME/.config/zsh/.zcompdump"*'
+post-tools = 'if container="$(mise which container 2>/dev/null)"; then mkdir -p "$HOME/.local/share/zsh/site-functions" && "$container" --generate-completion-script zsh > "$HOME/.local/share/zsh/site-functions/_container"; fi'
 pre-defaults = 'mise bootstrap macos defaults status --missing >/dev/null 2>&1 || touch "${TMPDIR:-/tmp}/mise-defaults-changed"'
 post-defaults = 'if [ -e "${TMPDIR:-/tmp}/mise-defaults-changed" ]; then rm -f "${TMPDIR:-/tmp}/mise-defaults-changed"; killall Dock Finder SystemUIServer JapaneseIM-RomajiTyping || true; fi'
 
