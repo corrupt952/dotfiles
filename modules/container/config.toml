@@ -1,0 +1,7 @@
+[build]
+cpus = 8
+memory = "16gb"
+
+[container]
+cpus = 4
+memory = "8gb"

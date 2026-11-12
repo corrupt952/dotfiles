@@ -77,6 +77,7 @@ RIPGREP_CONFIG_PATH = "{{ env.HOME }}/.config/ripgrep/ripgreprc"
 "~/.config/claude/mods" = { source = "modules/claude/mods" }
 "~/.config/claude/output-styles/Global Rules.md" = { source = "modules/claude/global-rules.md" }
 "~/.config/claude/settings.json" = { source = "modules/claude/settings.json", mode = "template" }
+"~/.config/container/config.toml" = { source = "modules/container/config.toml" }
 "~/.config/direnv/direnvrc" = { source = "modules/direnv/direnvrc" }
 "~/.config/dirigo/settings.json" = { source = "modules/dirigo/settings.json", mode = "template" }
 "~/.config/fd/ignore" = { source = "modules/fd/ignore" }
