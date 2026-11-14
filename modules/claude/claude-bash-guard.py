@@ -563,6 +563,55 @@ def creates_branch_only(command: Command) -> bool:
     return 1 <= len(names) <= 2 and all(REF_NAME.match(name) for name in names)
 
 
+# tmux subcommands that start something in the tmux server, and the flag that
+# keeps it from the terminal: -d for a session, window or pane, -b for a shell
+# command run in the background.
+TMUX_DETACHED: dict[str, str] = {
+    "new-session": "d",
+    "new": "d",
+    "new-window": "d",
+    "neww": "d",
+    "split-window": "d",
+    "splitw": "d",
+    "run-shell": "b",
+    "run": "b",
+}
+TMUX_VALUE_FLAGS = frozenset({"-L", "-S", "-f", "-c", "-T"})
+LAUNCHD_STARTS = frozenset({"submit", "load", "bootstrap", "kickstart", "start"})
+
+
+def hands_off_to_a_service(command: Command) -> bool:
+    """True when another process -- tmux, screen, atd, launchd -- runs it on."""
+    name = command.program
+    if command.only_prints_info():
+        return False
+    if name == "coproc":
+        return True
+    if name in {"at", "batch"}:
+        return not command.has_short_letter("lrc")
+    if name == "launchctl":
+        return command.subcommand_is(*LAUNCHD_STARTS)
+    if name == "screen":
+        return command.has_short_letter("d") and command.has_short_letter("m")
+    words = positional_words(command, TMUX_VALUE_FLAGS)
+    flag = TMUX_DETACHED.get(words[0]) if words else None
+    return bool(flag) and command.has_short_letter(flag)
+
+
+def positional_words(command: Command, value_flags: frozenset[str]) -> tuple[str, ...]:
+    """The positional words, skipping the values of `value_flags`."""
+    words: list[str] = []
+    skip = False
+    for arg in command.args:
+        if skip:
+            skip = False
+        elif arg in value_flags:
+            skip = True
+        elif not arg.startswith("-"):
+            words.append(arg)
+    return tuple(words)
+
+
 DETACH_MESSAGE = (
     "Detaching a command from the Bash tool is blocked by a static rule in "
     "settings.json. Nobody blocked this interactively. The Bash tool starts each "
@@ -588,6 +637,12 @@ RULES: Sequence[Rule] = (
         names=frozenset({"nohup", "setsid", "disown"}),
         # `disown -h` is no usage flag: it keeps SIGHUP from the job.
         predicate=lambda c: c.name == "disown" or not c.only_prints_info(),
+        message=DETACH_MESSAGE,
+    ),
+    Rule(
+        id="detach-service",
+        names=frozenset({"tmux", "screen", "coproc", "at", "batch", "launchctl"}),
+        predicate=lambda c: hands_off_to_a_service(c),
         message=DETACH_MESSAGE,
     ),
     Rule(

@@ -75,6 +75,54 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "    return any(command.has_trailing_short_flag(letter) for letter in letters) or bool(",
         "    return any(command.has_trailing_short_flag(letter) for letter in letters) and bool(",
     ),
+    "service: info flags not exempt": (
+        "    if command.only_prints_info():\n        return False\n    if name == \"coproc\":",
+        "    if name == \"coproc\":",
+    ),
+    "service: coproc not covered": (
+        '    if name == "coproc":\n        return True',
+        '    if name == "coproc":\n        return False',
+    ),
+    "service: at -l not exempt": (
+        '        return not command.has_short_letter("lrc")',
+        "        return True",
+    ),
+    "service: at not covered": (
+        '        return not command.has_short_letter("lrc")',
+        "        return False",
+    ),
+    "service: launchctl any subcommand": (
+        "        return command.subcommand_is(*LAUNCHD_STARTS)",
+        "        return True",
+    ),
+    "service: launchctl not covered": (
+        "        return command.subcommand_is(*LAUNCHD_STARTS)",
+        "        return False",
+    ),
+    "service: screen -m alone counts": (
+        '        return command.has_short_letter("d") and command.has_short_letter("m")',
+        '        return command.has_short_letter("m")',
+    ),
+    "service: screen -d alone counts": (
+        '        return command.has_short_letter("d") and command.has_short_letter("m")',
+        '        return command.has_short_letter("d")',
+    ),
+    "service: tmux detach flag ignored": (
+        "    return bool(flag) and command.has_short_letter(flag)",
+        "    return bool(flag)",
+    ),
+    "service: tmux not covered": (
+        "    return bool(flag) and command.has_short_letter(flag)",
+        "    return False",
+    ),
+    "service: tmux global value flag read as subcommand": (
+        "    words = positional_words(command, TMUX_VALUE_FLAGS)",
+        "    words = positional_words(command, frozenset())",
+    ),
+    "service: tmux run-shell -b not covered": (
+        '    "run-shell": "b",',
+        '    "run-shell": "",',
+    ),
     "interp: flags after the script read": (
         "    own = command.args[:script]",
         "    own = command.args",
