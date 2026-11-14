@@ -109,6 +109,24 @@ HEREDOC = re.compile(
 VERSION_SUFFIX = re.compile(r"[0-9.]+$")
 DURATION = re.compile(r"^[0-9]+[smhd]?$")
 OCTAL_MODE = re.compile(r"^[0-7]{3,4}$")
+SYMBOLIC_CLAUSE = re.compile(r"^([ugoa]*)([-+=])([rwxXst]*)$")
+
+
+def world_writable(mode: str) -> bool:
+    """True when a chmod mode gives others write access.
+
+    Octal: the last digit carries the write bit. Symbolic: a clause that adds
+    or sets w for o or a. A clause naming nobody, as `+w`, is cut by the
+    umask, which normally keeps others out, so it does not count.
+    """
+    if OCTAL_MODE.match(mode):
+        return int(mode[-1]) & 2 == 2
+    for clause in mode.split(","):
+        match = SYMBOLIC_CLAUSE.match(clause)
+        if match and set(match.group(1)) & {"o", "a"} and match.group(2) != "-":
+            if "w" in match.group(3):
+                return True
+    return False
 
 # A fetch target that stays on this machine. Anything that is not clearly local
 # is treated as remote, so an unrecognized form fails toward blocking.
@@ -765,14 +783,12 @@ RULES: Sequence[Rule] = (
     Rule(
         id="chmod-world-writable",
         names=frozenset({"chmod"}),
-        predicate=lambda c: any(
-            (OCTAL_MODE.match(arg) and arg.endswith("777")) or arg in {"a+rwx", "ugo+rwx"}
-            for arg in c.args
-        ),
+        predicate=lambda c: any(world_writable(arg) for arg in c.args),
         message=(
-            "chmod 777 is blocked by a static rule in settings.json. Nobody "
-            "blocked this interactively. Grant the narrowest mode that works, "
-            "such as 644 for files or 755 for executables."
+            "Making a file writable by everyone, as chmod 777 or o+w does, is "
+            "blocked by a static rule in settings.json. Nobody blocked this "
+            "interactively. Grant the narrowest mode that works, such as 644 "
+            "for files or 755 for executables."
         ),
     ),
     Rule(

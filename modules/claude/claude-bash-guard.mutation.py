@@ -75,6 +75,34 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "    return any(command.has_trailing_short_flag(letter) for letter in letters) or bool(",
         "    return any(command.has_trailing_short_flag(letter) for letter in letters) and bool(",
     ),
+    "chmod: octal write bit not read": (
+        "        return int(mode[-1]) & 2 == 2",
+        '        return mode.endswith("777")',
+    ),
+    "chmod: symbolic modes not read": (
+        '    for clause in mode.split(","):',
+        "    for clause in []:",
+    ),
+    "chmod: only the first clause read": (
+        '    for clause in mode.split(","):',
+        '    for clause in mode.split(",")[:1]:',
+    ),
+    "chmod: removing w counts": (
+        '        if match and set(match.group(1)) & {"o", "a"} and match.group(2) != "-":',
+        '        if match and set(match.group(1)) & {"o", "a"}:',
+    ),
+    "chmod: nobody named counts as everyone": (
+        '        if match and set(match.group(1)) & {"o", "a"} and match.group(2) != "-":',
+        '        if match and (not match.group(1) or set(match.group(1)) & {"o", "a"}) and match.group(2) != "-":',
+    ),
+    "chmod: a not counted": (
+        '        if match and set(match.group(1)) & {"o", "a"} and match.group(2) != "-":',
+        '        if match and set(match.group(1)) & {"o"} and match.group(2) != "-":',
+    ),
+    "chmod: any permission counts": (
+        '            if "w" in match.group(3):',
+        "            if True:",
+    ),
     "net: rule never matches": (
         "        predicate=lambda c: reaches_remote_host(c),",
         "        predicate=lambda c: False,",
