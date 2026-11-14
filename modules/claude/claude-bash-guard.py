@@ -117,6 +117,9 @@ class Command:
     # the program. A deny still applies through a prefix; an allow does not,
     # since sudo or GIT_DIR=... changes what the same words do.
     prefixed: bool = False
+    # True when the sub-command opens a `$(...)`, so its output becomes an
+    # argument or a value instead of landing in the transcript.
+    substituted: bool = False
 
     @property
     def program(self) -> str:
@@ -320,6 +323,53 @@ def gh_leaves_github(command: Command) -> bool:
     return any(not GITHUB_HOST.search(host.split(":")[0]) for host in hosts)
 
 
+# op's global options that take a separate value, so the value is not read as
+# the subcommand.
+OP_VALUE_FLAGS = frozenset({"--account", "--config", "--encoding", "--session"})
+
+
+def op_words(command: Command) -> tuple[str, ...]:
+    words: list[str] = []
+    skip = False
+    for arg in command.args:
+        if skip:
+            skip = False
+        elif arg in OP_VALUE_FLAGS:
+            skip = True
+        elif not arg.startswith("-"):
+            words.append(arg)
+    return tuple(words)
+
+
+def op_prints_secret(command: Command) -> bool:
+    """True when op would print a secret value where the transcript sees it.
+
+    Inside `$(...)` the value becomes an argument or a variable instead, which
+    is how a secret gets handed to the command that needs it. That cannot stop
+    the value from being echoed later; it only stops it being shown outright.
+    """
+    if command.substituted:
+        return False
+    if "help" in set(command.long_flags()) or "-h" in command.args:
+        return False
+
+    words = op_words(command)
+    long_flags = set(command.long_flags())
+    writes_file = "out-file" in long_flags or "-o" in command.args
+
+    if words[:1] == ("read",):
+        return True
+    if words[:1] == ("inject",):
+        return not writes_file
+    if words[:2] == ("document", "get"):
+        return not writes_file
+    if words[:2] == ("item", "get"):
+        return bool(long_flags & {"reveal", "fields", "otp"}) or (
+            (flag_value(command, "--format") or "").lower() == "json"
+        )
+    return False
+
+
 def runs_from_registry(command: Command) -> bool:
     """True when a package manager was asked to fetch and run something."""
     positionals = command.positionals()
@@ -511,6 +561,21 @@ RULES: Sequence[Rule] = (
             "rule in settings.json. Nobody blocked this interactively. The "
             "secret would be printed straight into the transcript. Ask the "
             "user for it instead. Every other security subcommand still works."
+        ),
+    ),
+    Rule(
+        id="op-secret-print",
+        names=frozenset({"op"}),
+        predicate=op_prints_secret,
+        message=(
+            "Printing a 1Password secret is blocked by a static rule in "
+            "settings.json. Nobody blocked this interactively. The value would "
+            "land in the transcript. Hand it straight to the command that needs "
+            "it instead: `op run -- <cmd>` with op:// references in the "
+            "environment, or `$(op read op://...)` as an argument or assignment "
+            "that is never printed. op item list, op vault list, op whoami and "
+            "op item get without --reveal, --fields, --otp or --format json "
+            "still work."
         ),
     ),
     Rule(
@@ -974,7 +1039,9 @@ def split_operators(token: str) -> list[str]:
     return parts
 
 
-def normalize(tokens: list[str], background: bool = False) -> Command | None:
+def normalize(
+    tokens: list[str], background: bool = False, substituted: bool = False
+) -> Command | None:
     """Strip everything that only prefixes the real command."""
     tokens = [token.replace(QUOTED_AMPERSAND, "&") for token in tokens]
     original_length = len(tokens)
@@ -1015,6 +1082,7 @@ def normalize(tokens: list[str], background: bool = False) -> Command | None:
         raw=" ".join(tokens),
         background=background,
         prefixed=len(tokens) != original_length or name != tokens[0],
+        substituted=substituted,
     )
 
 
@@ -1022,18 +1090,23 @@ def split_commands(command_line: str) -> tuple[list[Command], bool]:
     """The sub-commands on a line, and whether tokenizing had to guess."""
     commands: list[Command] = []
     current: list[str] = []
+    # The tokenizer leaves the `$` of `$(` on the word before the `(`, so that
+    # is where a command substitution shows. Only the first command inside it
+    # counts; anything after a separator in there fails toward the rules.
+    substituted = False
 
     tokens, malformed = tokenize(command_line)
     for token in tokens:
         if token in SEPARATORS:
-            command = normalize(current, background=token == "&")
+            command = normalize(current, background=token == "&", substituted=substituted)
             if command:
                 commands.append(command)
+            substituted = token == "(" and bool(current) and current[-1].endswith("$")
             current = []
         else:
             current.append(token)
 
-    command = normalize(current)
+    command = normalize(current, substituted=substituted)
     if command:
         commands.append(command)
 

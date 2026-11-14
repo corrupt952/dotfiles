@@ -350,12 +350,12 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "        and True,",
     ),
     "background: flag never set": (
-        '            command = normalize(current, background=token == "&")',
-        "            command = normalize(current)",
+        '            command = normalize(current, background=token == "&", substituted=substituted)',
+        "            command = normalize(current, substituted=substituted)",
     ),
     "background: && counts too": (
-        '            command = normalize(current, background=token == "&")',
-        '            command = normalize(current, background=token.startswith("&"))',
+        '            command = normalize(current, background=token == "&", substituted=substituted)',
+        '            command = normalize(\n                current, background=token.startswith("&"), substituted=substituted\n            )',
     ),
     "background: empty names match nothing": (
         "        if self.names and command.name not in self.names and command.program not in self.names:",
@@ -380,6 +380,66 @@ MUTATIONS: dict[str, tuple[str, str]] = {
     "detach: disown not covered": (
         '        names=frozenset({"nohup", "setsid", "disown"}),',
         '        names=frozenset({"nohup", "setsid"}),',
+    ),
+    "op: substitution not shielded": (
+        "    if command.substituted:\n        return False",
+        "    if False:\n        return False",
+    ),
+    "op: every ( counts as a substitution": (
+        '            substituted = token == "(" and bool(current) and current[-1].endswith("$")',
+        '            substituted = token == "("',
+    ),
+    "op: substitution outlives its first command": (
+        '            substituted = token == "(" and bool(current) and current[-1].endswith("$")',
+        '            substituted = substituted or (\n                token == "(" and bool(current) and current[-1].endswith("$")\n            )',
+    ),
+    "op: global flag value read as subcommand": (
+        '        elif arg in OP_VALUE_FLAGS:\n            skip = True\n        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\ndef op_prints_secret',
+        '        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\ndef op_prints_secret',
+    ),
+    "op: help not exempt": (
+        '    if "help" in set(command.long_flags()) or "-h" in command.args:\n        return False\n\n    words = op_words',
+        "    words = op_words",
+    ),
+    "op: read not covered": (
+        '    if words[:1] == ("read",):\n        return True',
+        '    if words[:1] == ("read",):\n        return False',
+    ),
+    "op: inject out-file not exempt": (
+        '    if words[:1] == ("inject",):\n        return not writes_file',
+        '    if words[:1] == ("inject",):\n        return True',
+    ),
+    "op: inject not covered": (
+        '    if words[:1] == ("inject",):\n        return not writes_file',
+        '    if words[:1] == ("inject",):\n        return False',
+    ),
+    "op: document get not covered": (
+        '    if words[:2] == ("document", "get"):\n        return not writes_file',
+        '    if words[:2] == ("document", "get"):\n        return False',
+    ),
+    "op: -o not read as out-file": (
+        '    writes_file = "out-file" in long_flags or "-o" in command.args',
+        '    writes_file = "out-file" in long_flags',
+    ),
+    "op: reveal not covered": (
+        '        return bool(long_flags & {"reveal", "fields", "otp"}) or (',
+        '        return bool(long_flags & {"fields", "otp"}) or (',
+    ),
+    "op: fields not covered": (
+        '        return bool(long_flags & {"reveal", "fields", "otp"}) or (',
+        '        return bool(long_flags & {"reveal", "otp"}) or (',
+    ),
+    "op: otp not covered": (
+        '        return bool(long_flags & {"reveal", "fields", "otp"}) or (',
+        '        return bool(long_flags & {"reveal", "fields"}) or (',
+    ),
+    "op: format json case-sensitive": (
+        '            (flag_value(command, "--format") or "").lower() == "json"',
+        '            (flag_value(command, "--format") or "") == "json"',
+    ),
+    "op: any format counts": (
+        '            (flag_value(command, "--format") or "").lower() == "json"',
+        '            flag_value(command, "--format") is not None',
     ),
 }
 
