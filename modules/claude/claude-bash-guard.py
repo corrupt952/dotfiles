@@ -110,6 +110,9 @@ LOCAL_TARGET = re.compile(
     re.IGNORECASE,
 )
 
+# curl and wget flags that print text about the tool and fetch nothing.
+FETCH_INFO_FLAGS = frozenset({"--version", "-V", "--help", "-h", "--manual", "-M"})
+
 
 @dataclass(frozen=True)
 class Command:
@@ -182,6 +185,14 @@ class Command:
             for arg in self.args
             if not arg.startswith("-") and ("://" in arg or LOCAL_TARGET.match(arg))
         ]
+
+    def only_prints_info(self) -> bool:
+        """True when every argument only asks for version or usage text.
+
+        Anything else, a bare host such as `example.com` included, fails it:
+        curl reads a word with no scheme as a URL to fetch.
+        """
+        return bool(self.args) and all(arg in FETCH_INFO_FLAGS for arg in self.args)
 
     def targets_only_localhost(self) -> bool:
         targets = self.fetch_targets()
@@ -506,7 +517,7 @@ RULES: Sequence[Rule] = (
     Rule(
         id="network-fetch",
         names=frozenset({"curl", "wget"}),
-        predicate=lambda c: not c.targets_only_localhost(),
+        predicate=lambda c: not c.targets_only_localhost() and not c.only_prints_info(),
         message=(
             "Fetching a remote URL with curl/wget is blocked by a static rule in "
             "settings.json. Nobody blocked this interactively. localhost is "

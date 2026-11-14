@@ -437,6 +437,18 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '            (flag_value(command, "--format") or "").lower() == "json"',
         '            (flag_value(command, "--format") or "") == "json"',
     ),
+    "fetch: info exemption dropped": (
+        "        predicate=lambda c: not c.targets_only_localhost() and not c.only_prints_info(),",
+        "        predicate=lambda c: not c.targets_only_localhost(),",
+    ),
+    "fetch: any one info flag exempts": (
+        "        return bool(self.args) and all(arg in FETCH_INFO_FLAGS for arg in self.args)",
+        "        return any(arg in FETCH_INFO_FLAGS for arg in self.args)",
+    ),
+    "fetch: bare curl exempt": (
+        "        return bool(self.args) and all(arg in FETCH_INFO_FLAGS for arg in self.args)",
+        "        return all(arg in FETCH_INFO_FLAGS for arg in self.args)",
+    ),
     "relay: not unpacked": (
         "            payload = nested_command(command) or relayed_command(command)",
         "            payload = nested_command(command)",
