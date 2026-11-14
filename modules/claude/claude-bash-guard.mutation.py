@@ -522,6 +522,26 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "    return shlex.join(rest) if rest else None",
         '    return " ".join(rest) if rest else None',
     ),
+    "dquote: $( left inside the string": (
+        """        if quote == '"' and command_line.startswith("$(", index):""",
+        "        if False:",
+    ),
+    "dquote: backtick left inside the string": (
+        """        if quote == '"' and char == "`":""",
+        "        if False:",
+    ),
+    "dquote: string not reopened after )": (
+        '        if char == ")" and reopen and reopen[-1] == depth:',
+        "        if False:",
+    ),
+    "dquote: string not reopened after backtick": (
+        '        if char == "`" and backtick_reopens:',
+        "        if False:",
+    ),
+    "dquote: nested parens not counted": (
+        '        if char == "(":\n            depth += 1',
+        '        if char == "(":\n            pass',
+    ),
     "heredoc: not detected": (
         '        heredoc = HEREDOC.match(command_line, index) if char == "<" else None',
         "        heredoc = None",

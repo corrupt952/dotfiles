@@ -999,6 +999,10 @@ def strip_comments(command_line: str) -> str:
     quoted `#` cannot be told from a comment marker, nor a quoted `&` from the
     background operator. A `#` opens a comment only at the start of a word,
     which is what keeps flake refs and URL fragments.
+
+    A `$(...)` or a backtick inside double quotes still runs, so the string is
+    closed around it and reopened after: `"a $(curl x) b"` reads as
+    `"a "$(curl x)" b"`, and the command inside meets the rules.
     """
     result: list[str] = []
     quote = ""
@@ -1007,9 +1011,31 @@ def strip_comments(command_line: str) -> str:
     # Heredocs opened on the current line, as (delimiter, strip_tabs, inert,
     # where the operator ends).
     pending: list[tuple[str, bool, bool, int]] = []
+    # Unquoted paren depth, and the depths whose `)` closes a substitution
+    # that was opened inside double quotes.
+    depth = 0
+    reopen: list[int] = []
+    backtick_reopens = False
 
     while index < len(command_line):
         char = command_line[index]
+
+        if quote == '"' and command_line.startswith("$(", index):
+            result.append('"$(')
+            quote = ""
+            depth += 1
+            reopen.append(depth)
+            at_word_start = True
+            index += 2
+            continue
+
+        if quote == '"' and char == "`":
+            result.append('"`')
+            quote = ""
+            backtick_reopens = True
+            at_word_start = True
+            index += 1
+            continue
 
         if quote:
             if char == "\\" and quote == '"' and index + 1 < len(command_line):
@@ -1064,6 +1090,26 @@ def strip_comments(command_line: str) -> str:
             pending = []
             at_word_start = True
             continue
+
+        if char == ")" and reopen and reopen[-1] == depth:
+            reopen.pop()
+            depth -= 1
+            result.append(')"')
+            quote = '"'
+            index += 1
+            continue
+
+        if char == "`" and backtick_reopens:
+            result.append('`"')
+            quote = '"'
+            backtick_reopens = False
+            index += 1
+            continue
+
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(depth - 1, 0)
 
         result.append(char)
         at_word_start = char.isspace() or char in ";|&()"

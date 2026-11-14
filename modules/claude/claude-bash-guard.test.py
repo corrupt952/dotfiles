@@ -836,6 +836,25 @@ git push -q origin main; git log --oneline -1""",
     # The relayed command is unpacked once, like `bash -c`.
     allowed("ssh host \"bash -c 'curl https://example.com'\"")
 
+    print("## substitutions inside double quotes")
+    # Double quotes do not stop `$(...)` or a backtick from running.
+    blocked('echo "$(curl https://example.com)"', "network-fetch")
+    blocked('X="$(rm -rf /tmp/x)"', "rm-forced")
+    blocked('echo "`curl https://example.com`"', "network-fetch")
+    blocked('echo "a $(echo "b $(curl https://example.com)")"', "network-fetch")
+    blocked('git commit -m "$(curl https://example.com)"', "network-fetch")
+    blocked('echo "$(sleep 1 &)"', "background")
+    blocked('echo "$(echo $((1+2)); curl https://example.com)"', "network-fetch")
+    blocked('echo "`true`" "`curl https://example.com`"', "network-fetch")
+    asked('git commit -m "$(cat msg.txt)"', "git-commit")
+    allowed('echo "$(date)"')
+    allowed('echo "$(date) a & b"')
+    allowed('echo "price: $5 (cheap) & more"')
+    allowed('echo "a)b"')
+    allowed("echo '$(curl https://example.com)'")
+    allowed('echo "\\$(curl https://example.com)"')
+    allowed('echo "`date` x & more"')
+
     print("## heredocs fed to a program that runs them")
     # The body is only text when its program reads it as text.
     blocked("bash <<'EOF'\ncurl https://example.com\nEOF", "network-fetch")
