@@ -278,6 +278,13 @@ def main() -> int:
     blocked("setsid cmd", "detach")
     blocked("setsid -f cmd", "detach")
     blocked("cmd; disown", "detach")
+    # With nothing to start, they only print their own usage.
+    allowed("nohup --version")
+    allowed("setsid --help")
+    allowed("setsid -V")
+    blocked("nohup --version cmd", "detach")
+    blocked("setsid -h cmd", "detach")
+    blocked("disown -h", "detach")
     blocked("cmd & disown", "background")
     # A wrapper that also trips a later rule still gets the run_in_background
     # pointer, since that is the fix.
@@ -780,6 +787,15 @@ git push -q origin main; git log --oneline -1""",
     blocked("uvx ruff check .", "registry-runner")
     blocked("dnx some-tool", "registry-runner")
     blocked("jbang hello.java", "registry-runner")
+    # With no package named, nothing is fetched.
+    allowed("npx --version")
+    allowed("uvx --version")
+    allowed("uvx --help")
+    allowed("bunx --help")
+    allowed("npx -h")
+    blocked("npx --version prettier", "registry-runner")
+    blocked("uvx --help ruff", "registry-runner")
+    blocked("npx", "registry-runner")
     blocked("pnpm dlx tsx foo.ts", "registry-runner-subcommand")
     blocked("yarn dlx eslint .", "registry-runner-subcommand")
     blocked("npm exec prettier", "registry-runner-subcommand")

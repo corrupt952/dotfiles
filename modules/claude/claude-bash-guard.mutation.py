@@ -438,16 +438,32 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '            (flag_value(command, "--format") or "") == "json"',
     ),
     "fetch: info exemption dropped": (
-        "        predicate=lambda c: not c.targets_only_localhost() and not c.only_prints_info(),",
+        "        predicate=lambda c: not c.targets_only_localhost()\n        and not c.only_prints_info(FETCH_INFO_FLAGS),",
         "        predicate=lambda c: not c.targets_only_localhost(),",
     ),
-    "fetch: any one info flag exempts": (
-        "        return bool(self.args) and all(arg in FETCH_INFO_FLAGS for arg in self.args)",
-        "        return any(arg in FETCH_INFO_FLAGS for arg in self.args)",
+    "fetch: manual flags not exempt": (
+        'FETCH_INFO_FLAGS = INFO_FLAGS | {"--manual", "-M"}',
+        "FETCH_INFO_FLAGS = INFO_FLAGS",
     ),
-    "fetch: bare curl exempt": (
-        "        return bool(self.args) and all(arg in FETCH_INFO_FLAGS for arg in self.args)",
-        "        return all(arg in FETCH_INFO_FLAGS for arg in self.args)",
+    "info: any one flag exempts": (
+        "        return bool(self.args) and all(arg in flags for arg in self.args)",
+        "        return any(arg in flags for arg in self.args)",
+    ),
+    "info: bare command exempt": (
+        "        return bool(self.args) and all(arg in flags for arg in self.args)",
+        "        return all(arg in flags for arg in self.args)",
+    ),
+    "info: detach not exempt": (
+        '        predicate=lambda c: c.name == "disown" or not c.only_prints_info(),',
+        "        predicate=lambda c: True,",
+    ),
+    "info: disown -h exempt": (
+        '        predicate=lambda c: c.name == "disown" or not c.only_prints_info(),',
+        "        predicate=lambda c: not c.only_prints_info(),",
+    ),
+    "info: runner not exempt": (
+        "        names=RUNNER_COMMANDS,\n        predicate=lambda c: not c.only_prints_info(),",
+        "        names=RUNNER_COMMANDS,",
     ),
     "relay: not unpacked": (
         "            payload = nested_command(command) or relayed_command(command)",

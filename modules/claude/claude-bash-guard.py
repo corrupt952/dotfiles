@@ -110,8 +110,12 @@ LOCAL_TARGET = re.compile(
     re.IGNORECASE,
 )
 
-# curl and wget flags that print text about the tool and fetch nothing.
-FETCH_INFO_FLAGS = frozenset({"--version", "-V", "--help", "-h", "--manual", "-M"})
+# Flags that only print text about the tool itself. With nothing else on the
+# line, a runner has no package to fetch and a detacher no command to start.
+INFO_FLAGS = frozenset({"--version", "-V", "--help", "-h"})
+
+# curl and wget add a manual, and fetch nothing with any of these alone.
+FETCH_INFO_FLAGS = INFO_FLAGS | {"--manual", "-M"}
 
 
 @dataclass(frozen=True)
@@ -186,13 +190,14 @@ class Command:
             if not arg.startswith("-") and ("://" in arg or LOCAL_TARGET.match(arg))
         ]
 
-    def only_prints_info(self) -> bool:
+    def only_prints_info(self, flags: frozenset[str] = INFO_FLAGS) -> bool:
         """True when every argument only asks for version or usage text.
 
         Anything else, a bare host such as `example.com` included, fails it:
-        curl reads a word with no scheme as a URL to fetch.
+        curl reads a word with no scheme as a URL to fetch, and a runner or
+        nohup reads it as the thing to run.
         """
-        return bool(self.args) and all(arg in FETCH_INFO_FLAGS for arg in self.args)
+        return bool(self.args) and all(arg in flags for arg in self.args)
 
     def targets_only_localhost(self) -> bool:
         targets = self.fetch_targets()
@@ -500,6 +505,8 @@ RULES: Sequence[Rule] = (
     Rule(
         id="detach",
         names=frozenset({"nohup", "setsid", "disown"}),
+        # `disown -h` is no usage flag: it keeps SIGHUP from the job.
+        predicate=lambda c: c.name == "disown" or not c.only_prints_info(),
         message=DETACH_MESSAGE,
     ),
     Rule(
@@ -517,7 +524,8 @@ RULES: Sequence[Rule] = (
     Rule(
         id="network-fetch",
         names=frozenset({"curl", "wget"}),
-        predicate=lambda c: not c.targets_only_localhost() and not c.only_prints_info(),
+        predicate=lambda c: not c.targets_only_localhost()
+        and not c.only_prints_info(FETCH_INFO_FLAGS),
         message=(
             "Fetching a remote URL with curl/wget is blocked by a static rule in "
             "settings.json. Nobody blocked this interactively. localhost is "
@@ -599,6 +607,7 @@ RULES: Sequence[Rule] = (
     Rule(
         id="registry-runner",
         names=RUNNER_COMMANDS,
+        predicate=lambda c: not c.only_prints_info(),
         message=REGISTRY_RUNNER_MESSAGE,
     ),
     Rule(
