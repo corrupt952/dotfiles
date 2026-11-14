@@ -509,8 +509,8 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '            substituted = substituted or (\n                token == "(" and bool(current) and current[-1].endswith("$")\n            )',
     ),
     "op: global flag value read as subcommand": (
-        '        elif arg in OP_VALUE_FLAGS:\n            skip = True\n        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\ndef op_prints_secret',
-        '        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\ndef op_prints_secret',
+        '        elif arg in OP_VALUE_FLAGS:\n            skip = True\n        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\n# Paths that write',
+        '        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\n# Paths that write',
     ),
     "op: help not exempt": (
         '    if "help" in set(command.long_flags()) or "-h" in command.args:\n        return False\n\n    words = op_words',
@@ -533,8 +533,20 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '    if words[:2] == ("document", "get"):\n        return False',
     ),
     "op: -o not read as out-file": (
-        '    writes_file = "out-file" in long_flags or "-o" in command.args',
-        '    writes_file = "out-file" in long_flags',
+        '    out = flag_value(command, "--out-file") or flag_value(command, "-o")',
+        '    out = flag_value(command, "--out-file")',
+    ),
+    "op: stdout as out-file not seen": (
+        "    writes_file = out is not None and not STDOUT_PATH.match(out)",
+        "    writes_file = out is not None",
+    ),
+    "op: /dev/fd not seen": (
+        r'STDOUT_PATH = re.compile(r"^(?:-|/dev/(?:stdout|stderr|tty|fd/[0-9]+)|/proc/self/fd/[0-9]+)$")',
+        r'STDOUT_PATH = re.compile(r"^(?:-|/dev/(?:stdout|stderr|tty)|/proc/self/fd/[0-9]+)$")',
+    ),
+    "op: share link not covered": (
+        '    if words[:2] == ("item", "get") and "share-link" in long_flags:\n        return True',
+        '    if False:\n        return True',
     ),
     "op: reveal not covered": (
         '        return bool(long_flags & {"reveal", "fields", "otp"}) or (',

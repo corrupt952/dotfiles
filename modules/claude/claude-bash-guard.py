@@ -430,6 +430,10 @@ def op_words(command: Command) -> tuple[str, ...]:
     return tuple(words)
 
 
+# Paths that write to this process's own output rather than a file.
+STDOUT_PATH = re.compile(r"^(?:-|/dev/(?:stdout|stderr|tty|fd/[0-9]+)|/proc/self/fd/[0-9]+)$")
+
+
 def op_prints_secret(command: Command) -> bool:
     """True when op would print a secret value where the transcript sees it.
 
@@ -444,8 +448,12 @@ def op_prints_secret(command: Command) -> bool:
 
     words = op_words(command)
     long_flags = set(command.long_flags())
-    writes_file = "out-file" in long_flags or "-o" in command.args
+    # An output file that is the terminal again prints the secret all the same.
+    out = flag_value(command, "--out-file") or flag_value(command, "-o")
+    writes_file = out is not None and not STDOUT_PATH.match(out)
 
+    if words[:2] == ("item", "get") and "share-link" in long_flags:
+        return True
     if words[:1] == ("read",):
         return True
     if words[:1] == ("inject",):

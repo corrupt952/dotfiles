@@ -777,6 +777,18 @@ def run_cases() -> None:
     allowed("op inject -i template.env -o out.env")
     allowed("op inject -i template.env --out-file out.env")
     allowed("op document get key --out-file key.pem")
+    allowed("op inject -i template.env --out-file=out.env")
+    # An output file that is the terminal again still prints the secret.
+    blocked("op document get key -o /dev/stdout", "op-secret-print")
+    blocked("op document get key --out-file /dev/stderr", "op-secret-print")
+    blocked("op inject -i template.env -o /dev/stdout", "op-secret-print")
+    blocked("op inject -i template.env --out-file=-", "op-secret-print")
+    blocked("op inject -i template.env -o /dev/fd/1", "op-secret-print")
+    blocked("op inject -i template.env -o /proc/self/fd/1", "op-secret-print")
+    blocked("op document get key -o /dev/tty", "op-secret-print")
+    # A share link hands the item to whoever has the link.
+    blocked("op item get Example --share-link", "op-secret-print")
+    blocked("op item get Example --share-link --expires-in 1h", "op-secret-print")
     allowed("op read --help")
     allowed("op item get -h")
     allowed("op")
