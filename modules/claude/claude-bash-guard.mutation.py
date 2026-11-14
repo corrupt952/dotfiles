@@ -375,8 +375,8 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "        for width in range(1, 2):",
     ),
     "detach: nohup back to a wrapper": (
-        '        "nice",\n        "stdbuf",',
-        '        "nice",\n        "nohup",\n        "setsid",\n        "stdbuf",',
+        '        "nice",\n        "script",',
+        '        "nice",\n        "nohup",\n        "script",\n        "setsid",',
     ),
     "detach: disown not covered": (
         '        names=frozenset({"nohup", "setsid", "disown"}),',
@@ -521,6 +521,82 @@ MUTATIONS: dict[str, tuple[str, str]] = {
     "relay: runner args not requoted": (
         "    return shlex.join(rest) if rest else None",
         '    return " ".join(rest) if rest else None',
+    ),
+    "wrapper: path not stripped": (
+        '        wrapper = tokens[0].rsplit("/", 1)[-1] if tokens else ""',
+        '        wrapper = tokens[0] if tokens else ""',
+    ),
+    "wrapper: own positionals kept": (
+        "            del tokens[: WRAPPER_POSITIONALS.get(wrapper, 0)]",
+        "            pass",
+    ),
+    "wrapper: arch value flag not skipped": (
+        '    "arch": frozenset({"-arch"}),',
+        '    "arch": frozenset(),',
+    ),
+    "wrapper: flock value flag not skipped": (
+        '    "flock": frozenset({"-w", "--wait", "--timeout", "-E", "--conflict-exit-code"}),',
+        '    "flock": frozenset(),',
+    ),
+    "wrapper: script value flag not skipped": (
+        '    "script": frozenset({"-F", "-t", "-T"}),',
+        '    "script": frozenset(),',
+    ),
+    "relay: watch not unpacked": (
+        '    if name == "watch":\n        index',
+        '    if False:\n        index',
+    ),
+    "relay: watch value flag not skipped": (
+        '        index = past_options(args, frozenset({"-n", "--interval"}))',
+        "        index = past_options(args, frozenset())",
+    ),
+    "relay: find -exec not unpacked": (
+        '    if name == "find":',
+        "    if False:",
+    ),
+    "relay: find -ok not covered": (
+        'FIND_EXEC_FLAGS = frozenset({"-exec", "-execdir", "-ok", "-okdir"})',
+        'FIND_EXEC_FLAGS = frozenset({"-exec", "-execdir"})',
+    ),
+    "relay: find -execdir not covered": (
+        'FIND_EXEC_FLAGS = frozenset({"-exec", "-execdir", "-ok", "-okdir"})',
+        'FIND_EXEC_FLAGS = frozenset({"-exec", "-ok", "-okdir"})',
+    ),
+    "relay: container exec not unpacked": (
+        '        if args[:1] in {("exec",), ("run",)}:',
+        "        if False:",
+    ),
+    "relay: container run not covered": (
+        '        if args[:1] in {("exec",), ("run",)}:',
+        '        if args[:1] == ("exec",):',
+    ),
+    "relay: compose not covered": (
+        '        if args[:2] in {("compose", "exec"), ("compose", "run")}:\n            args = args[1:]',
+        '        if False:\n            args = args[1:]',
+    ),
+    "relay: container value flags not skipped": (
+        "            return after_target(args[1:], CONTAINER_VALUE_FLAGS)",
+        "            return after_target(args[1:], frozenset())",
+    ),
+    "relay: container image kept in payload": (
+        "    rest = args[index + 1 :] if index is not None else ()",
+        "    rest = args[index:] if index is not None else ()",
+    ),
+    "relay: limactl not unpacked": (
+        '    if name == "limactl" and args[:1] == ("shell",):',
+        "    if False:",
+    ),
+    "relay: podman not covered": (
+        'CONTAINER_TOOLS = frozenset({"docker", "podman", "nerdctl", "container"})',
+        'CONTAINER_TOOLS = frozenset({"docker", "nerdctl", "container"})',
+    ),
+    "relay: apple container not covered": (
+        'CONTAINER_TOOLS = frozenset({"docker", "podman", "nerdctl", "container"})',
+        'CONTAINER_TOOLS = frozenset({"docker", "podman", "nerdctl"})',
+    ),
+    "relay: target args not requoted": (
+        "    return shlex.join(rest) if rest else None\n\n\ndef after_double_dash",
+        '    return " ".join(rest) if rest else None\n\n\ndef after_double_dash',
     ),
     "shell-stdin: -c not exempt": (
         "    if nested_command(command) is not None:\n        return False\n    if \"-\" in command.args",

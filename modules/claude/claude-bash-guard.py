@@ -48,12 +48,16 @@ QUOTED_AMPERSAND = "\x00amp\x00"
 # not here: they detach the command, which is a rule of its own.
 WRAPPERS = frozenset(
     {
+        "arch",
         "builtin",
+        "caffeinate",
         "command",
         "doas",
         "env",
         "exec",
+        "flock",
         "nice",
+        "script",
         "stdbuf",
         "sudo",
         "time",
@@ -62,12 +66,19 @@ WRAPPERS = frozenset(
     }
 )
 
+# Wrappers that take positional arguments of their own before the command:
+# `flock LOCKFILE cmd` and macOS `script FILE cmd`.
+WRAPPER_POSITIONALS: dict[str, int] = {"flock": 1, "script": 1}
+
 # Skipping a flag but not its value leaves the value in command position, so
 # the real command is never examined. Only flags that always take a separate
 # value belong here -- an optional or joined one would eat the command itself,
 # which is the same failure. That rules out `sudo -h` and `xargs -i`.
 WRAPPER_VALUE_FLAGS: dict[str, frozenset[str]] = {
+    "arch": frozenset({"-arch"}),
     "doas": frozenset({"-u", "-C"}),
+    "flock": frozenset({"-w", "--wait", "--timeout", "-E", "--conflict-exit-code"}),
+    "script": frozenset({"-F", "-t", "-T"}),
     "env": frozenset({"-u", "--unset", "-C", "--chdir", "-S", "--split-string"}),
     "nice": frozenset({"-n", "--adjustment"}),
     "stdbuf": frozenset({"-i", "-o", "-e", "--input", "--output", "--error"}),
@@ -1241,14 +1252,17 @@ def normalize(
             del tokens[: tokens.index("--command") + 1]
             changed = True
 
-        if tokens and tokens[0] in WRAPPERS:
-            value_flags = WRAPPER_VALUE_FLAGS.get(tokens.pop(0), frozenset())
+        wrapper = tokens[0].rsplit("/", 1)[-1] if tokens else ""
+        if wrapper in WRAPPERS:
+            tokens.pop(0)
+            value_flags = WRAPPER_VALUE_FLAGS.get(wrapper, frozenset())
             changed = True
             # Some wrappers also carry a bare value, as `timeout 30` does.
             while tokens and (tokens[0].startswith("-") or DURATION.match(tokens[0])):
                 flag = tokens.pop(0)
                 if flag in value_flags and tokens and not tokens[0].startswith("-"):
                     tokens.pop(0)
+            del tokens[: WRAPPER_POSITIONALS.get(wrapper, 0)]
 
     if not tokens:
         return None
@@ -1324,6 +1338,40 @@ def remote_command(args: Sequence[str]) -> str | None:
     return None
 
 
+# Flags of `docker run` and its kin that take a separate value, so the value is
+# not read as the image. -h is the hostname here, not help.
+CONTAINER_VALUE_FLAGS = frozenset(
+    {"-e", "--env", "--env-file", "-u", "--user", "-w", "--workdir", "-v", "--volume",
+     "-p", "--publish", "--name", "--network", "--net", "--entrypoint", "--platform",
+     "-m", "--memory", "--cpus", "--mount", "-l", "--label", "--add-host", "-h",
+     "--hostname", "--restart", "--pull", "--cap-add", "--cap-drop", "--device",
+     "--dns", "--ulimit", "--tmpfs", "--gpus", "--detach-keys", "--arch", "--os",
+     "-c", "--cpu-shares"}
+)
+CONTAINER_TOOLS = frozenset({"docker", "podman", "nerdctl", "container"})
+FIND_EXEC_FLAGS = frozenset({"-exec", "-execdir", "-ok", "-okdir"})
+
+
+def past_options(args: Sequence[str], value_flags: frozenset[str]) -> int | None:
+    """Index of the first positional, skipping flags and their values."""
+    skip = False
+    for index, arg in enumerate(args):
+        if skip:
+            skip = False
+        elif arg in value_flags:
+            skip = True
+        elif arg != "--" and not arg.startswith("-"):
+            return index
+    return None
+
+
+def after_target(args: Sequence[str], value_flags: frozenset[str]) -> str | None:
+    """The command after the first positional (a container, an image, a VM)."""
+    index = past_options(args, value_flags)
+    rest = args[index + 1 :] if index is not None else ()
+    return shlex.join(rest) if rest else None
+
+
 def after_double_dash(args: Sequence[str]) -> str | None:
     """The command a runner takes after `--`, quoted back into one line."""
     if "--" not in args:
@@ -1341,9 +1389,27 @@ def relayed_command(command: Command) -> str | None:
     name = command.program.lower()
     args = command.args
 
-    # eval joins its arguments and runs the result as a command line.
+    # eval joins its arguments and runs the result as a command line, and so
+    # does watch, through `sh -c`.
     if name == "eval":
         return " ".join(args) or None
+    if name == "watch":
+        index = past_options(args, frozenset({"-n", "--interval"}))
+        return " ".join(args[index:]) if index is not None else None
+    if name == "find":
+        start = next((i for i, arg in enumerate(args) if arg in FIND_EXEC_FLAGS), None)
+        if start is None:
+            return None
+        rest = [arg for arg in args[start + 1 :] if arg != "+"]
+        return shlex.join(rest) if rest else None
+    if name in CONTAINER_TOOLS:
+        if args[:2] in {("compose", "exec"), ("compose", "run")}:
+            args = args[1:]
+        if args[:1] in {("exec",), ("run",)}:
+            return after_target(args[1:], CONTAINER_VALUE_FLAGS)
+        return None
+    if name == "limactl" and args[:1] == ("shell",):
+        return after_target(args[1:], frozenset({"--workdir", "--shell"}))
     if name == "ssh":
         return remote_command(args)
     if name == "tailscale" and args[:1] == ("ssh",):
