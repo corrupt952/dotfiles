@@ -430,6 +430,49 @@ def op_words(command: Command) -> tuple[str, ...]:
     return tuple(words)
 
 
+# Tools that open a connection to a host named by a positional argument, and
+# HTTP clients and text browsers that fetch a page named the same way.
+SOCKET_TOOLS = frozenset({"nc", "ncat", "netcat", "telnet"})
+HTTP_TOOLS = frozenset({"http", "https", "xh", "xhs", "aria2c", "lynx", "w3m", "links", "elinks"})
+HTTP_METHODS = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"})
+SOCAT_ADDRESS = re.compile(
+    r"^(?:TCP|TCP4|TCP6|OPENSSL|SSL|UDP|UDP4|UDP6|SOCKS4A?|PROXY)[^:]*?:([^:,]+)", re.IGNORECASE
+)
+SOCKET_VALUE_FLAGS = frozenset({"-p", "-s", "-w", "-i", "-q", "-e", "-c", "-x", "-X", "-I", "-O"})
+
+
+def is_local_host(host: str) -> bool:
+    return bool(LOCAL_TARGET.match(host))
+
+
+def reaches_remote_host(command: Command) -> bool:
+    """True when a socket tool, an HTTP client or openssl names a remote host.
+
+    Usage flags need no exception: they are no positional, so name no host.
+    """
+    name = command.program
+    if name == "openssl":
+        target = flag_value(command, "-connect")
+        return command.subcommand_is("s_client") and target is not None and not is_local_host(target)
+    if name == "socat":
+        hosts = [
+            match.group(1)
+            for arg in command.args
+            if (match := SOCAT_ADDRESS.match(arg)) and "LISTEN" not in arg.upper()
+        ]
+        return any(not is_local_host(host) for host in hosts)
+    if name in SOCKET_TOOLS:
+        words = positional_words(command, SOCKET_VALUE_FLAGS)
+        hosts = [word for word in words if not word.isdigit()]
+        return any(not is_local_host(host) for host in hosts)
+    targets = [arg for arg in command.positionals() if arg.upper() not in HTTP_METHODS]
+    if not targets:
+        return False
+    target = targets[0]
+    # httpie reads `:3000/x` as localhost.
+    return not (target.startswith(":") or is_local_host(target))
+
+
 # Paths that write to this process's own output rather than a file.
 STDOUT_PATH = re.compile(r"^(?:-|/dev/(?:stdout|stderr|tty|fd/[0-9]+)|/proc/self/fd/[0-9]+)$")
 
@@ -679,6 +722,18 @@ RULES: Sequence[Rule] = (
             "Chrome instead: `timeout 20 <chrome> --headless --disable-gpu "
             "--user-data-dir=$(mktemp -d) --dump-dom <url>`. The timeout is "
             "required, because Chrome does not exit on its own after dumping."
+        ),
+    ),
+    Rule(
+        id="network-tool",
+        names=SOCKET_TOOLS | HTTP_TOOLS | {"socat", "openssl"},
+        predicate=lambda c: reaches_remote_host(c),
+        message=(
+            "Reaching a remote host with a socket or HTTP tool is blocked by a "
+            "static rule in settings.json. Nobody blocked this interactively. "
+            "This is the curl rule reached by another route. localhost is "
+            "allowed. For a remote page, use the WebFetch tool, or the gh CLI "
+            "for GitHub; for anything else, tell the user what you need."
         ),
     ),
     Rule(

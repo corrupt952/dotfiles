@@ -75,6 +75,46 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "    return any(command.has_trailing_short_flag(letter) for letter in letters) or bool(",
         "    return any(command.has_trailing_short_flag(letter) for letter in letters) and bool(",
     ),
+    "net: rule never matches": (
+        "        predicate=lambda c: reaches_remote_host(c),",
+        "        predicate=lambda c: False,",
+    ),
+    "net: openssl local connect denied": (
+        "        return command.subcommand_is(\"s_client\") and target is not None and not is_local_host(target)",
+        "        return command.subcommand_is(\"s_client\") and target is not None",
+    ),
+    "net: openssl any subcommand": (
+        "        return command.subcommand_is(\"s_client\") and target is not None and not is_local_host(target)",
+        "        return not command.subcommand_is(\"s_client\") or not is_local_host(target or \"\")",
+    ),
+    "net: socat listen counted": (
+        '            if (match := SOCAT_ADDRESS.match(arg)) and "LISTEN" not in arg.upper()',
+        "            if (match := SOCAT_ADDRESS.match(arg))",
+    ),
+    "net: socat not covered": (
+        "        return any(not is_local_host(host) for host in hosts)\n    if name in SOCKET_TOOLS:",
+        "        return False\n    if name in SOCKET_TOOLS:",
+    ),
+    "net: socket port read as host": (
+        "        hosts = [word for word in words if not word.isdigit()]",
+        "        hosts = list(words)",
+    ),
+    "net: socket value flag read as host": (
+        "        words = positional_words(command, SOCKET_VALUE_FLAGS)",
+        "        words = positional_words(command, frozenset())",
+    ),
+    "net: http method read as target": (
+        "    targets = [arg for arg in command.positionals() if arg.upper() not in HTTP_METHODS]",
+        "    targets = list(command.positionals())",
+    ),
+    "net: httpie :port not local": (
+        '    return not (target.startswith(":") or is_local_host(target))',
+        "    return not is_local_host(target)",
+    ),
+    "net: local host denied": (
+        '    return not (target.startswith(":") or is_local_host(target))',
+        "    return True",
+    ),
     "service: info flags not exempt": (
         "    if command.only_prints_info():\n        return False\n    if name == \"coproc\":",
         "    if name == \"coproc\":",
@@ -509,8 +549,8 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '            substituted = substituted or (\n                token == "(" and bool(current) and current[-1].endswith("$")\n            )',
     ),
     "op: global flag value read as subcommand": (
-        '        elif arg in OP_VALUE_FLAGS:\n            skip = True\n        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\n# Paths that write',
-        '        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\n# Paths that write',
+        '        elif arg in OP_VALUE_FLAGS:\n            skip = True\n        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\n# Tools that open',
+        '        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\n# Tools that open',
     ),
     "op: help not exempt": (
         '    if "help" in set(command.long_flags()) or "-h" in command.args:\n        return False\n\n    words = op_words',
