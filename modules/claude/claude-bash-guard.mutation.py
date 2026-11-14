@@ -11,8 +11,9 @@ Usage: python3 modules/claude/claude-bash-guard.mutation.py
 
 from __future__ import annotations
 
+import concurrent.futures
+import os
 import pathlib
-import re
 import shutil
 import subprocess
 import sys
@@ -566,8 +567,8 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         'r"<<',
     ),
     "heredoc: only the first body skipped": (
-        "    for delimiter, strip_tabs, quoted in pending:",
-        "    for delimiter, strip_tabs, quoted in pending[:1]:",
+        "    for delimiter, strip_tabs, inert in pending:",
+        "    for delimiter, strip_tabs, inert in pending[:1]:",
     ),
     "heredoc: backslash delimiter not quoting": (
         r"""(?P<quoted>['\"\\])?""",
@@ -584,49 +585,73 @@ MUTATIONS: dict[str, tuple[str, str]] = {
 }
 
 
-def run_suite(source: str) -> tuple[int, str]:
+# A mutant that loops forever is caught, not slow: the suite takes well under
+# a second in process, so this leaves room for a loaded machine.
+MUTANT_TIMEOUT = 60
+
+
+def run_suite(source: str, fail_fast: bool = True) -> tuple[int | None, str]:
+    """Exit code and output of the suite against `source`; None on timeout.
+
+    Each mutant gets its own directory and process, so mutants run side by
+    side without sharing a file or a module.
+    """
+    env = {**os.environ, "PYTHONHASHSEED": "0", "GUARD_SUBPROCESS": "", "GUARD_BIN": ""}
+    if fail_fast:
+        env["GUARD_FAIL_FAST"] = "1"
     with tempfile.TemporaryDirectory() as tmp:
         work = pathlib.Path(tmp)
         (work / GUARD).write_text(source)
         shutil.copy(HERE / TEST, work / TEST)
-        proc = subprocess.run(
-            [sys.executable, str(work / TEST)],
-            capture_output=True,
-            text=True,
-            timeout=900,
-        )
+        try:
+            proc = subprocess.run(
+                [sys.executable, str(work / TEST)],
+                capture_output=True,
+                text=True,
+                timeout=MUTANT_TIMEOUT,
+                env=env,
+            )
+        except subprocess.TimeoutExpired:
+            return None, ""
         return proc.returncode, proc.stdout
 
 
 def main() -> int:
-    code, out = run_suite(ORIGINAL)
+    code, out = run_suite(ORIGINAL, fail_fast=False)
     summary = out.strip().splitlines()[-1] if out.strip() else "<no output>"
     print(f"baseline: exit {code}  {summary}\n")
     if code != 0:
         print("baseline is already failing; fix the suite first")
         return 1
 
-    stale: list[str] = []
+    stale = [label for label, (needle, _) in MUTATIONS.items() if needle not in ORIGINAL]
+    live = {label: pair for label, pair in MUTATIONS.items() if label not in stale}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as pool:
+        results = dict(
+            zip(
+                live,
+                pool.map(
+                    lambda pair: run_suite(ORIGINAL.replace(pair[0], pair[1], 1)),
+                    live.values(),
+                ),
+            )
+        )
+
     survivors: list[str] = []
-
-    for label, (needle, replacement) in MUTATIONS.items():
-        if needle not in ORIGINAL:
+    for label in MUTATIONS:
+        if label in stale:
             print(f"STALE     {label}")
-            stale.append(label)
             continue
-
-        code, out = run_suite(ORIGINAL.replace(needle, replacement, 1))
-        failed = [
-            line.strip()[6:].strip()
-            for line in out.splitlines()
-            if line.startswith("FAIL  ")
-        ]
-        count = (re.search(r"fail=(\d+)", out) or [None, "?"])[1]
-
-        if code != 0:
-            print(f"CAUGHT    {label}  ({count} failed)")
-            for name in failed[:2]:
-                print(f"            - {name}")
+        code, out = results[label]
+        if code is None:
+            print(f"TIMEOUT   {label}  (killed after {MUTANT_TIMEOUT}s, counted as caught)")
+        elif code != 0:
+            first = next(
+                (line.strip()[6:].strip() for line in out.splitlines() if line.startswith("FAIL  ")),
+                "",
+            )
+            print(f"CAUGHT    {label}")
+            print(f"            - {first}")
         else:
             print(f"SURVIVED  {label}")
             survivors.append(label)

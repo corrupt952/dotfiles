@@ -4,13 +4,23 @@
 Feeds the guard real PreToolUse payloads through its stdin/stdout contract and
 asserts both the exit code and which rule fired.
 
+Rule cases call the guard's main() in this process, with stdin, stdout and
+stderr swapped for buffers: starting Python for each of them was nearly all
+of the run time. The payload edge cases still start the guard as its own
+process, since only that shows the exit code and streams the hook sees.
+
 Usage: python3 modules/claude/claude-bash-guard.test.py
+       GUARD_SUBPROCESS=1 python3 modules/claude/claude-bash-guard.test.py
        GUARD_BIN=/path/to/built/guard python3 modules/claude/claude-bash-guard.test.py
+GUARD_SUBPROCESS=1 or GUARD_BIN runs every case as a process. GUARD_FAIL_FAST=1
+stops at the first failure, which is all the mutation checker needs.
 """
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -19,9 +29,15 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SOURCE = HERE / "claude-bash-guard.py"
+ALL_SUBPROCESS = bool(os.environ.get("GUARD_SUBPROCESS") or os.environ.get("GUARD_BIN"))
+FAIL_FAST = bool(os.environ.get("GUARD_FAIL_FAST"))
 
 passed = 0
 failures: list[str] = []
+
+
+class FailFast(Exception):
+    """Raised on the first failure when GUARD_FAIL_FAST is set."""
 
 
 def guard_argv() -> list[str]:
@@ -32,18 +48,7 @@ def guard_argv() -> list[str]:
     return [sys.executable, str(SOURCE)]
 
 
-def run(payload: str) -> tuple[int, str]:
-    result = subprocess.run(
-        guard_argv(),
-        input=payload,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.returncode, result.stderr
-
-
-def run_full(payload: str) -> subprocess.CompletedProcess:
+def run_process(payload: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         guard_argv(),
         input=payload,
@@ -51,6 +56,31 @@ def run_full(payload: str) -> subprocess.CompletedProcess:
         text=True,
         check=False,
     )
+
+
+def run_in_process(payload: str) -> subprocess.CompletedProcess:
+    """main() against buffers, shaped like what run_process returns."""
+    stdout, stderr = io.StringIO(), io.StringIO()
+    stdin = sys.stdin
+    sys.stdin = io.StringIO(payload)
+    try:
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                code = GUARD.main()
+            except SystemExit as exit_:
+                code = exit_.code if isinstance(exit_.code, int) else 1
+    finally:
+        sys.stdin = stdin
+    return subprocess.CompletedProcess([], code, stdout.getvalue(), stderr.getvalue())
+
+
+def run_full(payload: str) -> subprocess.CompletedProcess:
+    return run_process(payload) if ALL_SUBPROCESS else run_in_process(payload)
+
+
+def run(payload: str) -> tuple[int, str]:
+    result = run_full(payload)
+    return result.returncode, result.stderr
 
 
 def payload_for(command: str) -> str:
@@ -63,6 +93,8 @@ def record(ok: bool, label: str, detail: str = "") -> None:
         passed += 1
     else:
         failures.append(f"{label}\n      {detail}")
+        if FAIL_FAST:
+            raise FailFast
 
 
 def blocked(command: str, expected_rule: str) -> None:
@@ -151,8 +183,20 @@ def allowed(command: str) -> None:
         )
 
 
+def process_contract(command: str, label: str, code: int, stream: str, text: str) -> None:
+    """One case run as a real process: its exit code and which stream speaks."""
+    proc = run_process(payload_for(command))
+    other = proc.stdout if stream == "stderr" else proc.stderr
+    spoke = proc.stderr if stream == "stderr" else proc.stdout
+    record(
+        proc.returncode == code and text in spoke and not other,
+        f"process: {label}",
+        f"exit {proc.returncode}, stdout {proc.stdout[:60]!r}, stderr {proc.stderr[:60]!r}",
+    )
+
+
 def raw_allowed(payload: str, label: str) -> None:
-    proc = run_full(payload)
+    proc = run_process(payload)
     if proc.returncode == 0 and not proc.stdout:
         record(True, f"raw: {label}")
     else:
@@ -196,6 +240,25 @@ LIMIT = GUARD.ECHO_LIMIT
 
 
 def main() -> int:
+    try:
+        run_cases()
+    except FailFast:
+        pass
+
+    for failure in failures:
+        print(f"FAIL  {failure}")
+    print(f"\npass={passed} fail={len(failures)}")
+    return 1 if failures else 0
+
+
+def run_cases() -> None:
+    print("## process contract")
+    # Rule cases run in this process; these pin what the hook itself sees.
+    process_contract("rm -rf /tmp/x", "deny exits 2 on stderr", 2, "stderr", "Blocked sub-command:")
+    process_contract("git commit -m x", "ask exits 0 with JSON", 0, "stdout", '"permissionDecision": "ask"')
+    process_contract("git checkout -b topic", "allow exits 0 with JSON", 0, "stdout", '"permissionDecision": "allow"')
+    process_contract("ls", "silence exits 0 with nothing", 0, "stdout", "")
+
     print("## rule: rm -f")
     blocked("rm -rf /tmp/foo", "rm-forced")
     blocked("rm -f somefile", "rm-forced")
@@ -790,7 +853,9 @@ git push -q origin main; git log --oneline -1""",
     allowed("/usr/bin/cat <<'EOF'\ncurl https://example.com\nEOF")
     allowed("gh pr create --body-file - <<'EOF'\nrun curl https://example.com, it's fine\nEOF")
     asked("git commit -q -F - <<'EOF'\nfix: it's curl https://example.com\nEOF", "git-commit")
-    asked("cd /tmp/repo && X=1 git commit -F - <<'EOF'\nit's rm -rf\nEOF", "git-commit")
+    asked("cd /tmp/repo && X=1 git commit -F - <<'EOF'\nit's done\ncurl https://example.com\nEOF", "git-commit")
+    allowed("cd /tmp && cat <<'EOF'\ncurl https://example.com\nEOF")
+    blocked("cat <<< 'x'\nrm -rf /tmp/x", "rm-forced")
 
     print("## fallback keeps redirect ampersands")
     allowed("make 2>&1 | tail -1; echo it's")
@@ -1195,11 +1260,6 @@ git push -q origin main; git log --oneline -1""",
         '{"tool_name":"mcp__foo__bar","tool_input":{"command":"rm -rf /"}}',
         "MCP tool is ignored",
     )
-
-    for failure in failures:
-        print(f"FAIL  {failure}")
-    print(f"\npass={passed} fail={len(failures)}")
-    return 1 if failures else 0
 
 
 if __name__ == "__main__":
