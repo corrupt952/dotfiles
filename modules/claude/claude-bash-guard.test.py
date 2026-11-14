@@ -668,6 +668,56 @@ def main() -> int:
     allowed("op item get -h")
     allowed("op")
 
+    print("## heredocs")
+    # A commit message with an apostrophe after a `2>&1` used to be denied
+    # as background: the apostrophe unbalanced the quotes, and the fallback
+    # split the `&` out of the `2>&1` before it.
+    asked(
+        """cd $TMPDIR/work && mise exec helm@latest -- ruby /tmp/check.rb /tmp/charts 2>&1 | grep -E '^(OK|ERR) app'; cd /tmp/repo && git add charts/app/values.yaml && git commit -q -F - <<'EOF'
+fix: start the app without its optional secret
+
+Marks the app's secret mount optional. The Secret does not exist yet,
+so the pod could not mount it and the release timed out.
+EOF
+git push -q origin main 2>&1 | tail -1; git log --oneline -1""",
+        "git-commit",
+    )
+    asked(
+        """cd $TMPDIR; mise exec helm@latest -- ruby /tmp/check.rb /tmp/charts 2>&1 | grep -E '^(OK|ERR) +(api|web) '; cd /tmp/repo && git add charts && git commit -q -F - <<'EOF'
+feat: add dashboards and probe targets
+
+Adds a job that scrapes the host's exporter.
+EOF
+git push -q origin main; git log --oneline -1""",
+        "git-commit",
+    )
+    # A quoted delimiter turns expansion off, so the body is only text.
+    allowed("cat <<'EOF'\ncurl https://example.com\nrm -rf /tmp/x\nEOF")
+    allowed('cat <<"EOF"\ncurl https://example.com\nEOF')
+    allowed("cat <<\\EOF\ncurl https://example.com\nEOF")
+    allowed("cat <<'EOF'\nit's 2>&1 & fine\nEOF\necho done 2>&1 | tail -1")
+    allowed("cat <<-'EOF'\n\tcurl https://example.com\n\tEOF\necho done")
+    blocked("cat <<-'EOF'\n\thello\n\tEOF\nrm -rf /tmp/x", "rm-forced")
+    allowed("cat <<'A' <<'B'\na\nA\ncurl https://example.com\nB")
+    # An unquoted delimiter expands `$(...)` in the body.
+    blocked("cat <<EOF\n$(curl https://example.com)\nEOF", "network-fetch")
+    blocked("cat <<-EOF\n\t$(rm -rf /tmp/x)\n\tEOF", "rm-forced")
+    # Whatever follows the terminator is a command again.
+    blocked("cat <<'EOF'\nhello\nEOF\nrm -rf /tmp/x", "rm-forced")
+    blocked("cat <<'EOF' && rm -rf /tmp/x\nhello\nEOF", "rm-forced")
+    blocked("cat <<'A' <<'B'\na\nA\nb\nB\nrm -rf /tmp/x", "rm-forced")
+    # A tab-stripped terminator only ends a `<<-` body.
+    allowed("cat <<'EOF'\n\tEOF\nrm -rf /tmp/x\nEOF")
+    # A here-string has no body, and a quoted `<<` opens nothing.
+    blocked("grep a <<< 'x'\nrm -rf /tmp/x", "rm-forced")
+    blocked("echo '<<EOF'\nrm -rf /tmp/x\nEOF", "rm-forced")
+
+    print("## fallback keeps redirect ampersands")
+    allowed("make 2>&1 | tail -1; echo it's")
+    allowed("make >&2; echo it's")
+    allowed("make &> log.txt; echo it's")
+    blocked("sleep 1 & echo it's", "background")
+
     print("## rule: registry runners")
     blocked("npx prettier --write .", "registry-runner")
     blocked("pnpx tsx foo.ts", "registry-runner")

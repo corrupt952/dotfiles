@@ -223,8 +223,8 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "            ask = next((r for r in RULES if r.matches(command)), None)",
     ),
     "allow: malformed flag never set": (
-        "        malformed = True\n        rough = re.sub(",
-        "        rough = re.sub(",
+        "        malformed = True\n        # An `&` that belongs",
+        "        # An `&` that belongs",
     ),
     "allow: prefix ignored": (
         '        rule and rule.decision == "allow" and not command.prefixed',
@@ -436,6 +436,42 @@ MUTATIONS: dict[str, tuple[str, str]] = {
     "op: format json case-sensitive": (
         '            (flag_value(command, "--format") or "").lower() == "json"',
         '            (flag_value(command, "--format") or "") == "json"',
+    ),
+    "heredoc: not detected": (
+        '        heredoc = HEREDOC.match(command_line, index) if char == "<" else None',
+        "        heredoc = None",
+    ),
+    "heredoc: quoted body kept": (
+        '            if not quoted:\n                result.append(line + "\\n")',
+        '            result.append(line + "\\n")',
+    ),
+    "heredoc: unquoted body dropped": (
+        '            if not quoted:\n                result.append(line + "\\n")',
+        '            if False:\n                result.append(line + "\\n")',
+    ),
+    "heredoc: tabs never stripped": (
+        '(line.lstrip("\\t") if strip_tabs else line)',
+        "line",
+    ),
+    "heredoc: tabs always stripped": (
+        '(line.lstrip("\\t") if strip_tabs else line)',
+        'line.lstrip("\\t")',
+    ),
+    "heredoc: here-string read as heredoc": (
+        'r"(?<!<)<<(?!<)',
+        'r"<<',
+    ),
+    "heredoc: only the first body skipped": (
+        "    for delimiter, strip_tabs, quoted in pending:",
+        "    for delimiter, strip_tabs, quoted in pending[:1]:",
+    ),
+    "heredoc: backslash delimiter not quoting": (
+        r"""(?P<quoted>['\"\\])?""",
+        r"""(?P<quoted>['\"])?""",
+    ),
+    "fallback: redirect & split out": (
+        "(?<![<>])&(?!>)",
+        "&",
     ),
     "op: any format counts": (
         '            (flag_value(command, "--format") or "").lower() == "json"',

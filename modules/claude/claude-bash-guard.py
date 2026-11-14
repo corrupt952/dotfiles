@@ -88,6 +88,13 @@ SHELLS = frozenset({"bash", "sh", "zsh", "dash", "ksh", "fish"})
 ECHO_LIMIT = 200
 
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+
+# A heredoc operator and its delimiter. `<<<` is a here-string and has no
+# body. Any quoting of the delimiter, a backslash included, turns expansion
+# off in the body.
+HEREDOC = re.compile(
+    r"(?<!<)<<(?!<)(?P<tabs>-?)[ \t]*(?P<quoted>['\"\\])?(?P<word>[A-Za-z0-9_.\-]+)['\"]?"
+)
 VERSION_SUFFIX = re.compile(r"[0-9.]+$")
 DURATION = re.compile(r"^[0-9]+[smhd]?$")
 OCTAL_MODE = re.compile(r"^[0-7]{3,4}$")
@@ -924,8 +931,33 @@ def shield(char: str) -> str:
     return QUOTED_AMPERSAND if char == "&" else char
 
 
+def skip_heredoc_bodies(
+    command_line: str, index: int, pending: list[tuple[str, bool, bool]], result: list[str]
+) -> int:
+    """Consume the bodies of the heredocs opened on the line just ended.
+
+    `index` points just past that line's newline. A body under a quoted
+    delimiter is plain text that bash never expands, so it is dropped: read as
+    commands, an apostrophe in a commit message would unbalance the quotes.
+    Any other body can run `$(...)`, so it is kept for the rules to see.
+    Returns the index just past the last terminator.
+    """
+    for delimiter, strip_tabs, quoted in pending:
+        while index < len(command_line):
+            end = command_line.find("\n", index)
+            line_end = len(command_line) if end == -1 else end
+            line = command_line[index:line_end]
+            index = line_end + 1
+            if (line.lstrip("\t") if strip_tabs else line) == delimiter:
+                break
+            if not quoted:
+                result.append(line + "\n")
+    result.append("\n")
+    return index
+
+
 def strip_comments(command_line: str) -> str:
-    """Drop `#` comments and shield quoted `&`, leaving other quoted text alone.
+    """Drop `#` comments and quoted heredoc bodies, and shield quoted `&`.
 
     Has to run before tokenizing: shlex removes the quotes, after which a
     quoted `#` cannot be told from a comment marker, nor a quoted `&` from the
@@ -936,6 +968,8 @@ def strip_comments(command_line: str) -> str:
     quote = ""
     at_word_start = True
     index = 0
+    # Heredocs opened on the current line, as (delimiter, strip_tabs, quoted).
+    pending: list[tuple[str, bool, bool]] = []
 
     while index < len(command_line):
         char = command_line[index]
@@ -969,6 +1003,23 @@ def strip_comments(command_line: str) -> str:
         if char == "#" and at_word_start:
             while index < len(command_line) and command_line[index] not in "\r\n":
                 index += 1
+            continue
+
+        heredoc = HEREDOC.match(command_line, index) if char == "<" else None
+        if heredoc:
+            result.append(heredoc.group(0))
+            pending.append(
+                (heredoc.group("word"), bool(heredoc.group("tabs")), bool(heredoc.group("quoted")))
+            )
+            at_word_start = False
+            index = heredoc.end()
+            continue
+
+        if char == "\n" and pending:
+            result.append(char)
+            index = skip_heredoc_bodies(command_line, index + 1, pending, result)
+            pending = []
+            at_word_start = True
             continue
 
         result.append(char)
@@ -1006,7 +1057,9 @@ def tokenize(command_line: str) -> tuple[list[str], bool]:
         # Unbalanced quotes. Fall back to a crude split rather than skipping the
         # check, so a malformed command cannot be used to slip a rule.
         malformed = True
-        rough = re.sub(r"(\|\||&&|;|\||&|\(|\)|\{|\})", " \\1 ", prepared)
+        # An `&` that belongs to a redirect -- `2>&1`, `>&2`, `&>` -- stays
+        # put: split out, it would read as a background operator.
+        rough = re.sub(r"(\|\||&&|;|\||(?<![<>])&(?!>)|\(|\)|\{|\})", " \\1 ", prepared)
         tokens = [token.strip("\"'") for token in rough.split() if token.strip("\"'")]
 
     # Shielded ampersands stay shielded here: split_commands has yet to tell
