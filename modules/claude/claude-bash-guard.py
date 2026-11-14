@@ -757,10 +757,13 @@ RULES: Sequence[Rule] = (
     Rule(
         id="git-force-push",
         names=frozenset({"git"}),
+        # A refspec led by `+` forces that ref, and --mirror overwrites and
+        # deletes every remote ref to match the local ones.
         predicate=lambda c: c.subcommand_is("push")
         and (
             c.has_short_letter("f")
-            or any(flag.startswith("force") for flag in c.long_flags())
+            or any(flag.startswith("force") or flag == "mirror" for flag in c.long_flags())
+            or any(arg.startswith("+") and len(arg) > 1 for arg in c.positionals())
         ),
         message=(
             "Force-pushing is blocked by a static rule in settings.json. Nobody "
@@ -1124,11 +1127,11 @@ RULES: Sequence[Rule] = (
         decision="ask",
         predicate=lambda c: c.subcommand_is("push")
         and (
-            "delete" in set(c.long_flags())
+            bool({"delete", "prune"} & set(c.long_flags()))
             or c.has_short_letter("d")
             or any(arg.startswith(":") and len(arg) > 1 for arg in c.positionals())
         ),
-        message="This removes the branch from the remote.",
+        message="This removes branches from the remote.",
     ),
     Rule(
         id="variable-command",

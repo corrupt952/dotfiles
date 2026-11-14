@@ -75,6 +75,22 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "    return any(command.has_trailing_short_flag(letter) for letter in letters) or bool(",
         "    return any(command.has_trailing_short_flag(letter) for letter in letters) and bool(",
     ),
+    "push: --mirror not forced": (
+        '            or any(flag.startswith("force") or flag == "mirror" for flag in c.long_flags())',
+        '            or any(flag.startswith("force") for flag in c.long_flags())',
+    ),
+    "push: + refspec not forced": (
+        '            or any(arg.startswith("+") and len(arg) > 1 for arg in c.positionals())',
+        "            or False",
+    ),
+    "push: + inside a name counts": (
+        '            or any(arg.startswith("+") and len(arg) > 1 for arg in c.positionals())',
+        '            or any("+" in arg for arg in c.positionals())',
+    ),
+    "push: --prune not asked": (
+        '            bool({"delete", "prune"} & set(c.long_flags()))',
+        '            "delete" in set(c.long_flags())',
+    ),
     "chmod: octal write bit not read": (
         "        return int(mode[-1]) & 2 == 2",
         '        return mode.endswith("777")',
