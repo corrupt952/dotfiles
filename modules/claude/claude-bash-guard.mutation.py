@@ -525,13 +525,33 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '        heredoc = HEREDOC.match(command_line, index) if char == "<" else None',
         "        heredoc = None",
     ),
-    "heredoc: quoted body kept": (
-        '            if not quoted:\n                result.append(line + "\\n")',
+    "heredoc: inert body kept": (
+        '            if not inert:\n                result.append(line + "\\n")',
         '            result.append(line + "\\n")',
     ),
-    "heredoc: unquoted body dropped": (
-        '            if not quoted:\n                result.append(line + "\\n")',
+    "heredoc: live body dropped": (
+        '            if not inert:\n                result.append(line + "\\n")',
         '            if False:\n                result.append(line + "\\n")',
+    ),
+    "heredoc: consumer not checked": (
+        '            inert = bool(heredoc.group("quoted")) and heredoc_consumer(result) in HEREDOC_TEXT_SINKS',
+        '            inert = bool(heredoc.group("quoted"))',
+    ),
+    "heredoc: pipe after operator ignored": (
+        '                (word, tabs, inert and "|" not in command_line[op_end:index])',
+        "                (word, tabs, inert)",
+    ),
+    "heredoc: consumer path kept": (
+        '            return word.rsplit("/", 1)[-1]',
+        "            return word",
+    ),
+    "heredoc: assignment read as consumer": (
+        "        if not ASSIGNMENT.match(word):\n            return word.rsplit",
+        "        if True:\n            return word.rsplit",
+    ),
+    "heredoc: consumer from line start": (
+        '    start = max(text.rfind(sep) for sep in ";|&(\\n") + 1',
+        "    start = 0",
     ),
     "heredoc: tabs never stripped": (
         '(line.lstrip("\\t") if strip_tabs else line)',

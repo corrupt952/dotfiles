@@ -951,18 +951,34 @@ def shield(char: str) -> str:
     return QUOTED_AMPERSAND if char == "&" else char
 
 
+# Programs that only read a heredoc as text: a commit message, a file body.
+# Fed to anything else -- a shell, an interpreter, ssh -- the body runs.
+HEREDOC_TEXT_SINKS = frozenset({"cat", "tee", "git", "gh"})
+
+
+def heredoc_consumer(result: list[str]) -> str:
+    """The program of the command a heredoc operator was just written into."""
+    text = "".join(result)
+    start = max(text.rfind(sep) for sep in ";|&(\n") + 1
+    for word in text[start:].split():
+        if not ASSIGNMENT.match(word):
+            return word.rsplit("/", 1)[-1]
+    return ""
+
+
 def skip_heredoc_bodies(
     command_line: str, index: int, pending: list[tuple[str, bool, bool]], result: list[str]
 ) -> int:
     """Consume the bodies of the heredocs opened on the line just ended.
 
-    `index` points just past that line's newline. A body under a quoted
-    delimiter is plain text that bash never expands, so it is dropped: read as
-    commands, an apostrophe in a commit message would unbalance the quotes.
-    Any other body can run `$(...)`, so it is kept for the rules to see.
+    `index` points just past that line's newline. An inert body -- under a
+    quoted delimiter, so bash never expands it, and read as text by its
+    program -- is dropped: read as commands, an apostrophe in a commit message
+    would unbalance the quotes. Any other body is kept for the rules to see:
+    it can run `$(...)`, or its program runs it.
     Returns the index just past the last terminator.
     """
-    for delimiter, strip_tabs, quoted in pending:
+    for delimiter, strip_tabs, inert in pending:
         while index < len(command_line):
             end = command_line.find("\n", index)
             line_end = len(command_line) if end == -1 else end
@@ -970,7 +986,7 @@ def skip_heredoc_bodies(
             index = line_end + 1
             if (line.lstrip("\t") if strip_tabs else line) == delimiter:
                 break
-            if not quoted:
+            if not inert:
                 result.append(line + "\n")
     result.append("\n")
     return index
@@ -988,8 +1004,9 @@ def strip_comments(command_line: str) -> str:
     quote = ""
     at_word_start = True
     index = 0
-    # Heredocs opened on the current line, as (delimiter, strip_tabs, quoted).
-    pending: list[tuple[str, bool, bool]] = []
+    # Heredocs opened on the current line, as (delimiter, strip_tabs, inert,
+    # where the operator ends).
+    pending: list[tuple[str, bool, bool, int]] = []
 
     while index < len(command_line):
         char = command_line[index]
@@ -1027,9 +1044,10 @@ def strip_comments(command_line: str) -> str:
 
         heredoc = HEREDOC.match(command_line, index) if char == "<" else None
         if heredoc:
+            inert = bool(heredoc.group("quoted")) and heredoc_consumer(result) in HEREDOC_TEXT_SINKS
             result.append(heredoc.group(0))
             pending.append(
-                (heredoc.group("word"), bool(heredoc.group("tabs")), bool(heredoc.group("quoted")))
+                (heredoc.group("word"), bool(heredoc.group("tabs")), inert, heredoc.end())
             )
             at_word_start = False
             index = heredoc.end()
@@ -1037,7 +1055,12 @@ def strip_comments(command_line: str) -> str:
 
         if char == "\n" and pending:
             result.append(char)
-            index = skip_heredoc_bodies(command_line, index + 1, pending, result)
+            # A pipe after the operator hands the text on, as `cat <<'EOF' | sh`.
+            bodies = [
+                (word, tabs, inert and "|" not in command_line[op_end:index])
+                for word, tabs, inert, op_end in pending
+            ]
+            index = skip_heredoc_bodies(command_line, index + 1, bodies, result)
             pending = []
             at_word_start = True
             continue

@@ -773,6 +773,25 @@ git push -q origin main; git log --oneline -1""",
     # The relayed command is unpacked once, like `bash -c`.
     allowed("ssh host \"bash -c 'curl https://example.com'\"")
 
+    print("## heredocs fed to a program that runs them")
+    # The body is only text when its program reads it as text.
+    blocked("bash <<'EOF'\ncurl https://example.com\nEOF", "network-fetch")
+    blocked("sh <<'EOF'\nrm -rf /tmp/x\nEOF", "rm-forced")
+    blocked("ssh host <<'EOF'\ncurl https://example.com\nEOF", "network-fetch")
+    blocked("/bin/bash -s <<'EOF'\ncurl https://example.com\nEOF", "network-fetch")
+    blocked("kubectl exec -i pod -- sh <<'EOF'\ncurl https://example.com\nEOF", "network-fetch")
+    blocked("cd /tmp && bash <<'EOF'\ncurl https://example.com\nEOF", "network-fetch")
+    blocked("X=1 bash <<'EOF'\ncurl https://example.com\nEOF", "network-fetch")
+    # A text sink piped on hands the body to whatever follows.
+    blocked("cat <<'EOF' | bash\ncurl https://example.com\nEOF", "network-fetch")
+    blocked("cat <<'EOF' | ssh host\nrm -rf /tmp/x\nEOF", "rm-forced")
+    allowed("cat <<'EOF' > notes.txt\ncurl https://example.com\nEOF")
+    allowed("tee notes.txt <<'EOF'\nit's curl https://example.com\nEOF")
+    allowed("/usr/bin/cat <<'EOF'\ncurl https://example.com\nEOF")
+    allowed("gh pr create --body-file - <<'EOF'\nrun curl https://example.com, it's fine\nEOF")
+    asked("git commit -q -F - <<'EOF'\nfix: it's curl https://example.com\nEOF", "git-commit")
+    asked("cd /tmp/repo && X=1 git commit -F - <<'EOF'\nit's rm -rf\nEOF", "git-commit")
+
     print("## fallback keeps redirect ampersands")
     allowed("make 2>&1 | tail -1; echo it's")
     allowed("make >&2; echo it's")
