@@ -437,6 +437,62 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '            (flag_value(command, "--format") or "").lower() == "json"',
         '            (flag_value(command, "--format") or "") == "json"',
     ),
+    "relay: not unpacked": (
+        "            payload = nested_command(command) or relayed_command(command)",
+        "            payload = nested_command(command)",
+    ),
+    "relay: ssh value flag not skipped": (
+        "        elif arg in SSH_VALUE_FLAGS:\n            skip = True",
+        "        elif False:\n            skip = True",
+    ),
+    "relay: ssh -- read as destination": (
+        '        elif arg == "--":\n            continue',
+        '        elif arg == "--":\n            return None',
+    ),
+    "relay: ssh destination kept in payload": (
+        "            rest = args[index + 1 :]",
+        "            rest = args[index:]",
+    ),
+    "relay: ssh not covered": (
+        '    if name == "ssh":\n        return remote_command(args)',
+        '    if name == "ssh":\n        return None',
+    ),
+    "relay: tailscale ssh not covered": (
+        '    if name == "tailscale" and args[:1] == ("ssh",):',
+        "    if False:",
+    ),
+    "relay: name case kept": (
+        "    name = command.program.lower()",
+        "    name = command.program",
+    ),
+    "relay: k3s kubectl not covered": (
+        '    if name == "k3s" and args[:1] == ("kubectl",):',
+        "    if False:",
+    ),
+    "relay: kubectl any subcommand": (
+        '    if name in {"kubectl", "oc"} and "exec" in head:',
+        '    if name in {"kubectl", "oc"}:',
+    ),
+    "relay: kubectl exec after --": (
+        '    head = args[: args.index("--")] if "--" in args else args',
+        "    head = args",
+    ),
+    "relay: oc not covered": (
+        '    if name in {"kubectl", "oc"} and "exec" in head:',
+        '    if name == "kubectl" and "exec" in head:',
+    ),
+    "relay: mise x alias not covered": (
+        '    if name == "mise" and args[:1] in {("exec",), ("x",)}:',
+        '    if name == "mise" and args[:1] == ("exec",):',
+    ),
+    "relay: mise any subcommand": (
+        '    if name == "mise" and args[:1] in {("exec",), ("x",)}:',
+        '    if name == "mise":',
+    ),
+    "relay: runner args not requoted": (
+        "    return shlex.join(rest) if rest else None",
+        '    return " ".join(rest) if rest else None',
+    ),
     "heredoc: not detected": (
         '        heredoc = HEREDOC.match(command_line, index) if char == "<" else None',
         "        heredoc = None",

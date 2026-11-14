@@ -1166,6 +1166,66 @@ def split_commands(command_line: str) -> tuple[list[Command], bool]:
     return commands, malformed
 
 
+# ssh options that take a separate value, so the value is not read as the
+# destination.
+SSH_VALUE_FLAGS = frozenset(
+    {"-B", "-b", "-c", "-D", "-E", "-e", "-F", "-I", "-i", "-J", "-L", "-l", "-m",
+     "-O", "-o", "-P", "-p", "-Q", "-R", "-S", "-W", "-w"}
+)
+
+
+def remote_command(args: Sequence[str]) -> str | None:
+    """The command ssh runs on the far side, as the remote shell will read it.
+
+    ssh joins everything after the destination with spaces and hands that to
+    the remote shell, so the guard does the same.
+    """
+    skip = False
+    for index, arg in enumerate(args):
+        if skip:
+            skip = False
+        elif arg in SSH_VALUE_FLAGS:
+            skip = True
+        elif arg == "--":
+            continue
+        elif not arg.startswith("-"):
+            rest = args[index + 1 :]
+            return " ".join(rest) if rest else None
+    return None
+
+
+def after_double_dash(args: Sequence[str]) -> str | None:
+    """The command a runner takes after `--`, quoted back into one line."""
+    if "--" not in args:
+        return None
+    rest = args[args.index("--") + 1 :]
+    return shlex.join(rest) if rest else None
+
+
+def relayed_command(command: Command) -> str | None:
+    """The command another host, a pod or a tool environment is asked to run.
+
+    curl on a jump host is still curl: the rules apply wherever the command
+    ends up running.
+    """
+    name = command.program.lower()
+    args = command.args
+
+    if name == "ssh":
+        return remote_command(args)
+    if name == "tailscale" and args[:1] == ("ssh",):
+        return remote_command(args[1:])
+    if name == "k3s" and args[:1] == ("kubectl",):
+        args = args[1:]
+        name = "kubectl"
+    head = args[: args.index("--")] if "--" in args else args
+    if name in {"kubectl", "oc"} and "exec" in head:
+        return after_double_dash(args)
+    if name == "mise" and args[:1] in {("exec",), ("x",)}:
+        return after_double_dash(args)
+    return None
+
+
 def nested_command(command: Command) -> str | None:
     """The program a shell was handed with -c, which no rule can otherwise see.
 
@@ -1204,7 +1264,7 @@ def match_all(
         # One level, deliberately. Deeper nesting stops being the plain detour
         # this hook exists to redirect, and containment is the sandbox's job.
         if depth == 0:
-            payload = nested_command(command)
+            payload = nested_command(command) or relayed_command(command)
             if payload:
                 inner, inner_malformed = match_all(payload, depth + 1)
                 matches.extend(inner)

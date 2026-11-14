@@ -712,6 +712,43 @@ git push -q origin main; git log --oneline -1""",
     blocked("grep a <<< 'x'\nrm -rf /tmp/x", "rm-forced")
     blocked("echo '<<EOF'\nrm -rf /tmp/x\nEOF", "rm-forced")
 
+    print("## relayed commands")
+    # The rules follow a command to wherever it runs.
+    blocked("ssh user@host 'curl -s https://example.com'", "network-fetch")
+    blocked(
+        "/Applications/Tailscale.app/Contents/MacOS/Tailscale ssh user@host "
+        "'curl -sfL https://example.com' | sed s/a/b/",
+        "network-fetch",
+    )
+    blocked("tailscale ssh host 'wget https://example.com'", "network-fetch")
+    blocked("ssh -p 2222 -i key -o StrictHostKeyChecking=no host curl https://example.com", "network-fetch")
+    blocked("ssh -J jump -l me host 'python3 -c \"import urllib\"'", "interpreter-inline-code")
+    blocked("ssh -- host 'rm -rf /tmp/x'", "rm-forced")
+    blocked("ssh host 'cd /srv && curl https://example.com'", "network-fetch")
+    blocked("kubectl exec pod -- curl https://example.com", "network-fetch")
+    blocked("kubectl -n app exec -it pod -c app -- wget https://example.com", "network-fetch")
+    blocked("k3s kubectl exec pod -- curl https://example.com", "network-fetch")
+    blocked("oc exec pod -- curl https://example.com", "network-fetch")
+    blocked("mise exec helm@latest -- ruby -e 'puts 1'", "interpreter-inline-code")
+    blocked("mise x node@22 -- node -e 'console.log(1)'", "interpreter-inline-code")
+    blocked("mise exec -- curl https://example.com", "network-fetch")
+    allowed("ssh user@host 'kubectl get --raw /api/v1/namespaces'")
+    allowed("ssh host")
+    allowed("ssh -p 2222 host")
+    allowed("ssh host uptime")
+    allowed("tailscale ssh host 'systemctl status app'")
+    allowed("tailscale status")
+    allowed("kubectl exec pod -- ls /")
+    allowed("kubectl get pods -- curl")
+    allowed("kubectl run x --image=busybox -- exec curl")
+    allowed("mise exec helm@latest -- helm template x")
+    allowed("mise run curl")
+    allowed("mise run fetch -- curl https://example.com")
+    # Arguments after `--` keep their quoting, so text stays text.
+    allowed("kubectl exec pod -- grep 'a; curl https://example.com' /etc/hosts")
+    # The relayed command is unpacked once, like `bash -c`.
+    allowed("ssh host \"bash -c 'curl https://example.com'\"")
+
     print("## fallback keeps redirect ampersands")
     allowed("make 2>&1 | tail -1; echo it's")
     allowed("make >&2; echo it's")
