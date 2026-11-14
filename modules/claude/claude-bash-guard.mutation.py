@@ -522,6 +522,50 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "    return shlex.join(rest) if rest else None",
         '    return " ".join(rest) if rest else None',
     ),
+    "shell-stdin: -c not exempt": (
+        "    if nested_command(command) is not None:\n        return False\n    if \"-\" in command.args",
+        "    if \"-\" in command.args",
+    ),
+    "shell-stdin: heredoc not counted": (
+        '    if "-" in command.args or set(command.args) & {"<<", "<<-", "<<<"}:',
+        '    if "-" in command.args:',
+    ),
+    "shell-stdin: dash not counted": (
+        '    if "-" in command.args or set(command.args) & {"<<", "<<-", "<<<"}:',
+        '    if set(command.args) & {"<<", "<<-", "<<<"}:',
+    ),
+    "shell-stdin: pipe not counted": (
+        '    return command.piped and (command.has_short_letter("s") or not command.positionals())',
+        "    return False",
+    ),
+    "shell-stdin: pipe with a script file counted": (
+        '    return command.piped and (command.has_short_letter("s") or not command.positionals())',
+        "    return command.piped",
+    ),
+    "shell-stdin: -s with args ignored": (
+        '    return command.piped and (command.has_short_letter("s") or not command.positionals())',
+        "    return command.piped and not command.positionals()",
+    ),
+    "piped: never set": (
+        '            piped = token in {"|", "|&"}',
+        "            piped = False",
+    ),
+    "piped: |& not counted": (
+        '            piped = token in {"|", "|&"}',
+        '            piped = token == "|"',
+    ),
+    "piped: any separator counts": (
+        '            piped = token in {"|", "|&"}',
+        "            piped = True",
+    ),
+    "eval: not unpacked": (
+        '    if name == "eval":\n        return " ".join(args) or None',
+        '    if name == "eval":\n        return None',
+    ),
+    "variable: not asked": (
+        '        predicate=lambda c: c.name.startswith("$"),',
+        "        predicate=lambda c: False,",
+    ),
     "dquote: $( left inside the string": (
         """        if quote == '"' and command_line.startswith("$(", index):""",
         "        if False:",

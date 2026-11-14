@@ -20,7 +20,7 @@ import json
 import re
 import shlex
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Callable, Iterator, Sequence
 
 # Tokens that end one command and open the next. Splitting on them stops a rule
@@ -134,6 +134,8 @@ class Command:
     # True when the sub-command opens a `$(...)`, so its output becomes an
     # argument or a value instead of landing in the transcript.
     substituted: bool = False
+    # True when the sub-command reads a pipe: `curl x | bash`.
+    piped: bool = False
 
     @property
     def program(self) -> str:
@@ -391,6 +393,21 @@ def op_prints_secret(command: Command) -> bool:
             (flag_value(command, "--format") or "").lower() == "json"
         )
     return False
+
+
+def shell_reads_script_from_stdin(command: Command) -> bool:
+    """True when a shell takes its script from stdin rather than a file.
+
+    `-c` is unpacked and checked on its own, and `bash < file.sh` runs a file
+    like `bash file.sh` does, so neither counts. A pipe does, unless a script
+    file is named: `curl x | bash` and `curl x | bash -s -- arg` both run
+    what came down the pipe.
+    """
+    if nested_command(command) is not None:
+        return False
+    if "-" in command.args or set(command.args) & {"<<", "<<-", "<<<"}:
+        return True
+    return command.piped and (command.has_short_letter("s") or not command.positionals())
 
 
 def runs_from_registry(command: Command) -> bool:
@@ -661,6 +678,18 @@ RULES: Sequence[Rule] = (
         ),
     ),
     Rule(
+        id="shell-stdin-script",
+        names=SHELLS,
+        predicate=lambda c: shell_reads_script_from_stdin(c),
+        message=(
+            "Feeding a script to a shell over a pipe, a heredoc or a here-string "
+            "is blocked by a static rule in settings.json. Nobody blocked this "
+            "interactively. The guard cannot see what such a script runs. Run "
+            "the commands directly, or write the script to the scratchpad "
+            "directory and run that file, so it stays reviewable."
+        ),
+    ),
+    Rule(
         id="interpreter-stdin-script",
         names=INTERPRETERS,
         predicate=lambda c: c.reads_stdin_script(),
@@ -888,6 +917,16 @@ RULES: Sequence[Rule] = (
             or any(arg.startswith(":") and len(arg) > 1 for arg in c.positionals())
         ),
         message="This removes the branch from the remote.",
+    ),
+    Rule(
+        id="variable-command",
+        names=frozenset(),
+        decision="ask",
+        predicate=lambda c: c.name.startswith("$"),
+        message=(
+            "This runs whatever the variable or substitution holds, which the "
+            "guard cannot see."
+        ),
     ),
     # Allow rules come after the specific asks, and only lift the broad git
     # asks below for a line where every sub-command is one of these; decide()
@@ -1236,21 +1275,23 @@ def split_commands(command_line: str) -> tuple[list[Command], bool]:
     # is where a command substitution shows. Only the first command inside it
     # counts; anything after a separator in there fails toward the rules.
     substituted = False
+    piped = False
 
     tokens, malformed = tokenize(command_line)
     for token in tokens:
         if token in SEPARATORS:
             command = normalize(current, background=token == "&", substituted=substituted)
             if command:
-                commands.append(command)
+                commands.append(replace(command, piped=piped))
             substituted = token == "(" and bool(current) and current[-1].endswith("$")
+            piped = token in {"|", "|&"}
             current = []
         else:
             current.append(token)
 
     command = normalize(current, substituted=substituted)
     if command:
-        commands.append(command)
+        commands.append(replace(command, piped=piped))
 
     return commands, malformed
 
@@ -1300,6 +1341,9 @@ def relayed_command(command: Command) -> str | None:
     name = command.program.lower()
     args = command.args
 
+    # eval joins its arguments and runs the result as a command line.
+    if name == "eval":
+        return " ".join(args) or None
     if name == "ssh":
         return remote_command(args)
     if name == "tailscale" and args[:1] == ("ssh",):
