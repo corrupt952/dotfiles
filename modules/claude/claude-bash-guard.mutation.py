@@ -60,10 +60,76 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "                if True:",
     ),
     "interp: back to the two-way flag branch": (
-        "        predicate=lambda c: c.has_trailing_short_flag(INLINE_CODE_FLAG[c.program]),",
-        "        predicate=lambda c: c.has_trailing_short_flag(\n"
-        '            "c" if c.program.startswith("python") else "e"\n'
-        "        ),",
+        "    letters = INLINE_CODE_FLAG[command.program]",
+        '    letters = "c" if command.program.startswith("python") else "e"',
+    ),
+    "interp: node -p not covered": (
+        '    "node": "ep",',
+        '    "node": "e",',
+    ),
+    "interp: perl -E not covered": (
+        '    "perl": "eE",',
+        '    "perl": "e",',
+    ),
+    "interp: long flags not read": (
+        "    return any(command.has_trailing_short_flag(letter) for letter in letters) or bool(",
+        "    return any(command.has_trailing_short_flag(letter) for letter in letters) and bool(",
+    ),
+    "interp: flags after the script read": (
+        "    own = command.args[:script]",
+        "    own = command.args",
+    ),
+    "interp: long flag value not split off": (
+        '    long_flags = {arg[2:].split("=", 1)[0] for arg in own if arg.startswith("--")}',
+        '    long_flags = {arg[2:] for arg in own if arg.startswith("--")}',
+    ),
+    "interp: node --print not covered": (
+        '    "node": frozenset({"eval", "print"}),',
+        '    "node": frozenset({"eval"}),',
+    ),
+    "interp: bun --eval not covered": (
+        '    "bun": frozenset({"eval", "print"}),',
+        '    "bun": frozenset({"print"}),',
+    ),
+    "interp: deno eval not covered": (
+        '    if command.program == "deno":\n        return command.subcommand_is("eval")',
+        '    if command.program == "deno":\n        return False',
+    ),
+    "awk: system() not seen": (
+        r'AWK_RUNS_COMMAND = re.compile(r"system\s*\(|\|\s*\"|\"\s*\|\s*getline|\|&")',
+        r'AWK_RUNS_COMMAND = re.compile(r"\|\s*\"|\"\s*\|\s*getline|\|&")',
+    ),
+    "awk: print | cmd not seen": (
+        r'AWK_RUNS_COMMAND = re.compile(r"system\s*\(|\|\s*\"|\"\s*\|\s*getline|\|&")',
+        r'AWK_RUNS_COMMAND = re.compile(r"system\s*\(|\"\s*\|\s*getline|\|&")',
+    ),
+    "awk: cmd | getline not seen": (
+        r'AWK_RUNS_COMMAND = re.compile(r"system\s*\(|\|\s*\"|\"\s*\|\s*getline|\|&")',
+        r'AWK_RUNS_COMMAND = re.compile(r"system\s*\(|\|\s*\"|\|&")',
+    ),
+    "awk: coprocess not seen": (
+        r'AWK_RUNS_COMMAND = re.compile(r"system\s*\(|\|\s*\"|\"\s*\|\s*getline|\|&")',
+        r'AWK_RUNS_COMMAND = re.compile(r"system\s*\(|\|\s*\"|\"\s*\|\s*getline")',
+    ),
+    "sed: e command not seen": (
+        "        SED_E_COMMAND.search(script) or SED_S_E_FLAG.search(script)",
+        "        SED_S_E_FLAG.search(script)",
+    ),
+    "sed: s///e not seen": (
+        "        SED_E_COMMAND.search(script) or SED_S_E_FLAG.search(script)",
+        "        SED_E_COMMAND.search(script)",
+    ),
+    "sed: -e scripts not read": (
+        '        if arg in {"-e", "--expression"} and index + 1 < len(args):',
+        "        if False:",
+    ),
+    "sed: --expression= not read": (
+        '        elif arg.startswith("--expression="):',
+        "        elif False:",
+    ),
+    "sed: operand script not read": (
+        "        scripts = positionals[:1]",
+        "        scripts = []",
     ),
     "interp: set back to the original five": (
         "INTERPRETERS = frozenset(INLINE_CODE_FLAG)",

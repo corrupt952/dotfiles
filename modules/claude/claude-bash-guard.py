@@ -277,18 +277,71 @@ RUNNER_SUBCOMMAND_PAIRS: dict[str, frozenset[tuple[str, str]]] = {
 # The letter that hands an interpreter its program is not the same across the
 # set, so one shared letter would miss whichever ones disagree. Keyed by the
 # version-free name. deno is absent: it spells this as `deno eval`, not a flag.
+# Each letter listed hands over a program: node's -p prints what its program
+# evaluates to, and perl's -E is -e with features on.
 INLINE_CODE_FLAG: dict[str, str] = {
     "python": "c",
-    "node": "e",
+    "node": "ep",
     "ruby": "e",
-    "perl": "e",
+    "perl": "eE",
     "swift": "e",
     "bun": "e",
     "osascript": "e",
     "php": "r",
 }
 
+# The same, spelled as long flags.
+INLINE_CODE_LONG: dict[str, frozenset[str]] = {
+    "node": frozenset({"eval", "print"}),
+    "bun": frozenset({"eval", "print"}),
+}
+
 INTERPRETERS = frozenset(INLINE_CODE_FLAG)
+
+
+def runs_inline_code(command: Command) -> bool:
+    """True when an interpreter is handed its program on the command line."""
+    if command.program == "deno":
+        return command.subcommand_is("eval")
+    letters = INLINE_CODE_FLAG[command.program]
+    # A long flag after the script belongs to the script: `node app.js --print`.
+    script = next((i for i, arg in enumerate(command.args) if not arg.startswith("-")), None)
+    own = command.args[:script]
+    long_flags = {arg[2:].split("=", 1)[0] for arg in own if arg.startswith("--")}
+    return any(command.has_trailing_short_flag(letter) for letter in letters) or bool(
+        long_flags & INLINE_CODE_LONG.get(command.program, frozenset())
+    )
+
+
+# awk hands a string to the shell through system(), a pipe to or from a
+# quoted command, or a coprocess.
+AWK_RUNS_COMMAND = re.compile(r"system\s*\(|\|\s*\"|\"\s*\|\s*getline|\|&")
+
+# GNU sed runs a shell command with the `e` command, or the `e` flag of `s`.
+SED_E_COMMAND = re.compile(r"(?:^|[;{}\n])\s*(?:\d+|\$|/[^/]*/)?\s*!?\s*e(?:\s|;|}|$)")
+SED_S_E_FLAG = re.compile(r"(?:^|[;{}\n\s])s(.)(?:(?!\1).)*\1(?:(?!\1).)*\1[gpIiMm0-9]*e")
+
+
+def sed_scripts(command: Command) -> list[str]:
+    """The scripts sed runs: each -e/--expression value, else the first operand."""
+    scripts: list[str] = []
+    args = command.args
+    for index, arg in enumerate(args):
+        if arg in {"-e", "--expression"} and index + 1 < len(args):
+            scripts.append(args[index + 1])
+        elif arg.startswith("--expression="):
+            scripts.append(arg.split("=", 1)[1])
+    if not scripts:
+        positionals = command.positionals()
+        scripts = positionals[:1]
+    return scripts
+
+
+def sed_runs_command(command: Command) -> bool:
+    return any(
+        SED_E_COMMAND.search(script) or SED_S_E_FLAG.search(script)
+        for script in sed_scripts(command)
+    )
 
 REGISTRY_RUNNER_MESSAGE = (
     "Fetching a package from a registry and running it is blocked by a static "
@@ -677,9 +730,23 @@ RULES: Sequence[Rule] = (
         ),
     ),
     Rule(
+        id="text-tool-runs-command",
+        names=frozenset({"awk", "gawk", "mawk", "nawk", "sed", "gsed"}),
+        predicate=lambda c: sed_runs_command(c)
+        if c.program in {"sed", "gsed"}
+        else any(AWK_RUNS_COMMAND.search(arg) for arg in c.args),
+        message=(
+            "Running a shell command from inside an awk or sed program is "
+            "blocked by a static rule in settings.json. Nobody blocked this "
+            "interactively. system(), a pipe to a quoted command, getline from "
+            "one, and sed's e command all hand a string to the shell, out of "
+            "the guard's sight. Run that command directly instead."
+        ),
+    ),
+    Rule(
         id="interpreter-inline-code",
-        names=INTERPRETERS,
-        predicate=lambda c: c.has_trailing_short_flag(INLINE_CODE_FLAG[c.program]),
+        names=INTERPRETERS | {"deno"},
+        predicate=runs_inline_code,
         message=(
             "Running a one-liner through an interpreter is blocked by a static "
             "rule in settings.json. Nobody blocked this interactively. Use the "
