@@ -1,0 +1,8 @@
+{
+  "name": "blocker-ask-hint",
+  "version": "0.1.0",
+  "description": "When the auto mode classifier blocks a tool call, reminds the agent to ask the user for approval instead of giving up on an action the user asked for",
+  "author": {
+    "name": "corrupt952"
+  }
+}

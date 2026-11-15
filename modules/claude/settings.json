@@ -10,6 +10,7 @@
   "awaySummaryEnabled": false,
   "effortLevel": "high",
   "enabledPlugins": {
+    "blocker-ask-hint@dotfiles-mods": true,
     "classify-hint@dotfiles-mods": true,
     "dirigo-activity@dirigo": true,
     "document-skills@anthropic-agent-skills": true,

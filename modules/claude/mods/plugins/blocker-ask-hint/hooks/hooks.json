@@ -1,0 +1,4 @@
+{
+  "description": "An approval hint beside each tool result the auto mode classifier blocked",
+  "modules": ["./register.ts"]
+}

@@ -18,6 +18,11 @@
       "name": "classify-hint",
       "source": "classify-hint",
       "description": "Classifies the user's prompt with Haiku in one call and attaches a rough, non-binding hint for the main agent"
+    },
+    {
+      "name": "blocker-ask-hint",
+      "source": "blocker-ask-hint",
+      "description": "When the auto mode classifier blocks a tool call, reminds the agent to ask the user for approval instead of giving up on an action the user asked for"
     }
   ]
 }
