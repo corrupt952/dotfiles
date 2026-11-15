@@ -570,14 +570,14 @@ url = "https://github.com/newren/git-filter-repo/releases/download/v2.47.0/git-f
 url_api = "https://api.github.com/repos/newren/git-filter-repo/releases/assets/210902120"
 
 [[tools."github:tang3cko/Caim"]]
-version = "0.4.1"
+version = "1.0.0"
 backend = "github:tang3cko/Caim"
-specifiers = ["0.4.1"]
+specifiers = ["v1.0.0"]
 
 [tools."github:tang3cko/Caim"."platforms.macos-arm64"]
-checksum = "sha256:f25c61d06dc5d4514181b066b4d4d96ff22d5dcb17d18d1147c1acc496cad51e"
-url = "https://github.com/tang3cko/Caim/releases/download/v0.4.1/caim-v0.4.1-macos-arm64.tar.gz"
-url_api = "https://api.github.com/repos/tang3cko/Caim/releases/assets/714888104"
+checksum = "sha256:abe08e319e2a00ab215f6dd9be166cffff2cc7052c7db7dede9f989b356fe5e0"
+url = "https://github.com/tang3cko/Caim/releases/download/v1.0.0/caim-v1.0.0-macos-arm64.tar.gz"
+url_api = "https://api.github.com/repos/tang3cko/Caim/releases/assets/720856627"
 provenance = "github-attestations"
 
 [[tools.jactionlint]]
