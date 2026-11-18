@@ -120,6 +120,9 @@ def blocked(command: str, expected_rule: str) -> None:
     if "Blocked sub-command:" not in err:
         record(False, label, "message omits the offending sub-command")
         return
+    if "Do not run the same thing written another way" not in err:
+        record(False, label, "message omits the no-workaround note")
+        return
 
     record(True, label)
 
@@ -1537,6 +1540,7 @@ git push -q origin main; git log --oneline -1""",
     record("chars)" in err, "the echo is abbreviated in real output")
     stderr_budget = (
         len(RULE_MESSAGES["interpreter-inline-code"])
+        + len("\n\n" + GUARD.NO_WORKAROUND)
         + len("\n\nBlocked sub-command: ")
         + LIMIT
         + 1  # trailing newline from print()

@@ -1988,6 +1988,13 @@ def abbreviate(text: str, limit: int = ECHO_LIMIT) -> str:
     return f"{head} ... (+{len(text) - len(head)} chars)"
 
 
+NO_WORKAROUND = (
+    "Do not run the same thing written another way to get past this rule. "
+    "Take the alternative named above; if the user asked for exactly this "
+    "action, ask them for approval with the AskUserQuestion tool instead."
+)
+
+
 def main() -> int:
     try:
         payload = json.load(sys.stdin)
@@ -2026,7 +2033,7 @@ def main() -> int:
         return 0
 
     print(
-        f"{rule.message}\n\nBlocked sub-command: {abbreviate(command.raw)}",
+        f"{rule.message}\n\n{NO_WORKAROUND}\n\nBlocked sub-command: {abbreviate(command.raw)}",
         file=sys.stderr,
     )
     return 2
