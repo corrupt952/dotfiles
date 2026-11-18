@@ -23,6 +23,11 @@
       "name": "blocker-ask-hint",
       "source": "blocker-ask-hint",
       "description": "When the auto mode classifier blocks a tool call, reminds the agent to ask the user for approval instead of giving up on an action the user asked for"
+    },
+    {
+      "name": "japanese-reply-guard",
+      "source": "japanese-reply-guard",
+      "description": "Sends Claude back to rewrite in Japanese when a turn's last reply ends in a line of English"
     }
   ]
 }

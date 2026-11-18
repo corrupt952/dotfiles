@@ -1,0 +1,8 @@
+{
+  "name": "japanese-reply-guard",
+  "version": "0.1.0",
+  "description": "Sends Claude back to rewrite in Japanese when a turn's last reply ends in a line of English",
+  "author": {
+    "name": "corrupt952"
+  }
+}

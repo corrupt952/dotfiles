@@ -1,0 +1,15 @@
+{
+  "description": "A Stop hook: a settings hook, not a hooks module, because a mod's classic.Stop is passed over where the built-in guard loads",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/stop-english-end.py\""
+          }
+        ]
+      }
+    ]
+  }
+}
