@@ -1682,16 +1682,20 @@ def normalize(
             tokens.pop(0)
             changed = True
 
-        # `nix ... --command X ...` runs X; everything before it only picks an
-        # environment. Dropping the prefix puts X in command position.
-        # A remote installable keeps the nix prefix, so its rule still sees it.
+        # `nix ... --command X ...` runs X, and so does its short form -c;
+        # everything before it only picks an environment. Dropping the prefix
+        # puts X in command position. A remote installable keeps the nix
+        # prefix, so its rule still sees it.
+        marker = next(
+            (i for i, token in enumerate(tokens) if token in {"--command", "-c"}), None
+        )
         if (
             tokens
             and tokens[0] == "nix"
-            and "--command" in tokens
+            and marker is not None
             and not nix_fetches(tokens[1:])
         ):
-            del tokens[: tokens.index("--command") + 1]
+            del tokens[: marker + 1]
             changed = True
 
         wrapper = tokens[0].rsplit("/", 1)[-1] if tokens else ""
@@ -1852,6 +1856,9 @@ def relayed_command(command: Command) -> str | None:
         return None
     if name == "limactl" and args[:1] == ("shell",):
         return after_target(args[1:], frozenset({"--workdir", "--shell"}))
+    # nix-shell hands --run and --command to a shell inside the environment.
+    if name == "nix-shell":
+        return flag_value(command, "--run") or flag_value(command, "--command")
     if name == "ssh":
         return remote_command(args)
     if name == "tailscale" and args[:1] == ("ssh",):

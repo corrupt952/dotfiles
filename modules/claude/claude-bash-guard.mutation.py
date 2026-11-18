@@ -297,8 +297,20 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "        at_word_start = char.isspace()",
     ),
     "nix: --command not stripped": (
-        '            and tokens[0] == "nix"\n            and "--command" in tokens',
-        '            and False\n            and "--command" in tokens',
+        '            and tokens[0] == "nix"\n            and marker is not None',
+        '            and False\n            and marker is not None',
+    ),
+    "nix: -c not stripped": (
+        '            (i for i, token in enumerate(tokens) if token in {"--command", "-c"}), None',
+        '            (i for i, token in enumerate(tokens) if token == "--command"), None',
+    ),
+    "relay: nix-shell --run not unpacked": (
+        '        return flag_value(command, "--run") or flag_value(command, "--command")',
+        '        return flag_value(command, "--command")',
+    ),
+    "relay: nix-shell --command not unpacked": (
+        '        return flag_value(command, "--run") or flag_value(command, "--command")',
+        '        return flag_value(command, "--run")',
     ),
     "wrapper: flag value not skipped": (
         '                if flag in value_flags and tokens and not tokens[0].startswith("-"):',
