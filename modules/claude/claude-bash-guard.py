@@ -265,8 +265,15 @@ class Rule:
 
 
 # Commands whose whole purpose is to fetch a package and run it. The name alone
-# decides, so no argument inspection is needed.
-RUNNER_COMMANDS = frozenset({"npx", "pnpx", "pnx", "bunx", "uvx", "dnx", "jbang"})
+# decides, so no argument inspection is needed. pkgx runs any tool on demand;
+# `,` and `comma` find a binary in nixpkgs and run it; cgx does the same for
+# crates; pip-run builds a throwaway venv; dx is the alias `deno x
+# --install-alias` writes. dx is also the Dioxus CLI, which this catches too:
+# failing toward the block is the safer side.
+RUNNER_COMMANDS = frozenset(
+    {"npx", "pnpx", "pnx", "bunx", "uvx", "dnx", "jbang", "pkgx", ",", "comma", "cgx",
+     "pip-run", "dx"}
+)
 
 # Package managers that fetch and run only under a particular subcommand. The
 # sibling subcommands that run something already installed stay available:
@@ -556,7 +563,187 @@ def runs_from_registry(command: Command) -> bool:
     if tuple(positionals[:2]) in pairs:
         return True
 
+    first = FIRST_WORD_RUNNERS.get(command.program, frozenset())
+    if positionals[:1] and positionals[0] in first:
+        return True
+
+    if command.program == "go":
+        return go_runs_remote(command)
+    if command.program == "deno":
+        return deno_runs_remote(command)
+    if command.program == "uv":
+        return uv_run_fetches(command)
+
     return command.subcommand_is(*RUNNER_SUBCOMMANDS.get(command.name, frozenset()))
+
+
+# Runners whose subcommand has to be the first word. subcommand_is() also looks
+# at the second, which would read `deno run x` as `deno x`. `volta run` exists
+# to pass tool versions, and downloads whichever are missing.
+FIRST_WORD_RUNNERS: dict[str, frozenset[str]] = {
+    "deno": frozenset({"x"}),
+    "cs": frozenset({"launch"}),
+    "coursier": frozenset({"launch"}),
+    "volta": frozenset({"run"}),
+}
+
+# go's build flags that take a separate value.
+GO_VALUE_FLAGS = frozenset(
+    {"-C", "-exec", "-tags", "-ldflags", "-gcflags", "-asmflags", "-mod", "-modfile",
+     "-overlay", "-pgo", "-p", "-toolexec", "-installsuffix", "-buildmode", "-compiler",
+     "-gccgoflags", "-pkgdir", "-coverpkg", "-covermode", "-o"}
+)
+
+
+def go_runs_remote(command: Command) -> bool:
+    """True for `go run pkg@version`, which fetches the module and runs it.
+
+    Only the package position counts: words after it belong to the program.
+    """
+    words = positional_words(command, GO_VALUE_FLAGS)
+    return (
+        len(words) >= 2
+        and words[0] == "run"
+        and "@" in words[1]
+        and not words[1].startswith((".", "/"))
+    )
+
+
+# A module specifier that deno fetches rather than reads from disk.
+REMOTE_SPECIFIER = re.compile(r"^(?:npm:|jsr:|https?://)", re.IGNORECASE)
+DENO_VALUE_FLAGS = frozenset(
+    {"-c", "--config", "--import-map", "--location", "--seed", "--cert", "--lock"}
+)
+
+
+def deno_runs_remote(command: Command) -> bool:
+    """True when deno runs an npm:, jsr: or URL module, with or without `run`."""
+    words = positional_words(command, DENO_VALUE_FLAGS)
+    if words[:1] == ("run",):
+        words = words[1:]
+    return bool(words) and bool(REMOTE_SPECIFIER.match(words[0]))
+
+
+UV_VALUE_FLAGS = frozenset(
+    {"--with", "--with-editable", "--with-requirements", "-p", "--python", "--directory",
+     "--project", "--package", "--extra", "--group", "--only-group", "--no-group",
+     "--index", "--default-index", "--index-url", "--extra-index-url", "-f",
+     "--find-links", "--env-file", "--config-file", "--cache-dir", "-m"}
+)
+
+
+def uv_run_fetches(command: Command) -> bool:
+    """True for `uv run --with pkg` or `uv run <url>`.
+
+    --with layers packages the project never declared onto the run, which is
+    uvx under another name. Flags after the target belong to the target.
+    """
+    args = command.args
+    index = past_options(args, UV_VALUE_FLAGS)
+    if index is None or args[index] != "run":
+        return False
+    rest = args[index + 1 :]
+    target = past_options(rest, UV_VALUE_FLAGS)
+    own = rest[:target] if target is not None else rest
+    if any(arg == "--with" or arg.startswith("--with=") for arg in own):
+        return True
+    return target is not None and bool(URL_ARGUMENT.match(rest[target]))
+
+
+# mise's flags that take a separate value, global and exec's own. -c hands
+# exec a command line of its own.
+MISE_VALUE_FLAGS = frozenset(
+    {"-C", "--cd", "-E", "--env", "-P", "--profile", "-j", "--jobs", "-c", "--command"}
+)
+MISE_NAMES = frozenset({"mise", "rtx"})
+
+
+def mise_subcommand(command: Command) -> str | None:
+    index = past_options(command.args, MISE_VALUE_FLAGS)
+    return command.args[index] if index is not None else None
+
+
+def mise_exec_fetches(command: Command) -> bool:
+    """True when `mise exec` names a tool, which it installs if missing.
+
+    A bare `mise exec -- cmd` only uses the tools mise.toml already pins.
+    """
+    args = command.args
+    index = past_options(args, MISE_VALUE_FLAGS)
+    if index is None or args[index] != "exec":
+        return False
+    rest = args[index + 1 :]
+    head = rest[: rest.index("--")] if "--" in rest else rest
+    skip = False
+    for arg in head:
+        if skip:
+            skip = False
+        elif arg in MISE_VALUE_FLAGS:
+            skip = True
+        elif not arg.startswith("-"):
+            return True
+    return False
+
+
+# The nix subcommands that build and enter an installable. With a remote one
+# -- nixpkgs#x, github:o/r -- that is comma by hand.
+NIX_FETCH_SUBCOMMANDS = frozenset({"run", "shell", "develop"})
+NIX_VALUE_FLAGS = frozenset(
+    {"--extra-experimental-features", "--experimental-features", "--option", "--arg",
+     "--argstr", "-I", "--include", "--override-input", "--inputs-from", "--profile",
+     "-f", "--file"}
+)
+LOCAL_INSTALLABLE = re.compile(r"^(?:\.|/|~|path:|git\+file:)")
+
+
+def nix_fetches(args: Sequence[str]) -> bool:
+    """True when nix run, shell or develop is pointed at a remote installable.
+
+    No installable means the flake in the current directory, which is the
+    project's own. --expr can import anything, so it counts as remote, and so
+    does a -f file that is not a local path.
+    """
+    end = next(
+        (i for i, arg in enumerate(args) if arg in {"--command", "-c", "--"}), len(args)
+    )
+    head = args[:end]
+    words: list[str] = []
+    skip = False
+    for arg in head:
+        if skip:
+            skip = False
+        elif arg in NIX_VALUE_FLAGS:
+            skip = True
+        elif not arg.startswith("-"):
+            words.append(arg)
+    sub = next((i for i, word in enumerate(words[:2]) if word in NIX_FETCH_SUBCOMMANDS), None)
+    if sub is None:
+        return False
+    if "--expr" in head:
+        return True
+    file = next(
+        (head[i + 1] for i, arg in enumerate(head[:-1]) if arg in {"-f", "--file"}), None
+    )
+    if file is not None:
+        return not LOCAL_INSTALLABLE.match(file)
+    installables = words[sub + 1 :]
+    if words[sub] == "run":
+        installables = installables[:1]
+    return any(not LOCAL_INSTALLABLE.match(item) for item in installables)
+
+
+NIX_SHELL_VALUE_FLAGS = frozenset(
+    {"--run", "--command", "-I", "-A", "--attr", "--arg", "--argstr", "--option"}
+)
+
+
+def nix_shell_fetches(command: Command) -> bool:
+    """True for `nix-shell -p pkg`, an inline expression, or a remote file."""
+    if set(command.args) & {"-p", "--packages", "-E", "--expr"}:
+        return True
+    return any(
+        URL_ARGUMENT.match(word) for word in positional_words(command, NIX_SHELL_VALUE_FLAGS)
+    )
 
 
 # git's global options that take a separate value, so the value is not read
@@ -830,9 +1017,54 @@ RULES: Sequence[Rule] = (
     ),
     Rule(
         id="registry-runner-subcommand",
-        names=frozenset(RUNNER_SUBCOMMANDS) | frozenset(RUNNER_SUBCOMMAND_PAIRS),
+        names=frozenset(RUNNER_SUBCOMMANDS)
+        | frozenset(RUNNER_SUBCOMMAND_PAIRS)
+        | frozenset(FIRST_WORD_RUNNERS)
+        | {"go", "deno"},
         predicate=lambda c: runs_from_registry(c),
         message=REGISTRY_RUNNER_MESSAGE,
+    ),
+    # `mise x` is npx spelled for every ecosystem at once: npm:, pipx:, cargo:,
+    # go:, github: and ubi: backends all fetch and run in one step. No form of
+    # it is let through, usage flags included.
+    Rule(
+        id="mise-x",
+        names=MISE_NAMES,
+        predicate=lambda c: mise_subcommand(c) == "x",
+        message=(
+            "mise x is blocked by a static rule in settings.json. Nobody blocked "
+            "this interactively. It fetches any tool from any backend and runs "
+            "it, the same as npx. Run the tool directly if mise.toml already "
+            "pins it, or `mise exec -- <cmd>` with no tool named. If a tool is "
+            "missing, tell the user which one, so the version gets recorded."
+        ),
+    ),
+    Rule(
+        id="mise-exec-tool",
+        names=MISE_NAMES,
+        predicate=mise_exec_fetches,
+        message=(
+            "mise exec with a tool named is blocked by a static rule in "
+            "settings.json. Nobody blocked this interactively. Naming a tool "
+            "makes mise fetch and install it on the spot, the same as npx. "
+            "`mise exec -- <cmd>` with no tool named still runs with the tools "
+            "mise.toml pins. If a tool is missing, tell the user which one, so "
+            "the version gets recorded."
+        ),
+    ),
+    Rule(
+        id="nix-remote-run",
+        names=frozenset({"nix", "nix-shell"}),
+        predicate=lambda c: nix_shell_fetches(c) if c.name == "nix-shell" else nix_fetches(c.args),
+        message=(
+            "Running a remote nix installable is blocked by a static rule in "
+            "settings.json. Nobody blocked this interactively. nix run, nix "
+            "shell and nix develop on nixpkgs#..., github:... or an --expr, and "
+            "nix-shell -p, fetch a package and run it, the same as npx. The "
+            "project's own flake still works: `nix develop`, `nix run .#app`, "
+            "`nix shell .#pkg --command <cmd>`. If a tool is missing, tell the "
+            "user which one."
+        ),
     ),
     Rule(
         id="sed-in-place",
@@ -1452,7 +1684,13 @@ def normalize(
 
         # `nix ... --command X ...` runs X; everything before it only picks an
         # environment. Dropping the prefix puts X in command position.
-        if tokens and tokens[0] == "nix" and "--command" in tokens:
+        # A remote installable keeps the nix prefix, so its rule still sees it.
+        if (
+            tokens
+            and tokens[0] == "nix"
+            and "--command" in tokens
+            and not nix_fetches(tokens[1:])
+        ):
             del tokens[: tokens.index("--command") + 1]
             changed = True
 
@@ -1624,8 +1862,9 @@ def relayed_command(command: Command) -> str | None:
     head = args[: args.index("--")] if "--" in args else args
     if name in {"kubectl", "oc"} and "exec" in head:
         return after_double_dash(args)
-    if name == "mise" and args[:1] in {("exec",), ("x",)}:
-        return after_double_dash(args)
+    if name in MISE_NAMES and mise_subcommand(command) in {"exec", "x"}:
+        inline = flag_value(command, "--command") or flag_value(command, "-c")
+        return inline or after_double_dash(args)
     return None
 
 

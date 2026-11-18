@@ -297,8 +297,8 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "        at_word_start = char.isspace()",
     ),
     "nix: --command not stripped": (
-        '        if tokens and tokens[0] == "nix" and "--command" in tokens:',
-        "        if False:",
+        '            and tokens[0] == "nix"\n            and "--command" in tokens',
+        '            and False\n            and "--command" in tokens',
     ),
     "wrapper: flag value not skipped": (
         '                if flag in value_flags and tokens and not tokens[0].startswith("-"):',
@@ -720,13 +720,45 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '    if name in {"kubectl", "oc"} and "exec" in head:',
         '    if name == "kubectl" and "exec" in head:',
     ),
-    "relay: mise x alias not covered": (
-        '    if name == "mise" and args[:1] in {("exec",), ("x",)}:',
-        '    if name == "mise" and args[:1] == ("exec",):',
-    ),
     "relay: mise any subcommand": (
-        '    if name == "mise" and args[:1] in {("exec",), ("x",)}:',
-        '    if name == "mise":',
+        '    if name in MISE_NAMES and mise_subcommand(command) in {"exec", "x"}:',
+        "    if name in MISE_NAMES:",
+    ),
+    "relay: mise -c not unpacked": (
+        '        inline = flag_value(command, "--command") or flag_value(command, "-c")',
+        "        inline = None",
+    ),
+    "relay: rtx not covered": (
+        '    if name in MISE_NAMES and mise_subcommand(command) in {"exec", "x"}:',
+        '    if name == "mise" and mise_subcommand(command) in {"exec", "x"}:',
+    ),
+    "mise: x not denied": (
+        '        predicate=lambda c: mise_subcommand(c) == "x",',
+        "        predicate=lambda c: False,",
+    ),
+    "mise: exec tool spec allowed": (
+        "        elif not arg.startswith(\"-\"):\n            return True\n    return False",
+        "        elif not arg.startswith(\"-\"):\n            return False\n    return False",
+    ),
+    "nix: remote prefix stripped": (
+        "            and not nix_fetches(tokens[1:])",
+        "            and True",
+    ),
+    "nix: -c not an end marker": (
+        '        (i for i, arg in enumerate(args) if arg in {"--command", "-c", "--"}), len(args)',
+        '        (i for i, arg in enumerate(args) if arg in {"--command", "--"}), len(args)',
+    ),
+    "go: remote run allowed": (
+        '        and "@" in words[1]',
+        '        and "@" in words[0]',
+    ),
+    "uv: --with allowed": (
+        '    if any(arg == "--with" or arg.startswith("--with=") for arg in own):',
+        "    if False:",
+    ),
+    "deno: bare remote allowed": (
+        '    if words[:1] == ("run",):\n        words = words[1:]',
+        '    if words[:1] != ("run",):\n        return False\n    words = words[1:]',
     ),
     "relay: runner args not requoted": (
         "    return shlex.join(rest) if rest else None",
