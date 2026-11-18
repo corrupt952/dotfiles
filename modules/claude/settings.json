@@ -19,6 +19,7 @@
     "labee-core@labee-standards": true,
     "labee-marketing@labee-standards": true,
     "labee-swift@labee-standards": true,
+    "sandbox-ask-hint@dotfiles-mods": true,
     "verify-reports@dotfiles-mods": true
   },
   "env": {

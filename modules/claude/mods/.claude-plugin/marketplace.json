@@ -28,6 +28,11 @@
       "name": "japanese-reply-guard",
       "source": "japanese-reply-guard",
       "description": "Sends Claude back to rewrite in Japanese when a turn's last reply ends in a line of English"
+    },
+    {
+      "name": "sandbox-ask-hint",
+      "source": "sandbox-ask-hint",
+      "description": "Names blocked network destinations and asks whether the task needs the connection"
     }
   ]
 }

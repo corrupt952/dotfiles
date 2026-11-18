@@ -1,0 +1,4 @@
+{
+  "description": "A hint for outbound connections denied by the Bash sandbox",
+  "modules": ["./register.ts"]
+}
