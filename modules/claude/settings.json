@@ -11,7 +11,7 @@
   "effortLevel": "high",
   "enabledPlugins": {
     "blocker-ask-hint@dotfiles-mods": true,
-    "classify-hint@dotfiles-mods": true,
+    "classify-hint@dotfiles-mods": false,
     "dirigo-activity@dirigo": true,
     "document-skills@anthropic-agent-skills": true,
     "frontend-design@claude-plugins-official": true,
