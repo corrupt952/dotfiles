@@ -1,0 +1,13 @@
+{
+  "title": "TurnEnd",
+  "type": "object",
+  "properties": {
+    "asks_in_prose": {
+      "type": "boolean",
+      "description": "The agent's message asks the user a question, to choose between options, to approve, or to confirm something, in plain text."
+    }
+  },
+  "required": ["asks_in_prose"],
+  "x-order": ["asks_in_prose"],
+  "additionalProperties": false
+}

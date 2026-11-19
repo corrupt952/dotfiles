@@ -10,6 +10,7 @@
   "awaySummaryEnabled": false,
   "effortLevel": "high",
   "enabledPlugins": {
+    "ask-question-guard@dotfiles-mods": true,
     "blocker-ask-hint@dotfiles-mods": true,
     "classify-hint@dotfiles-mods": false,
     "dirigo-activity@dirigo": true,

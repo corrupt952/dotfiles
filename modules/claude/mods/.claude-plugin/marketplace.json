@@ -33,6 +33,11 @@
       "name": "sandbox-ask-hint",
       "source": "sandbox-ask-hint",
       "description": "Names blocked network destinations and asks whether the task needs the connection"
+    },
+    {
+      "name": "ask-question-guard",
+      "source": "ask-question-guard",
+      "description": "Sends Claude back to use AskUserQuestion when a turn ends with a question written as plain text"
     }
   ]
 }

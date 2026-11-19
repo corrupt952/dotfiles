@@ -1,0 +1,8 @@
+{
+  "name": "ask-question-guard",
+  "version": "0.1.0",
+  "description": "Sends Claude back to use AskUserQuestion when a turn ends with a question written as plain text",
+  "author": {
+    "name": "corrupt952"
+  }
+}
