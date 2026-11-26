@@ -16,6 +16,7 @@
     "dirigo-activity@dirigo": true,
     "document-skills@anthropic-agent-skills": true,
     "frontend-design@claude-plugins-official": true,
+    "japanese-reply-guard@dotfiles-mods": true,
     "labee-authoring@labee-standards": true,
     "labee-core@labee-standards": true,
     "labee-marketing@labee-standards": true,
@@ -50,6 +51,7 @@
       }
     },
     "dotfiles-mods": {
+      "autoUpdate": true,
       "source": {
         "path": "{{ env.HOME }}/.config/claude/mods",
         "source": "directory"
@@ -129,7 +131,7 @@
   "idleCompaction": false,
   "inputNeededNotifEnabled": true,
   "language": "日本語",
-  "model": "claude-opus-5-5[1m]",
+  "model": "opus",
   "modelSettings": {
     "claude-fable-5": {
       "effortLevel": "low"
