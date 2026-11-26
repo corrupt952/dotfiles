@@ -66,6 +66,16 @@
     "showFavicons" : true
   },
   "colorTheme" : "hybrid",
+  "dirigoAgent" : {
+    "mcpServers" : {
+      "vigilare" : {
+        "command" : "~/Applications/Vigilare.app/Contents/MacOS/Vigilare",
+        "args" : [
+          "--mcp"
+        ]
+      }
+    }
+  },
   "keyBindings" : {
     "bindings" : [
       {
@@ -328,7 +338,7 @@
       }
     }
   },
-  "workspace" : {
+  "work" : {
     "baseFolders" : [
       {
         "maxDepth" : 2,
