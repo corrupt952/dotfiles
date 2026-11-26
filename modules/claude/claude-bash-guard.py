@@ -1,19 +1,4 @@
 #!/usr/bin/env python3
-"""PreToolUse guard for the Bash tool.
-
-Replaces the Bash entries of permissions.deny. A deny rule can only say "no",
-and the model reads that bare refusal as the user having blocked it, so it
-stops. Exiting 2 here sends stderr back to the model as the reason, which lets
-each rule name its own alternative and keeps the turn going.
-
-Replaces the Bash entries of permissions.ask too. A matching ask rule prompts
-whatever a hook returns, so an allow here could never carve a harmless form
-out of one; an ask raised here can.
-
-Fails open: a malformed payload lets the call through to the normal permission
-flow. Real containment belongs to the sandbox settings.
-"""
-
 from __future__ import annotations
 
 import json
@@ -23,29 +8,16 @@ import sys
 from dataclasses import dataclass, field, replace
 from typing import Callable, Iterator, Sequence
 
-# Tokens that end one command and open the next. Splitting on them stops a rule
-# from being evaded by hiding the call behind && or inside a substitution.
 SEPARATORS = frozenset({"&&", "||", ";", ";;", "|", "|&", "&", "(", ")", "{", "}"})
 
-# Keywords that open a command position, so `then git reset --hard` still gets
-# checked as a `git reset`.
 KEYWORDS = frozenset({"then", "else", "elif", "do", "done", "fi", "esac", "!"})
 
-# Tokens that only redirect. A run of punctuation that is none of these and
-# none of SEPARATORS, such as the `&)` that closes `(cmd &)`, is a splice of
-# several and gets split back apart.
 REDIRECTS = frozenset({"<", "<<", "<<<", "<<-", "<&", "<>", ">", ">>", ">&", ">|", "&>", "&>>"})
 OPERATORS = SEPARATORS | REDIRECTS
 PUNCTUATION = frozenset("();<>|&")
 
-# Stands in for an `&` that sits inside quotes or behind a backslash while the
-# line is tokenized, since shlex hands both back as a bare `&`, which would
-# read as a background operator. Restored once the tokens are apart.
 QUOTED_AMPERSAND = "\x00amp\x00"
 
-# Commands that only prefix another command. Stripping them stops a rule from
-# being sidestepped by `env sed -i ...` or `xargs rm -rf`. nohup and setsid are
-# not here: they detach the command, which is a rule of its own.
 WRAPPERS = frozenset(
     {
         "arch",
@@ -66,14 +38,8 @@ WRAPPERS = frozenset(
     }
 )
 
-# Wrappers that take positional arguments of their own before the command:
-# `flock LOCKFILE cmd` and macOS `script FILE cmd`.
 WRAPPER_POSITIONALS: dict[str, int] = {"flock": 1, "script": 1}
 
-# Skipping a flag but not its value leaves the value in command position, so
-# the real command is never examined. Only flags that always take a separate
-# value belong here -- an optional or joined one would eat the command itself,
-# which is the same failure. That rules out `sudo -h` and `xargs -i`.
 WRAPPER_VALUE_FLAGS: dict[str, frozenset[str]] = {
     "arch": frozenset({"-arch"}),
     "doas": frozenset({"-u", "-C"}),
@@ -89,20 +55,12 @@ WRAPPER_VALUE_FLAGS: dict[str, frozenset[str]] = {
 
 STDIN_REDIRECTS = frozenset({"<", "<<", "<<<", "<<-"})
 
-# The tokenizer hands a shell's -c argument over intact, so nothing inside it
-# meets a rule unless it is unpacked deliberately.
 SHELLS = frozenset({"bash", "sh", "zsh", "dash", "ksh", "fish"})
 
-# Cap on the sub-command echoed back in a block message. Across every
-# transcript only the interpreter rules run long enough to matter, and their
-# messages already name the fix, so echoing the inlined program adds nothing.
 ECHO_LIMIT = 200
 
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 
-# A heredoc operator and its delimiter. `<<<` is a here-string and has no
-# body. Any quoting of the delimiter, a backslash included, turns expansion
-# off in the body.
 HEREDOC = re.compile(
     r"(?<!<)<<(?!<)(?P<tabs>-?)[ \t]*(?P<quoted>['\"\\])?(?P<word>[A-Za-z0-9_.\-]+)['\"]?"
 )
@@ -113,12 +71,6 @@ SYMBOLIC_CLAUSE = re.compile(r"^([ugoa]*)([-+=])([rwxXst]*)$")
 
 
 def world_writable(mode: str) -> bool:
-    """True when a chmod mode gives others write access.
-
-    Octal: the last digit carries the write bit. Symbolic: a clause that adds
-    or sets w for o or a. A clause naming nobody, as `+w`, is cut by the
-    umask, which normally keeps others out, so it does not count.
-    """
     if OCTAL_MODE.match(mode):
         return int(mode[-1]) & 2 == 2
     for clause in mode.split(","):
@@ -128,51 +80,33 @@ def world_writable(mode: str) -> bool:
                 return True
     return False
 
-# A fetch target that stays on this machine. Anything that is not clearly local
-# is treated as remote, so an unrecognized form fails toward blocking.
 LOCAL_TARGET = re.compile(
     r"^(?:[a-z][a-z0-9+.\-]*://)?"
     r"(?:\[::1\]|::1|localhost|127(?:\.[0-9]{1,3}){3}|0\.0\.0\.0)"
-    # The port is often a shell variable, so anything up to the path counts --
-    # except `@`, which ends the userinfo: past it the match is not the host.
     r"(?::[^/?#@]*)?(?:[/?#]|$)",
     re.IGNORECASE,
 )
 
-# Flags that only print text about the tool itself. With nothing else on the
-# line, a runner has no package to fetch and a detacher no command to start.
 INFO_FLAGS = frozenset({"--version", "-V", "--help", "-h"})
 
-# curl and wget add a manual, and fetch nothing with any of these alone.
 FETCH_INFO_FLAGS = INFO_FLAGS | {"--manual", "-M"}
 
 
 @dataclass(frozen=True)
 class Command:
-    """One normalized sub-command: the program plus its arguments."""
-
     name: str
     args: tuple[str, ...]
     raw: str
-    # True when the sub-command was closed by a lone `&`.
     background: bool = False
-    # True when a wrapper, an assignment or a keyword was stripped to reach
-    # the program. A deny still applies through a prefix; an allow does not,
-    # since sudo or GIT_DIR=... changes what the same words do.
     prefixed: bool = False
-    # True when the sub-command opens a `$(...)`, so its output becomes an
-    # argument or a value instead of landing in the transcript.
     substituted: bool = False
-    # True when the sub-command reads a pipe: `curl x | bash`.
     piped: bool = False
 
     @property
     def program(self) -> str:
-        """The name without a pinned version, so python3.11 reads as python."""
         return VERSION_SUFFIX.sub("", self.name) or self.name
 
     def short_flag_clusters(self) -> Iterator[str]:
-        """Letter runs of each short flag: -pi.bak yields 'pi', -rf yields 'rf'."""
         for arg in self.args:
             if arg.startswith("-") and not arg.startswith("--") and len(arg) > 1:
                 yield arg[1:].split(".", 1)[0]
@@ -186,12 +120,6 @@ class Command:
         return any(set(cluster) & set(letters) for cluster in self.short_flag_clusters())
 
     def has_trailing_short_flag(self, letter: str) -> bool:
-        """True when a short flag ends in `letter`, as -pi or -pe do.
-
-        A flag that takes a value has to sit last in its cluster, so anchoring
-        at the end is what separates `perl -pe` from `ruby -rerb` and
-        `perl -Mstrict`, where the letter merely appears inside a module name.
-        """
         return any(cluster.endswith(letter) for cluster in self.short_flag_clusters())
 
     def edits_in_place(self) -> bool:
@@ -201,20 +129,12 @@ class Command:
         return [arg for arg in self.args if not arg.startswith("-")]
 
     def subcommand_is(self, *names: str) -> bool:
-        """True when a subcommand appears where one can legally sit.
-
-        Only args[0] is not enough: global flags come first, so `pnpm --silent
-        dlx foo` would slip past. Looking at the first two positionals covers a
-        flag that eats a value, as in `yarn --cwd . dlx foo`, without matching a
-        package name further along.
-        """
         return bool(set(self.positionals()[:2]) & set(names))
 
     def reads_stdin_script(self) -> bool:
         return "-" in self.args or bool(set(self.args) & STDIN_REDIRECTS)
 
     def fetch_targets(self) -> list[str]:
-        """Arguments that name something to fetch, local or not."""
         return [
             arg
             for arg in self.args
@@ -222,12 +142,6 @@ class Command:
         ]
 
     def only_prints_info(self, flags: frozenset[str] = INFO_FLAGS) -> bool:
-        """True when every argument only asks for version or usage text.
-
-        Anything else, a bare host such as `example.com` included, fails it:
-        curl reads a word with no scheme as a URL to fetch, and a runner or
-        nohup reads it as the thing to run.
-        """
         return bool(self.args) and all(arg in flags for arg in self.args)
 
     def targets_only_localhost(self) -> bool:
@@ -237,21 +151,6 @@ class Command:
 
 @dataclass(frozen=True)
 class Rule:
-    """A rule that stops a command, either outright or for confirmation.
-
-    `names` selects the programs it applies to, or every program when empty;
-    `predicate` narrows further.
-
-    The decisions have different readers, so their messages differ in kind. A
-    `deny` message is read by the model: it says the block is a static setting
-    rather than a live refusal, and names what to do instead. An `ask` message
-    is read by the user in the approval prompt, which already shows the
-    command, so it says only what the command itself does not -- the
-    consequence -- in one sentence. An `allow` message is a one-line record of
-    why no prompt appeared: it lifts one of the git asks below for a form of
-    the command that cannot touch the working tree.
-    """
-
     id: str
     names: frozenset[str]
     message: str
@@ -264,20 +163,11 @@ class Rule:
         return self.predicate(command)
 
 
-# Commands whose whole purpose is to fetch a package and run it. The name alone
-# decides, so no argument inspection is needed. pkgx runs any tool on demand;
-# `,` and `comma` find a binary in nixpkgs and run it; cgx does the same for
-# crates; pip-run builds a throwaway venv; dx is the alias `deno x
-# --install-alias` writes. dx is also the Dioxus CLI, which this catches too:
-# failing toward the block is the safer side.
 RUNNER_COMMANDS = frozenset(
     {"npx", "pnpx", "pnx", "bunx", "uvx", "dnx", "jbang", "pkgx", ",", "comma", "cgx",
      "pip-run", "dx"}
 )
 
-# Package managers that fetch and run only under a particular subcommand. The
-# sibling subcommands that run something already installed stay available:
-# pnpm exec, yarn exec, bundle exec, composer exec, dotnet tool run.
 RUNNER_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "npm": frozenset({"exec", "x", "create"}),
     "pnpm": frozenset({"dlx", "create"}),
@@ -286,24 +176,16 @@ RUNNER_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "pipx": frozenset({"run", "install"}),
     "gem": frozenset({"exec"}),
     "dotnet": frozenset({"dnx"}),
-    # Corepack downloads the package manager itself, then hands off to it, so
-    # every shim it exposes is a way around the rules above.
     "corepack": frozenset(
         {"npm", "npx", "pnpm", "pnpx", "yarn", "yarnpkg", "install", "use", "up"}
     ),
 }
 
-# The same thing, for tools that spell it with two words.
 RUNNER_SUBCOMMAND_PAIRS: dict[str, frozenset[tuple[str, str]]] = {
     "uv": frozenset({("tool", "run"), ("tool", "install")}),
     "dotnet": frozenset({("tool", "exec")}),
 }
 
-# The letter that hands an interpreter its program is not the same across the
-# set, so one shared letter would miss whichever ones disagree. Keyed by the
-# version-free name. deno is absent: it spells this as `deno eval`, not a flag.
-# Each letter listed hands over a program: node's -p prints what its program
-# evaluates to, and perl's -E is -e with features on.
 INLINE_CODE_FLAG: dict[str, str] = {
     "python": "c",
     "node": "ep",
@@ -315,7 +197,6 @@ INLINE_CODE_FLAG: dict[str, str] = {
     "php": "r",
 }
 
-# The same, spelled as long flags.
 INLINE_CODE_LONG: dict[str, frozenset[str]] = {
     "node": frozenset({"eval", "print"}),
     "bun": frozenset({"eval", "print"}),
@@ -325,11 +206,9 @@ INTERPRETERS = frozenset(INLINE_CODE_FLAG)
 
 
 def runs_inline_code(command: Command) -> bool:
-    """True when an interpreter is handed its program on the command line."""
     if command.program == "deno":
         return command.subcommand_is("eval")
     letters = INLINE_CODE_FLAG[command.program]
-    # A long flag after the script belongs to the script: `node app.js --print`.
     script = next((i for i, arg in enumerate(command.args) if not arg.startswith("-")), None)
     own = command.args[:script]
     long_flags = {arg[2:].split("=", 1)[0] for arg in own if arg.startswith("--")}
@@ -338,17 +217,13 @@ def runs_inline_code(command: Command) -> bool:
     )
 
 
-# awk hands a string to the shell through system(), a pipe to or from a
-# quoted command, or a coprocess.
 AWK_RUNS_COMMAND = re.compile(r"system\s*\(|\|\s*\"|\"\s*\|\s*getline|\|&")
 
-# GNU sed runs a shell command with the `e` command, or the `e` flag of `s`.
 SED_E_COMMAND = re.compile(r"(?:^|[;{}\n])\s*(?:\d+|\$|/[^/]*/)?\s*!?\s*e(?:\s|;|}|$)")
 SED_S_E_FLAG = re.compile(r"(?:^|[;{}\n\s])s(.)(?:(?!\1).)*\1(?:(?!\1).)*\1[gpIiMm0-9]*e")
 
 
 def sed_scripts(command: Command) -> list[str]:
-    """The scripts sed runs: each -e/--expression value, else the first operand."""
     scripts: list[str] = []
     args = command.args
     for index, arg in enumerate(args):
@@ -378,14 +253,10 @@ REGISTRY_RUNNER_MESSAGE = (
 )
 
 
-# gh's global flags that take a separate value. Their value would otherwise
-# read as the first subcommand word.
 GH_VALUE_FLAGS = frozenset({"-R", "--repo", "--hostname", "-q", "--jq", "-t", "--template"})
 
 GITHUB_HOST = re.compile(r"(?:^|\.)github\.com$", re.IGNORECASE)
 
-# An argument that is itself a URL. Anchored, so a `://` inside a search query
-# or a field value is left alone.
 URL_ARGUMENT = re.compile(r"^[a-z][a-z0-9+.\-]*://", re.IGNORECASE)
 
 
@@ -412,8 +283,6 @@ def gh_words(command: Command) -> tuple[str, ...]:
 
 
 def gh_is(command: Command, *paths: tuple[str, ...]) -> bool:
-    # Asking gh how a subcommand works prints text and does nothing else, and
-    # it is how the right invocation gets found in the first place.
     if "help" in set(command.long_flags()) or "-h" in command.args:
         return False
 
@@ -422,7 +291,6 @@ def gh_is(command: Command, *paths: tuple[str, ...]) -> bool:
 
 
 def gh_leaves_github(command: Command) -> bool:
-    """True when `gh api` was pointed at a host that is not github.com."""
     if not gh_is(command, ("api",)):
         return False
 
@@ -437,8 +305,6 @@ def gh_leaves_github(command: Command) -> bool:
     return any(not GITHUB_HOST.search(host.split(":")[0]) for host in hosts)
 
 
-# op's global options that take a separate value, so the value is not read as
-# the subcommand.
 OP_VALUE_FLAGS = frozenset({"--account", "--config", "--encoding", "--session"})
 
 
@@ -455,8 +321,6 @@ def op_words(command: Command) -> tuple[str, ...]:
     return tuple(words)
 
 
-# Tools that open a connection to a host named by a positional argument, and
-# HTTP clients and text browsers that fetch a page named the same way.
 SOCKET_TOOLS = frozenset({"nc", "ncat", "netcat", "telnet"})
 HTTP_TOOLS = frozenset({"http", "https", "xh", "xhs", "aria2c", "lynx", "w3m", "links", "elinks"})
 HTTP_METHODS = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"})
@@ -471,10 +335,6 @@ def is_local_host(host: str) -> bool:
 
 
 def reaches_remote_host(command: Command) -> bool:
-    """True when a socket tool, an HTTP client or openssl names a remote host.
-
-    Usage flags need no exception: they are no positional, so name no host.
-    """
     name = command.program
     if name == "openssl":
         target = flag_value(command, "-connect")
@@ -494,21 +354,13 @@ def reaches_remote_host(command: Command) -> bool:
     if not targets:
         return False
     target = targets[0]
-    # httpie reads `:3000/x` as localhost.
     return not (target.startswith(":") or is_local_host(target))
 
 
-# Paths that write to this process's own output rather than a file.
 STDOUT_PATH = re.compile(r"^(?:-|/dev/(?:stdout|stderr|tty|fd/[0-9]+)|/proc/self/fd/[0-9]+)$")
 
 
 def op_prints_secret(command: Command) -> bool:
-    """True when op would print a secret value where the transcript sees it.
-
-    Inside `$(...)` the value becomes an argument or a variable instead, which
-    is how a secret gets handed to the command that needs it. That cannot stop
-    the value from being echoed later; it only stops it being shown outright.
-    """
     if command.substituted:
         return False
     if "help" in set(command.long_flags()) or "-h" in command.args:
@@ -516,7 +368,6 @@ def op_prints_secret(command: Command) -> bool:
 
     words = op_words(command)
     long_flags = set(command.long_flags())
-    # An output file that is the terminal again prints the secret all the same.
     out = flag_value(command, "--out-file") or flag_value(command, "-o")
     writes_file = out is not None and not STDOUT_PATH.match(out)
 
@@ -536,13 +387,6 @@ def op_prints_secret(command: Command) -> bool:
 
 
 def shell_reads_script_from_stdin(command: Command) -> bool:
-    """True when a shell takes its script from stdin rather than a file.
-
-    `-c` is unpacked and checked on its own, and `bash < file.sh` runs a file
-    like `bash file.sh` does, so neither counts. A pipe does, unless a script
-    file is named: `curl x | bash` and `curl x | bash -s -- arg` both run
-    what came down the pipe.
-    """
     if nested_command(command) is not None:
         return False
     if "-" in command.args or set(command.args) & {"<<", "<<-", "<<<"}:
@@ -551,11 +395,8 @@ def shell_reads_script_from_stdin(command: Command) -> bool:
 
 
 def runs_from_registry(command: Command) -> bool:
-    """True when a package manager was asked to fetch and run something."""
     positionals = command.positionals()
 
-    # `npm init <initializer>` becomes `npm exec create-<initializer>`, but a
-    # bare `npm init` only writes a package.json.
     if command.name == "npm" and command.subcommand_is("init"):
         return len(positionals) > 1
 
@@ -577,9 +418,6 @@ def runs_from_registry(command: Command) -> bool:
     return command.subcommand_is(*RUNNER_SUBCOMMANDS.get(command.name, frozenset()))
 
 
-# Runners whose subcommand has to be the first word. subcommand_is() also looks
-# at the second, which would read `deno run x` as `deno x`. `volta run` exists
-# to pass tool versions, and downloads whichever are missing.
 FIRST_WORD_RUNNERS: dict[str, frozenset[str]] = {
     "deno": frozenset({"x"}),
     "cs": frozenset({"launch"}),
@@ -587,7 +425,6 @@ FIRST_WORD_RUNNERS: dict[str, frozenset[str]] = {
     "volta": frozenset({"run"}),
 }
 
-# go's build flags that take a separate value.
 GO_VALUE_FLAGS = frozenset(
     {"-C", "-exec", "-tags", "-ldflags", "-gcflags", "-asmflags", "-mod", "-modfile",
      "-overlay", "-pgo", "-p", "-toolexec", "-installsuffix", "-buildmode", "-compiler",
@@ -596,10 +433,6 @@ GO_VALUE_FLAGS = frozenset(
 
 
 def go_runs_remote(command: Command) -> bool:
-    """True for `go run pkg@version`, which fetches the module and runs it.
-
-    Only the package position counts: words after it belong to the program.
-    """
     words = positional_words(command, GO_VALUE_FLAGS)
     return (
         len(words) >= 2
@@ -609,7 +442,6 @@ def go_runs_remote(command: Command) -> bool:
     )
 
 
-# A module specifier that deno fetches rather than reads from disk.
 REMOTE_SPECIFIER = re.compile(r"^(?:npm:|jsr:|https?://)", re.IGNORECASE)
 DENO_VALUE_FLAGS = frozenset(
     {"-c", "--config", "--import-map", "--location", "--seed", "--cert", "--lock"}
@@ -617,7 +449,6 @@ DENO_VALUE_FLAGS = frozenset(
 
 
 def deno_runs_remote(command: Command) -> bool:
-    """True when deno runs an npm:, jsr: or URL module, with or without `run`."""
     words = positional_words(command, DENO_VALUE_FLAGS)
     if words[:1] == ("run",):
         words = words[1:]
@@ -633,11 +464,6 @@ UV_VALUE_FLAGS = frozenset(
 
 
 def uv_run_fetches(command: Command) -> bool:
-    """True for `uv run --with pkg` or `uv run <url>`.
-
-    --with layers packages the project never declared onto the run, which is
-    uvx under another name. Flags after the target belong to the target.
-    """
     args = command.args
     index = past_options(args, UV_VALUE_FLAGS)
     if index is None or args[index] != "run":
@@ -650,8 +476,6 @@ def uv_run_fetches(command: Command) -> bool:
     return target is not None and bool(URL_ARGUMENT.match(rest[target]))
 
 
-# mise's flags that take a separate value, global and exec's own. -c hands
-# exec a command line of its own.
 MISE_VALUE_FLAGS = frozenset(
     {"-C", "--cd", "-E", "--env", "-P", "--profile", "-j", "--jobs", "-c", "--command"}
 )
@@ -664,10 +488,6 @@ def mise_subcommand(command: Command) -> str | None:
 
 
 def mise_exec_fetches(command: Command) -> bool:
-    """True when `mise exec` names a tool, which it installs if missing.
-
-    A bare `mise exec -- cmd` only uses the tools mise.toml already pins.
-    """
     args = command.args
     index = past_options(args, MISE_VALUE_FLAGS)
     if index is None or args[index] != "exec":
@@ -685,8 +505,6 @@ def mise_exec_fetches(command: Command) -> bool:
     return False
 
 
-# The nix subcommands that build and enter an installable. With a remote one
-# -- nixpkgs#x, github:o/r -- that is comma by hand.
 NIX_FETCH_SUBCOMMANDS = frozenset({"run", "shell", "develop"})
 NIX_VALUE_FLAGS = frozenset(
     {"--extra-experimental-features", "--experimental-features", "--option", "--arg",
@@ -697,12 +515,6 @@ LOCAL_INSTALLABLE = re.compile(r"^(?:\.|/|~|path:|git\+file:)")
 
 
 def nix_fetches(args: Sequence[str]) -> bool:
-    """True when nix run, shell or develop is pointed at a remote installable.
-
-    No installable means the flake in the current directory, which is the
-    project's own. --expr can import anything, so it counts as remote, and so
-    does a -f file that is not a local path.
-    """
     end = next(
         (i for i, arg in enumerate(args) if arg in {"--command", "-c", "--"}), len(args)
     )
@@ -738,7 +550,6 @@ NIX_SHELL_VALUE_FLAGS = frozenset(
 
 
 def nix_shell_fetches(command: Command) -> bool:
-    """True for `nix-shell -p pkg`, an inline expression, or a remote file."""
     if set(command.args) & {"-p", "--packages", "-E", "--expr"}:
         return True
     return any(
@@ -746,19 +557,12 @@ def nix_shell_fetches(command: Command) -> bool:
     )
 
 
-# git's global options that take a separate value, so the value is not read
-# as the subcommand.
 GIT_VALUE_FLAGS = frozenset(
     {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--config-env"}
 )
 
 
 def git_subcommand(command: Command) -> str | None:
-    """The word git runs as its subcommand, past its global options.
-
-    Stricter than subcommand_is(), which also looks at the second
-    positional: `git stash push` is a stash, not a push.
-    """
     skip = False
     for arg in command.args:
         if skip:
@@ -770,9 +574,6 @@ def git_subcommand(command: Command) -> str | None:
     return None
 
 
-# The only checkout flags that cannot make it write to the working tree. -B is
-# absent: it moves an existing branch. -t and --track are bare here; a joined
-# value (--track=direct) fails the exact match and falls through to the ask.
 CHECKOUT_BRANCH_FLAGS = frozenset(
     {
         "-b",
@@ -788,22 +589,10 @@ CHECKOUT_BRANCH_FLAGS = frozenset(
     }
 )
 
-# A ref or branch name as the shell would hand it over unexpanded. Anything
-# that could still expand -- `$`, a backtick, braces -- is excluded, since an
-# allow is the one decision where a token that grows a command is not caught
-# downstream. Quotes are already stripped, so `"$(x)"` shows up as `$(x)`.
 REF_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/@^~+-]*$")
 
 
 def creates_branch_only(command: Command) -> bool:
-    """True for `git checkout -b <name> [<start>]` and nothing more.
-
-    Any other checkout, a global git flag before the subcommand, or a `--`
-    fails, so the git-checkout ask is reached as before. A plain
-    `git checkout <x>` is not here on purpose: when <x> is not a branch, git
-    reads it as a path and restores the file, which cannot be told apart
-    statically.
-    """
     if not command.args or command.args[0] != "checkout":
         return False
 
@@ -819,9 +608,6 @@ def creates_branch_only(command: Command) -> bool:
     return 1 <= len(names) <= 2 and all(REF_NAME.match(name) for name in names)
 
 
-# tmux subcommands that start something in the tmux server, and the flag that
-# keeps it from the terminal: -d for a session, window or pane, -b for a shell
-# command run in the background.
 TMUX_DETACHED: dict[str, str] = {
     "new-session": "d",
     "new": "d",
@@ -837,7 +623,6 @@ LAUNCHD_STARTS = frozenset({"submit", "load", "bootstrap", "kickstart", "start"}
 
 
 def hands_off_to_a_service(command: Command) -> bool:
-    """True when another process -- tmux, screen, atd, launchd -- runs it on."""
     name = command.program
     if command.only_prints_info():
         return False
@@ -855,7 +640,6 @@ def hands_off_to_a_service(command: Command) -> bool:
 
 
 def positional_words(command: Command, value_flags: frozenset[str]) -> tuple[str, ...]:
-    """The positional words, skipping the values of `value_flags`."""
     words: list[str] = []
     skip = False
     for arg in command.args:
@@ -880,8 +664,6 @@ DETACH_MESSAGE = (
 
 
 RULES: Sequence[Rule] = (
-    # First, so that a command which also trips a later rule still gets the
-    # run_in_background pointer: that is the fix the model has to reach for.
     Rule(
         id="background",
         names=frozenset(),
@@ -891,7 +673,6 @@ RULES: Sequence[Rule] = (
     Rule(
         id="detach",
         names=frozenset({"nohup", "setsid", "disown"}),
-        # `disown -h` is no usage flag: it keeps SIGHUP from the job.
         predicate=lambda c: c.name == "disown" or not c.only_prints_info(),
         message=DETACH_MESSAGE,
     ),
@@ -944,8 +725,6 @@ RULES: Sequence[Rule] = (
     Rule(
         id="git-force-push",
         names=frozenset({"git"}),
-        # A refspec led by `+` forces that ref, and --mirror overwrites and
-        # deletes every remote ref to match the local ones.
         predicate=lambda c: c.subcommand_is("push")
         and (
             c.has_short_letter("f")
@@ -1024,9 +803,6 @@ RULES: Sequence[Rule] = (
         predicate=lambda c: runs_from_registry(c),
         message=REGISTRY_RUNNER_MESSAGE,
     ),
-    # `mise x` is npx spelled for every ecosystem at once: npm:, pipx:, cargo:,
-    # go:, github: and ubi: backends all fetch and run in one step. No form of
-    # it is let through, usage flags included.
     Rule(
         id="mise-x",
         names=MISE_NAMES,
@@ -1251,8 +1027,6 @@ RULES: Sequence[Rule] = (
             "them decide."
         ),
     ),
-    # Ask rules come last: the first match wins, so an overlapping deny has to
-    # be reached first.
     Rule(
         id="gh-ci-config",
         names=frozenset({"gh"}),
@@ -1375,9 +1149,6 @@ RULES: Sequence[Rule] = (
             "guard cannot see."
         ),
     ),
-    # Allow rules come after the specific asks, and only lift the broad git
-    # asks below for a line where every sub-command is one of these; decide()
-    # enforces that.
     Rule(
         id="git-checkout-branch",
         names=frozenset({"git"}),
@@ -1385,8 +1156,6 @@ RULES: Sequence[Rule] = (
         predicate=creates_branch_only,
         message="Creating a branch only moves HEAD; the working tree is untouched.",
     ),
-    # Exactly these two words: --skip drops a commit and --quit leaves the
-    # tree half-rebased, so neither is here, nor is any extra flag.
     Rule(
         id="git-rebase-resume",
         names=frozenset({"git"}),
@@ -1394,10 +1163,6 @@ RULES: Sequence[Rule] = (
         predicate=lambda c: c.args in {("rebase", "--abort"), ("rebase", "--continue")},
         message="Finishing or abandoning a rebase already in progress; no history is rewritten.",
     ),
-    # The broad git asks come last, behind the allows they make exceptions
-    # for: first match wins per sub-command, so a form an allow covers never
-    # reaches its ask, and decide() falls back to the ask when that allow
-    # cannot be granted.
     Rule(
         id="git-commit",
         names=frozenset({"git"}),
@@ -1433,17 +1198,13 @@ RULES: Sequence[Rule] = (
 
 
 def shield(char: str) -> str:
-    """The form a quoted or escaped character takes through the tokenizer."""
     return QUOTED_AMPERSAND if char == "&" else char
 
 
-# Programs that only read a heredoc as text: a commit message, a file body.
-# Fed to anything else -- a shell, an interpreter, ssh -- the body runs.
 HEREDOC_TEXT_SINKS = frozenset({"cat", "tee", "git", "gh"})
 
 
 def heredoc_consumer(result: list[str]) -> str:
-    """The program of the command a heredoc operator was just written into."""
     text = "".join(result)
     start = max(text.rfind(sep) for sep in ";|&(\n") + 1
     for word in text[start:].split():
@@ -1455,15 +1216,6 @@ def heredoc_consumer(result: list[str]) -> str:
 def skip_heredoc_bodies(
     command_line: str, index: int, pending: list[tuple[str, bool, bool]], result: list[str]
 ) -> int:
-    """Consume the bodies of the heredocs opened on the line just ended.
-
-    `index` points just past that line's newline. An inert body -- under a
-    quoted delimiter, so bash never expands it, and read as text by its
-    program -- is dropped: read as commands, an apostrophe in a commit message
-    would unbalance the quotes. Any other body is kept for the rules to see:
-    it can run `$(...)`, or its program runs it.
-    Returns the index just past the last terminator.
-    """
     for delimiter, strip_tabs, inert in pending:
         while index < len(command_line):
             end = command_line.find("\n", index)
@@ -1479,26 +1231,11 @@ def skip_heredoc_bodies(
 
 
 def strip_comments(command_line: str) -> str:
-    """Drop `#` comments and quoted heredoc bodies, and shield quoted `&`.
-
-    Has to run before tokenizing: shlex removes the quotes, after which a
-    quoted `#` cannot be told from a comment marker, nor a quoted `&` from the
-    background operator. A `#` opens a comment only at the start of a word,
-    which is what keeps flake refs and URL fragments.
-
-    A `$(...)` or a backtick inside double quotes still runs, so the string is
-    closed around it and reopened after: `"a $(curl x) b"` reads as
-    `"a "$(curl x)" b"`, and the command inside meets the rules.
-    """
     result: list[str] = []
     quote = ""
     at_word_start = True
     index = 0
-    # Heredocs opened on the current line, as (delimiter, strip_tabs, inert,
-    # where the operator ends).
     pending: list[tuple[str, bool, bool, int]] = []
-    # Unquoted paren depth, and the depths whose `)` closes a substitution
-    # that was opened inside double quotes.
     depth = 0
     reopen: list[int] = []
     backtick_reopens = False
@@ -1567,7 +1304,6 @@ def strip_comments(command_line: str) -> str:
 
         if char == "\n" and pending:
             result.append(char)
-            # A pipe after the operator hands the text on, as `cat <<'EOF' | sh`.
             bodies = [
                 (word, tabs, inert and "|" not in command_line[op_end:index])
                 for word, tabs, inert, op_end in pending
@@ -1605,16 +1341,6 @@ def strip_comments(command_line: str) -> str:
 
 
 def tokenize(command_line: str) -> tuple[list[str], bool]:
-    """Split a command line into shell tokens, keeping operators separate.
-
-    Newlines and backticks become explicit separators first: shlex treats a
-    newline as plain whitespace, which would splice two commands into one, and
-    it has no notion of a backtick substitution at all.
-
-    The flag is True when the line could not be tokenized properly and the
-    crude fallback was used. Such tokens are good enough to catch a rule, and
-    not good enough to vouch for an allow.
-    """
     without_comments = strip_comments(command_line)
     prepared = (
         without_comments.replace("\n", " ; ").replace("\r", " ; ").replace("`", " ; ")
@@ -1622,23 +1348,15 @@ def tokenize(command_line: str) -> tuple[list[str], bool]:
 
     lexer = shlex.shlex(prepared, posix=True, punctuation_chars=True)
     lexer.whitespace_split = True
-    # Comments are already gone, and shlex's own handling would take `#` in the
-    # middle of a word too, eating nix flake refs and URL fragments.
     lexer.commenters = ""
     malformed = False
     try:
         tokens = list(lexer)
     except ValueError:
-        # Unbalanced quotes. Fall back to a crude split rather than skipping the
-        # check, so a malformed command cannot be used to slip a rule.
         malformed = True
-        # An `&` that belongs to a redirect -- `2>&1`, `>&2`, `&>` -- stays
-        # put: split out, it would read as a background operator.
         rough = re.sub(r"(\|\||&&|;|\||(?<![<>])&(?!>)|\(|\)|\{|\})", " \\1 ", prepared)
         tokens = [token.strip("\"'") for token in rough.split() if token.strip("\"'")]
 
-    # Shielded ampersands stay shielded here: split_commands has yet to tell
-    # the operators apart, and normalize restores them once it has.
     result: list[str] = []
     for token in tokens:
         result.extend(split_operators(token))
@@ -1646,11 +1364,6 @@ def tokenize(command_line: str) -> tuple[list[str], bool]:
 
 
 def split_operators(token: str) -> list[str]:
-    """Break a spliced punctuation run such as `&)` into `&` and `)`.
-
-    shlex groups adjacent punctuation into one token. Longest known operator
-    first, so `&>` stays a redirect and does not become `&` plus `>`.
-    """
     if not token or set(token) - PUNCTUATION:
         return [token]
 
@@ -1670,7 +1383,6 @@ def split_operators(token: str) -> list[str]:
 def normalize(
     tokens: list[str], background: bool = False, substituted: bool = False
 ) -> Command | None:
-    """Strip everything that only prefixes the real command."""
     tokens = [token.replace(QUOTED_AMPERSAND, "&") for token in tokens]
     original_length = len(tokens)
 
@@ -1682,10 +1394,6 @@ def normalize(
             tokens.pop(0)
             changed = True
 
-        # `nix ... --command X ...` runs X, and so does its short form -c;
-        # everything before it only picks an environment. Dropping the prefix
-        # puts X in command position. A remote installable keeps the nix
-        # prefix, so its rule still sees it.
         marker = next(
             (i for i, token in enumerate(tokens) if token in {"--command", "-c"}), None
         )
@@ -1703,7 +1411,6 @@ def normalize(
             tokens.pop(0)
             value_flags = WRAPPER_VALUE_FLAGS.get(wrapper, frozenset())
             changed = True
-            # Some wrappers also carry a bare value, as `timeout 30` does.
             while tokens and (tokens[0].startswith("-") or DURATION.match(tokens[0])):
                 flag = tokens.pop(0)
                 if flag in value_flags and tokens and not tokens[0].startswith("-"):
@@ -1728,12 +1435,8 @@ def normalize(
 
 
 def split_commands(command_line: str) -> tuple[list[Command], bool]:
-    """The sub-commands on a line, and whether tokenizing had to guess."""
     commands: list[Command] = []
     current: list[str] = []
-    # The tokenizer leaves the `$` of `$(` on the word before the `(`, so that
-    # is where a command substitution shows. Only the first command inside it
-    # counts; anything after a separator in there fails toward the rules.
     substituted = False
     piped = False
 
@@ -1756,8 +1459,6 @@ def split_commands(command_line: str) -> tuple[list[Command], bool]:
     return commands, malformed
 
 
-# ssh options that take a separate value, so the value is not read as the
-# destination.
 SSH_VALUE_FLAGS = frozenset(
     {"-B", "-b", "-c", "-D", "-E", "-e", "-F", "-I", "-i", "-J", "-L", "-l", "-m",
      "-O", "-o", "-P", "-p", "-Q", "-R", "-S", "-W", "-w"}
@@ -1765,11 +1466,6 @@ SSH_VALUE_FLAGS = frozenset(
 
 
 def remote_command(args: Sequence[str]) -> str | None:
-    """The command ssh runs on the far side, as the remote shell will read it.
-
-    ssh joins everything after the destination with spaces and hands that to
-    the remote shell, so the guard does the same.
-    """
     skip = False
     for index, arg in enumerate(args):
         if skip:
@@ -1784,8 +1480,6 @@ def remote_command(args: Sequence[str]) -> str | None:
     return None
 
 
-# Flags of `docker run` and its kin that take a separate value, so the value is
-# not read as the image. -h is the hostname here, not help.
 CONTAINER_VALUE_FLAGS = frozenset(
     {"-e", "--env", "--env-file", "-u", "--user", "-w", "--workdir", "-v", "--volume",
      "-p", "--publish", "--name", "--network", "--net", "--entrypoint", "--platform",
@@ -1799,7 +1493,6 @@ FIND_EXEC_FLAGS = frozenset({"-exec", "-execdir", "-ok", "-okdir"})
 
 
 def past_options(args: Sequence[str], value_flags: frozenset[str]) -> int | None:
-    """Index of the first positional, skipping flags and their values."""
     skip = False
     for index, arg in enumerate(args):
         if skip:
@@ -1812,14 +1505,12 @@ def past_options(args: Sequence[str], value_flags: frozenset[str]) -> int | None
 
 
 def after_target(args: Sequence[str], value_flags: frozenset[str]) -> str | None:
-    """The command after the first positional (a container, an image, a VM)."""
     index = past_options(args, value_flags)
     rest = args[index + 1 :] if index is not None else ()
     return shlex.join(rest) if rest else None
 
 
 def after_double_dash(args: Sequence[str]) -> str | None:
-    """The command a runner takes after `--`, quoted back into one line."""
     if "--" not in args:
         return None
     rest = args[args.index("--") + 1 :]
@@ -1827,16 +1518,9 @@ def after_double_dash(args: Sequence[str]) -> str | None:
 
 
 def relayed_command(command: Command) -> str | None:
-    """The command another host, a pod or a tool environment is asked to run.
-
-    curl on a jump host is still curl: the rules apply wherever the command
-    ends up running.
-    """
     name = command.program.lower()
     args = command.args
 
-    # eval joins its arguments and runs the result as a command line, and so
-    # does watch, through `sh -c`.
     if name == "eval":
         return " ".join(args) or None
     if name == "watch":
@@ -1856,7 +1540,6 @@ def relayed_command(command: Command) -> str | None:
         return None
     if name == "limactl" and args[:1] == ("shell",):
         return after_target(args[1:], frozenset({"--workdir", "--shell"}))
-    # nix-shell hands --run and --command to a shell inside the environment.
     if name == "nix-shell":
         return flag_value(command, "--run") or flag_value(command, "--command")
     if name == "ssh":
@@ -1876,12 +1559,6 @@ def relayed_command(command: Command) -> str | None:
 
 
 def nested_command(command: Command) -> str | None:
-    """The program a shell was handed with -c, which no rule can otherwise see.
-
-    The letter may sit anywhere in a short-flag cluster, and the program is the
-    token after that cluster rather than the first positional, since a flag's
-    own value can come in between.
-    """
     if command.name not in SHELLS:
         return None
 
@@ -1889,7 +1566,6 @@ def nested_command(command: Command) -> str | None:
         if not arg.startswith("-") or arg.startswith("--"):
             continue
         if "c" in arg[1:]:
-            # An end-of-options separator may sit in between, and is not it.
             for candidate in command.args[index + 1 :]:
                 if candidate != "--":
                     return candidate
@@ -1901,17 +1577,11 @@ def nested_command(command: Command) -> str | None:
 def match_all(
     command_line: str, depth: int = 0
 ) -> tuple[list[tuple[Rule | None, Command]], bool]:
-    """Every sub-command on the line, paired with the first rule it meets.
-
-    The flag says whether any part of the line was tokenized by guesswork.
-    """
     matches: list[tuple[Rule | None, Command]] = []
     commands, malformed = split_commands(command_line)
     for command in commands:
         matches.append((next((r for r in RULES if r.matches(command)), None), command))
 
-        # One level, deliberately. Deeper nesting stops being the plain detour
-        # this hook exists to redirect, and containment is the sandbox's job.
         if depth == 0:
             payload = nested_command(command) or relayed_command(command)
             if payload:
@@ -1923,16 +1593,6 @@ def match_all(
 
 
 def decide(command_line: str) -> tuple[Rule, Command] | None:
-    """The one rule that speaks for the whole line, or None to stay silent.
-
-    A deny anywhere on the line wins, then an ask. An allow is returned only
-    when every sub-command met an allow rule: the decision covers the whole
-    line, so one unmatched sub-command -- which the hook cannot vouch for --
-    sends the line to fallback_ask() instead. The same goes for a
-    sub-command reached through a wrapper, a path or an assignment: the
-    words were vetted, the prefix was not. And for a line with unbalanced
-    quotes: the tokens are a guess, so no allow rests on them.
-    """
     matches, malformed = match_all(command_line)
     for decision in ("deny", "ask"):
         for rule, command in matches:
@@ -1952,13 +1612,6 @@ def decide(command_line: str) -> tuple[Rule, Command] | None:
 
 
 def fallback_ask(matches: list[tuple[Rule | None, Command]]) -> tuple[Rule, Command] | None:
-    """The ask behind an allow that could not be granted.
-
-    An allow rule only carves a form out of one of the broad git asks. When
-    the line cannot be vouched for as a whole, the sub-command it covered
-    goes back under that ask: falling silent instead would let it run with
-    no prompt at all, now that no settings.json ask stands behind the hook.
-    """
     for rule, command in matches:
         if rule and rule.decision == "allow":
             ask = next((r for r in RULES if r.decision == "ask" and r.matches(command)), None)
@@ -1969,20 +1622,9 @@ def fallback_ask(matches: list[tuple[Rule | None, Command]]) -> tuple[Rule, Comm
 
 
 def abbreviate(text: str, limit: int = ECHO_LIMIT) -> str:
-    """Cut an over-long sub-command down to its head.
-
-    The head is what identifies the call among several on one line, the only
-    job the echo has. Nothing is kept from the end: the model wrote the
-    command, so a trailing path tells it nothing it does not already have.
-
-    Reserving the marker inside the limit makes two invariants exact: the
-    result never exceeds `limit`, and so is never longer than what it replaced.
-    """
     if len(text) <= limit:
         return text
 
-    # len(text) has at least as many digits as the count of omitted characters,
-    # so reserving against it can never come up short.
     marker_budget = len(f" ... (+{len(text)} chars)")
     head = text[: limit - marker_budget]
     return f"{head} ... (+{len(text) - len(head)} chars)"
@@ -2019,7 +1661,6 @@ def main() -> int:
     rule, command = verdict
 
     if rule.decision in {"ask", "allow"}:
-        # No echo: the prompt already shows the user the command.
         json.dump(
             {
                 "hookSpecificOutput": {

@@ -1,21 +1,4 @@
 #!@python3@
-"""Test suite for claude-bash-guard.py.
-
-Feeds the guard real PreToolUse payloads through its stdin/stdout contract and
-asserts both the exit code and which rule fired.
-
-Rule cases call the guard's main() in this process, with stdin, stdout and
-stderr swapped for buffers: starting Python for each of them was nearly all
-of the run time. The payload edge cases still start the guard as its own
-process, since only that shows the exit code and streams the hook sees.
-
-Usage: python3 modules/claude/claude-bash-guard.test.py
-       GUARD_SUBPROCESS=1 python3 modules/claude/claude-bash-guard.test.py
-       GUARD_BIN=/path/to/built/guard python3 modules/claude/claude-bash-guard.test.py
-GUARD_SUBPROCESS=1 or GUARD_BIN runs every case as a process. GUARD_FAIL_FAST=1
-stops at the first failure, which is all the mutation checker needs.
-"""
-
 from __future__ import annotations
 
 import contextlib
@@ -37,11 +20,10 @@ failures: list[str] = []
 
 
 class FailFast(Exception):
-    """Raised on the first failure when GUARD_FAIL_FAST is set."""
+    pass
 
 
 def guard_argv() -> list[str]:
-    """Run the built guard when GUARD_BIN is set, else the source directly."""
     built = os.environ.get("GUARD_BIN")
     if built:
         return [built]
@@ -59,7 +41,6 @@ def run_process(payload: str) -> subprocess.CompletedProcess:
 
 
 def run_in_process(payload: str) -> subprocess.CompletedProcess:
-    """main() against buffers, shaped like what run_process returns."""
     stdout, stderr = io.StringIO(), io.StringIO()
     stdin = sys.stdin
     sys.stdin = io.StringIO(payload)
@@ -98,7 +79,6 @@ def record(ok: bool, label: str, detail: str = "") -> None:
 
 
 def blocked(command: str, expected_rule: str) -> None:
-    """Assert exit 2, the named rule, the disclaimer, and the echoed command."""
     code, err = run(payload_for(command))
     label = f"blocked: {command!r}"
 
@@ -128,12 +108,10 @@ def blocked(command: str, expected_rule: str) -> None:
 
 
 def asked(command: str, expected_rule: str) -> None:
-    """Assert exit 0 and a well-formed ask decision carrying the rule's reason."""
     decided(command, expected_rule, "ask")
 
 
 def lifted(command: str, expected_rule: str) -> None:
-    """Assert exit 0 and an allow decision, which bypasses the settings ask."""
     decided(command, expected_rule, "allow")
 
 
@@ -171,8 +149,6 @@ def decided(command: str, expected_rule: str, decision: str) -> None:
 
 
 def allowed(command: str) -> None:
-    # An ask also exits 0 with an empty stderr, so silence on stdout is what
-    # separates "no rule matched" from "the user was asked".
     proc = run_full(payload_for(command))
     label = f"allowed: {command!r}"
     if proc.returncode == 0 and not proc.stderr and not proc.stdout:
@@ -187,7 +163,6 @@ def allowed(command: str) -> None:
 
 
 def process_contract(command: str, label: str, code: int, stream: str, text: str) -> None:
-    """One case run as a real process: its exit code and which stream speaks."""
     proc = run_process(payload_for(command))
     other = proc.stdout if stream == "stderr" else proc.stderr
     spoke = proc.stderr if stream == "stderr" else proc.stdout
@@ -212,10 +187,6 @@ def raw_allowed(payload: str, label: str) -> None:
 
 
 def echo_of(command: str) -> str:
-    """The sub-command the guard echoed back, with its label stripped.
-
-    `Command.raw` joins tokens with spaces, so the echo is always one line.
-    """
     _, err = run(payload_for(command))
     prefix = "Blocked sub-command: "
     for line in err.splitlines():
@@ -224,11 +195,7 @@ def echo_of(command: str) -> str:
     return ""
 
 
-# Loaded from the guard itself, so a reworded message cannot silently stop the
-# tests from checking which rule fired.
 def load_guard():
-    # Importing the guard would otherwise drop a __pycache__ into the module
-    # directory, which is tracked source.
     sys.dont_write_bytecode = True
     spec = importlib.util.spec_from_file_location("claude_bash_guard", SOURCE)
     module = importlib.util.module_from_spec(spec)
@@ -256,7 +223,6 @@ def main() -> int:
 
 def run_cases() -> None:
     print("## process contract")
-    # Rule cases run in this process; these pin what the hook itself sees.
     process_contract("rm -rf /tmp/x", "deny exits 2 on stderr", 2, "stderr", "Blocked sub-command:")
     process_contract("git commit -m x", "ask exits 0 with JSON", 0, "stdout", '"permissionDecision": "ask"')
     process_contract("git checkout -b topic", "allow exits 0 with JSON", 0, "stdout", '"permissionDecision": "allow"')
@@ -302,7 +268,6 @@ def run_cases() -> None:
     blocked("curl http://127.0.0.1:x@evil.com/", "network-fetch")
     blocked("wget http://localhost:99@169.254.169.254/latest/meta-data/", "network-fetch")
     allowed("wget http://localhost:8000/file.txt")
-    # Asking the tool about itself fetches nothing.
     allowed("curl --version")
     allowed("/usr/bin/curl --version | head -1")
     allowed("curl -V")
@@ -311,7 +276,6 @@ def run_cases() -> None:
     allowed("curl --manual")
     allowed("wget --version")
     allowed("wget -V")
-    # Anything beside those flags may be a URL, scheme or not.
     blocked("curl --version example.com", "network-fetch")
     blocked("curl -V https://example.com", "network-fetch")
     blocked("curl --help all", "network-fetch")
@@ -344,14 +308,12 @@ def run_cases() -> None:
     blocked("setsid cmd", "detach")
     blocked("setsid -f cmd", "detach")
     blocked("cmd; disown", "detach")
-    # With nothing to start, they only print their own usage.
     allowed("nohup --version")
     allowed("setsid --help")
     allowed("setsid -V")
     blocked("nohup --version cmd", "detach")
     blocked("setsid -h cmd", "detach")
     blocked("disown -h", "detach")
-    # Handing the command to a long-lived service detaches it just as well.
     blocked("tmux new-session -d 'sleep 100'", "detach-service")
     blocked("tmux new -ds work 'make watch'", "detach-service")
     blocked("tmux -L sock new-window -d 'make watch'", "detach-service")
@@ -378,10 +340,7 @@ def run_cases() -> None:
     allowed("launchctl list")
     allowed("launchctl print gui/501")
     blocked("cmd & disown", "background")
-    # A wrapper that also trips a later rule still gets the run_in_background
-    # pointer, since that is the fix.
     blocked("rm -rf x &", "background")
-    # `&&`, `|&` and the redirect spellings share the character, and are not it.
     allowed("cmd1 && cmd2")
     allowed("cmd |& tee log")
     allowed("cmd &> log")
@@ -406,7 +365,6 @@ def run_cases() -> None:
     blocked("git push --force origin main", "git-force-push")
     blocked("git push --force-with-lease origin main", "git-force-push")
     blocked("git push origin main -f", "git-force-push")
-    # A `+` refspec and --mirror overwrite remote refs just as -f does.
     blocked("git push origin +main", "git-force-push")
     blocked("git push origin +HEAD:refs/heads/main", "git-force-push")
     blocked("git push origin main +topic", "git-force-push")
@@ -441,7 +399,6 @@ def run_cases() -> None:
     blocked("gh ssh-key add ~/.ssh/id_ed25519.pub", "gh-auth")
     blocked("gh gpg-key add key.asc", "gh-auth")
     blocked("gh repo deploy-key add key.pub", "gh-auth")
-    # A global flag with a value shifts the subcommand words along.
     blocked("gh -R owner/repo auth token", "gh-auth")
     blocked("gh --repo owner/repo repo deploy-key add key.pub", "gh-auth")
     allowed("gh auth status")
@@ -463,7 +420,6 @@ def run_cases() -> None:
     allowed("gh extension list")
     allowed("gh extension search dash")
     allowed("gh skill list")
-    # Reading the help for a blocked subcommand is how its right use is found.
     allowed("gh alias set --help")
     allowed("gh config set --help")
     allowed("gh repo delete --help")
@@ -486,7 +442,6 @@ def run_cases() -> None:
     allowed("gh api graphql -f query='{viewer{login}}'")
     allowed("gh api -X DELETE /repos/o/r")
     allowed("gh api --hostname github.com /user")
-    # A scheme inside a query or a field value is not a fetch target.
     allowed("gh api -X GET search/code -f q='docker:// repo:github/docs'")
     allowed("gh api repos/o/r/issues -f body='see https://example.com/x'")
 
@@ -497,7 +452,6 @@ def run_cases() -> None:
     blocked("gh project field-delete --id 3", "gh-irreversible-delete")
     blocked("gh repo edit --visibility public", "gh-repo-publish")
     blocked("gh repo edit --visibility=public", "gh-repo-publish")
-    # gh passes the value through as written, so case is not a difference.
     blocked("gh repo edit --visibility PUBLIC", "gh-repo-publish")
     blocked("gh repo edit --visibility Public", "gh-repo-publish")
     blocked("gh repo edit --visibility=PUBLIC", "gh-repo-publish")
@@ -535,8 +489,6 @@ def run_cases() -> None:
     asked("gh gist delete abc123", "gh-remote-delete")
     asked("gh run delete 987", "gh-remote-delete")
     asked("gh workflow run ci.yaml", "gh-remote-run")
-    # --ref is the ordinary way to try a workflow before merging it, and the
-    # branch had to be pushed first, which prompts on its own.
     asked("gh workflow run ci.yaml --ref feature/x", "gh-remote-run")
     asked("gh agent-task create --base main", "gh-remote-run")
     asked("gh repo sync --force", "gh-repo-sync-force")
@@ -578,8 +530,6 @@ def run_cases() -> None:
     asked("git stash drop", "git-stash-discard")
     asked("git stash drop stash@{2}", "git-stash-discard")
     asked("git stash clear", "git-stash-discard")
-    # Naming paths is what the git reset --hard message tells the model to do,
-    # so it has to stay open, and --staged only touches the index.
     allowed("git restore src/main.py")
     allowed("git restore src/ tests/")
     allowed("git restore --staged .")
@@ -592,7 +542,6 @@ def run_cases() -> None:
     allowed("git clean -n")
     allowed("git clean -nd")
     allowed("git clean --dry-run -d")
-    # -n overrides -f in git, so these only preview.
     allowed("git clean -fn")
     allowed("git clean -nf")
     allowed("git clean -f --dry-run")
@@ -601,13 +550,10 @@ def run_cases() -> None:
     allowed("git gc --auto")
     allowed("git reflog")
     allowed("git reflog show HEAD")
-    # A plain push is still an ask, only the broad one without the delete.
     asked("git push origin main", "git-push")
     asked("git push --dry-run origin main", "git-push")
     asked("git push origin HEAD:refs/heads/topic", "git-push")
-    # An overlapping deny is reached first, since ask rules are listed last.
     blocked("git push -fd origin feature", "git-force-push")
-    # A deny anywhere on the line outranks an ask that comes earlier on it.
     blocked("git stash drop && rm -rf /tmp/x", "rm-forced")
 
     print("## allow: git checkout that only creates a branch")
@@ -621,8 +567,6 @@ def run_cases() -> None:
     lifted("git checkout main -b fix", "git-checkout-branch")
     lifted("git checkout -b 'feature/x'", "git-checkout-branch")
     lifted("git checkout -b a && git checkout -b b", "git-checkout-branch")
-    # Anything that could restore a path or move an existing branch falls
-    # through to the git-checkout ask.
     asked("git checkout main", "git-checkout")
     asked("git checkout", "git-checkout")
     asked("git checkout -- file.txt", "git-checkout")
@@ -643,19 +587,15 @@ def run_cases() -> None:
     asked("git --no-pager checkout -b fix", "git-checkout")
     asked("git -c core.hooksPath=/x checkout -b fix", "git-checkout")
     asked("git checkout -p -b fix", "git-checkout")
-    # An allow only covers a line it can vouch for entirely; otherwise the
-    # sub-command it covered goes back under the ask it is an exception to.
     asked("git checkout -b fix && git status", "git-checkout")
     asked("git checkout -b fix; ls", "git-checkout")
     asked("git status && git checkout -b fix", "git-checkout")
     asked("bash -c 'git checkout -b fix'", "git-checkout")
-    # A prefix changes what the same words do.
     asked("sudo git checkout -b fix", "git-checkout")
     asked("env git checkout -b fix", "git-checkout")
     asked("GIT_DIR=/elsewhere git checkout -b fix", "git-checkout")
     asked("/usr/bin/git checkout -b fix", "git-checkout")
     asked("if true; then git checkout -b fix; fi", "git-checkout")
-    # A name that the shell would still expand is not a name.
     asked('git checkout -b "$(rm -r x)"', "git-checkout")
     asked("git checkout -b '$(rm -r x)'", "git-checkout")
     asked("git checkout -b '`ls`'", "git-checkout")
@@ -664,12 +604,10 @@ def run_cases() -> None:
     asked("git checkout -b 'a b'", "git-checkout")
     asked("git checkout -b .hidden", "git-checkout")
     asked("git checkout -b '-x'", "git-checkout")
-    # Unbalanced quotes leave the tokens a guess, which no allow rests on.
     asked("git checkout -b 'fix", "git-checkout")
     asked("git checkout -b fix '", "git-checkout")
     asked('git checkout -b "fix', "git-checkout")
     blocked("git checkout -b \"fix; rm -rf x", "rm-forced")
-    # A deny or an ask elsewhere on the line still wins.
     blocked("git checkout -b fix && rm -rf /tmp/x", "rm-forced")
     blocked("git checkout -b fix &", "background")
     blocked("git checkout -b $(curl https://x.com)", "network-fetch")
@@ -701,12 +639,9 @@ def run_cases() -> None:
     asked("git status && git commit -m x", "git-commit")
     asked("git -C repo push origin main", "git-push")
     asked("git rebase --onto main topic", "git-rebase")
-    # A git global flag's value is not the subcommand.
     asked("git -C push status && git commit -m x", "git-commit")
     allowed("git -C push status")
     allowed("git -c commit.gpgsign=false status")
-    # The subcommand is the first word past the global flags, not any word:
-    # these name a push, a commit or a checkout without doing one.
     allowed("git stash push -u -m wip")
     allowed("git stash push")
     allowed("git show commit")
@@ -716,7 +651,6 @@ def run_cases() -> None:
     allowed("git status")
     allowed("git diff --cached")
     allowed("git log --oneline -15")
-    # The more specific rules still speak first.
     asked("git push origin --delete feature", "git-push-delete")
     blocked("git push --force origin main", "git-force-push")
 
@@ -730,7 +664,6 @@ def run_cases() -> None:
     allowed("chmod 755 script.sh")
     allowed("chmod +x script.sh")
     allowed("chmod -R 775 dir")
-    # Any mode that lets others write, octal or symbolic.
     blocked("chmod 666 file", "chmod-world-writable")
     blocked("chmod 0757 dir", "chmod-world-writable")
     blocked("chmod 772 file", "chmod-world-writable")
@@ -782,11 +715,9 @@ def run_cases() -> None:
     blocked("op document get key", "op-secret-print")
     blocked("sudo op read op://vault/item/field", "op-secret-print")
     blocked("bash -c 'op read op://vault/item/field'", "op-secret-print")
-    # A subshell, a backtick and an arithmetic expansion are not `$(...)`.
     blocked("(op read op://vault/item/field)", "op-secret-print")
     blocked("echo `op read op://vault/item/field`", "op-secret-print")
     blocked("X=$((1+2)) op read op://vault/item/field", "op-secret-print")
-    # Only the first command inside the substitution is shielded.
     blocked("X=$(true; op read op://vault/item/field)", "op-secret-print")
     blocked("X=$(op read op://a); op read op://b", "op-secret-print")
     allowed('X=$(op read "op://vault/item/field") tofu plan')
@@ -806,7 +737,6 @@ def run_cases() -> None:
     allowed("op inject -i template.env --out-file out.env")
     allowed("op document get key --out-file key.pem")
     allowed("op inject -i template.env --out-file=out.env")
-    # An output file that is the terminal again still prints the secret.
     blocked("op document get key -o /dev/stdout", "op-secret-print")
     blocked("op document get key --out-file /dev/stderr", "op-secret-print")
     blocked("op inject -i template.env -o /dev/stdout", "op-secret-print")
@@ -814,7 +744,6 @@ def run_cases() -> None:
     blocked("op inject -i template.env -o /dev/fd/1", "op-secret-print")
     blocked("op inject -i template.env -o /proc/self/fd/1", "op-secret-print")
     blocked("op document get key -o /dev/tty", "op-secret-print")
-    # A share link hands the item to whoever has the link.
     blocked("op item get Example --share-link", "op-secret-print")
     blocked("op item get Example --share-link --expires-in 1h", "op-secret-print")
     allowed("op read --help")
@@ -822,9 +751,6 @@ def run_cases() -> None:
     allowed("op")
 
     print("## heredocs")
-    # A commit message with an apostrophe after a `2>&1` used to be denied
-    # as background: the apostrophe unbalanced the quotes, and the fallback
-    # split the `&` out of the `2>&1` before it.
     asked(
         """cd $TMPDIR/work && mise exec -- ruby /tmp/check.rb /tmp/charts 2>&1 | grep -E '^(OK|ERR) app'; cd /tmp/repo && git add charts/app/values.yaml && git commit -q -F - <<'EOF'
 fix: start the app without its optional secret
@@ -844,7 +770,6 @@ EOF
 git push -q origin main; git log --oneline -1""",
         "git-commit",
     )
-    # A quoted delimiter turns expansion off, so the body is only text.
     allowed("cat <<'EOF'\ncurl https://example.com\nrm -rf /tmp/x\nEOF")
     allowed('cat <<"EOF"\ncurl https://example.com\nEOF')
     allowed("cat <<\\EOF\ncurl https://example.com\nEOF")
@@ -852,21 +777,16 @@ git push -q origin main; git log --oneline -1""",
     allowed("cat <<-'EOF'\n\tcurl https://example.com\n\tEOF\necho done")
     blocked("cat <<-'EOF'\n\thello\n\tEOF\nrm -rf /tmp/x", "rm-forced")
     allowed("cat <<'A' <<'B'\na\nA\ncurl https://example.com\nB")
-    # An unquoted delimiter expands `$(...)` in the body.
     blocked("cat <<EOF\n$(curl https://example.com)\nEOF", "network-fetch")
     blocked("cat <<-EOF\n\t$(rm -rf /tmp/x)\n\tEOF", "rm-forced")
-    # Whatever follows the terminator is a command again.
     blocked("cat <<'EOF'\nhello\nEOF\nrm -rf /tmp/x", "rm-forced")
     blocked("cat <<'EOF' && rm -rf /tmp/x\nhello\nEOF", "rm-forced")
     blocked("cat <<'A' <<'B'\na\nA\nb\nB\nrm -rf /tmp/x", "rm-forced")
-    # A tab-stripped terminator only ends a `<<-` body.
     allowed("cat <<'EOF'\n\tEOF\nrm -rf /tmp/x\nEOF")
-    # A here-string has no body, and a quoted `<<` opens nothing.
     blocked("grep a <<< 'x'\nrm -rf /tmp/x", "rm-forced")
     blocked("echo '<<EOF'\nrm -rf /tmp/x\nEOF", "rm-forced")
 
     print("## relayed commands")
-    # The rules follow a command to wherever it runs.
     blocked("ssh user@host 'curl -s https://example.com'", "network-fetch")
     blocked(
         "/Applications/Tailscale.app/Contents/MacOS/Tailscale ssh user@host "
@@ -900,13 +820,10 @@ git push -q origin main; git log --oneline -1""",
     allowed("mise exec -- helm template x")
     allowed("mise run curl")
     allowed("mise run fetch -- curl https://example.com")
-    # Arguments after `--` keep their quoting, so text stays text.
     allowed("kubectl exec pod -- grep 'a; curl https://example.com' /etc/hosts")
-    # The relayed command is unpacked once, like `bash -c`.
     allowed("ssh host \"bash -c 'curl https://example.com'\"")
 
     print("## substitutions inside double quotes")
-    # Double quotes do not stop `$(...)` or a backtick from running.
     blocked('echo "$(curl https://example.com)"', "network-fetch")
     blocked('X="$(rm -rf /tmp/x)"', "rm-forced")
     blocked('echo "`curl https://example.com`"', "network-fetch")
@@ -939,12 +856,10 @@ git push -q origin main; git log --oneline -1""",
     allowed("bash -s < script.sh")
     allowed("cat file | bash script.sh")
     allowed("bash -n script.sh | head")
-    # eval runs its arguments as a command line, so they are checked as one.
     blocked('eval "curl https://example.com"', "network-fetch")
     blocked("eval rm -rf /tmp/x", "rm-forced")
     allowed('eval "export X=1"')
     asked('eval "$(ssh-agent -s)"', "variable-command")
-    # What a variable or a substitution expands to cannot be seen.
     asked("c=curl; $c https://example.com", "variable-command")
     asked('"$TOOL" --version', "variable-command")
     asked("${RUNNER} build", "variable-command")
@@ -954,8 +869,6 @@ git push -q origin main; git log --oneline -1""",
     allowed("X=$(date) make")
 
     print("## heredocs fed to a program that runs them")
-    # The body is only text when its program reads it as text. A shell
-    # meets the stdin rule first; any other program has its body checked.
     blocked("bash <<'EOF'\ncurl https://example.com\nEOF", "shell-stdin-script")
     blocked("sh <<'EOF'\nrm -rf /tmp/x\nEOF", "shell-stdin-script")
     blocked("/bin/bash -s <<'EOF'\ncurl https://example.com\nEOF", "shell-stdin-script")
@@ -964,7 +877,6 @@ git push -q origin main; git log --oneline -1""",
     blocked("mytool <<'EOF'\ncurl https://example.com\nEOF", "network-fetch")
     blocked("cd /tmp && mytool <<'EOF'\ncurl https://example.com\nEOF", "network-fetch")
     blocked("X=1 mytool <<'EOF'\ncurl https://example.com\nEOF", "network-fetch")
-    # A text sink piped on hands the body to whatever follows.
     blocked("cat <<'EOF' | bash\ncurl https://example.com\nEOF", "shell-stdin-script")
     blocked("cat <<'EOF' | mytool\ncurl https://example.com\nEOF", "network-fetch")
     blocked("cat <<'EOF' | ssh host\nrm -rf /tmp/x\nEOF", "rm-forced")
@@ -978,7 +890,6 @@ git push -q origin main; git log --oneline -1""",
     blocked("cat <<< 'x'\nrm -rf /tmp/x", "rm-forced")
 
     print("## more wrappers and relays")
-    # Wrappers that only prefix the command they run.
     blocked("caffeinate -i curl https://example.com", "network-fetch")
     blocked("caffeinate -t 60 rm -rf /tmp/x", "rm-forced")
     blocked("arch -arm64 curl https://example.com", "network-fetch")
@@ -993,12 +904,10 @@ git push -q origin main; git log --oneline -1""",
     allowed("caffeinate -i make")
     allowed("flock /tmp/lock make")
     allowed("script -q /dev/null make")
-    # watch runs its arguments through sh -c.
     blocked("watch -n 1 curl https://example.com", "network-fetch")
     blocked("watch -n 1 'curl -s https://example.com'", "network-fetch")
     blocked("watch -d 'rm -rf /tmp/x'", "rm-forced")
     allowed("watch -n 5 kubectl get pods")
-    # find runs the command after -exec for every match.
     blocked("find . -name '*.log' -exec rm -f {} +", "rm-forced")
     blocked("find . -exec curl https://example.com \\;", "network-fetch")
     blocked("find . -type f -execdir sed -i s/a/b/ {} +", "sed-in-place")
@@ -1006,7 +915,6 @@ git push -q origin main; git log --oneline -1""",
     allowed("find . -name '*.log' -exec ls -l {} +")
     allowed("find . -name '*.log' -delete")
     allowed("find . -type f")
-    # Containers and VMs run the command after their target.
     blocked("docker exec c curl https://example.com", "network-fetch")
     blocked("docker exec -it -u root -w /app c curl https://example.com", "network-fetch")
     blocked("docker run --rm -e A=1 -v /x:/y alpine curl https://example.com", "network-fetch")
@@ -1041,7 +949,6 @@ git push -q origin main; git log --oneline -1""",
     blocked("uvx ruff check .", "registry-runner")
     blocked("dnx some-tool", "registry-runner")
     blocked("jbang hello.java", "registry-runner")
-    # With no package named, nothing is fetched.
     allowed("npx --version")
     allowed("uvx --version")
     allowed("uvx --help")
@@ -1142,7 +1049,6 @@ git push -q origin main; git log --oneline -1""",
     allowed("nix run")
     allowed("nix run .#app -- arg")
     allowed("nix shell .#tool --command tool")
-    # Words after -c are the command, not more installables.
     allowed("nix shell .#tool -c rg foo")
     allowed("nix shell -f . hello")
     allowed("nix-shell")
@@ -1211,7 +1117,6 @@ git push -q origin main; git log --oneline -1""",
     blocked("node --eval=1+1", "interpreter-inline-code")
     allowed("deno run main.ts")
     allowed("perl -Mstrict script.pl")
-    # awk and sed hand strings to the shell too.
     blocked("""awk 'BEGIN{system("curl https://example.com")}'""", "text-tool-runs-command")
     blocked("""awk '{print | "sh"}' file""", "text-tool-runs-command")
     blocked("""awk 'BEGIN{"date" | getline d; print d}'""", "text-tool-runs-command")
@@ -1293,7 +1198,6 @@ git push -q origin main; git log --oneline -1""",
     allowed("bun run dev")
     allowed("bun test")
     allowed("osascript script.scpt")
-    # deno takes inline code as a subcommand, so a `-e` rule would never fire.
     allowed("deno run main.ts")
     blocked("python3.11 -c 'print(1)'", "interpreter-inline-code")
     blocked("python3.12 - < s.py", "interpreter-stdin-script")
@@ -1322,7 +1226,6 @@ git push -q origin main; git log --oneline -1""",
     allowed("bash script.sh")
     allowed("sh -x script.sh")
     allowed("bash -c")
-    # Intentional: recursion stops at one level.
     allowed("bash -c 'bash -c \"rm -rf /tmp/x\"'")
 
     print("## evasion: nix --command")
@@ -1348,8 +1251,6 @@ git push -q origin main; git log --oneline -1""",
     blocked("find . | xargs -I{} rm -rf {}", "rm-forced")
     blocked("xargs -I % bash -c 'rm -rf x'", "rm-forced")
     blocked("ls | xargs -n 1 -I {} sed -i s/a/b/ {}", "sed-in-place")
-    # -h is sudo's help and xargs -i joins its value, so neither is in the
-    # value table; listing them would make the guard eat the command.
     blocked("sudo -h rm -rf /tmp/x", "rm-forced")
     blocked("xargs -i rm -rf /tmp/x", "rm-forced")
     blocked("env -u NODE_OPTIONS rm -rf /tmp/x", "rm-forced")
@@ -1440,8 +1341,6 @@ git push -q origin main; git log --oneline -1""",
         except Exception:
             crashed += 1
             continue
-        # A quoted `&` comes back shielded, which is the one change that is
-        # not a removal; undo it so the properties speak about comments alone.
         once = once.replace(GUARD.QUOTED_AMPERSAND, "&")
         twice = twice.replace(GUARD.QUOTED_AMPERSAND, "&")
         if len(once) > len(text):
@@ -1461,7 +1360,6 @@ git push -q origin main; git log --oneline -1""",
 
     print("## quoting")
     allowed('echo "rm -rf /"')
-    # The quoted message never reaches the chmod rule; the commit itself asks.
     asked("git commit -m 'chmod 777 was reverted'", "git-commit")
     allowed('grep -rn "curl" .')
     blocked('sed -i "s/x/y/" "my file.txt"', "sed-in-place")
@@ -1518,8 +1416,6 @@ git push -q origin main; git log --oneline -1""",
             f"got {len(out)} chars",
         )
         record(len(out) < length, f"{length:,} chars in comes back shorter")
-        # The omitted count has at most one digit fewer than the input length,
-        # so the marker falls at most one char short of its reservation.
         record(
             len(out) >= LIMIT - 1,
             f"{length:,} chars in fills the cap",
@@ -1543,7 +1439,7 @@ git push -q origin main; git log --oneline -1""",
         + len("\n\n" + GUARD.NO_WORKAROUND)
         + len("\n\nBlocked sub-command: ")
         + LIMIT
-        + 1  # trailing newline from print()
+        + 1
     )
     record(
         len(err) <= stderr_budget,

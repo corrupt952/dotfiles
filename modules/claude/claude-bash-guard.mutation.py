@@ -1,14 +1,4 @@
 #!@python3@
-"""Breaks the guard on purpose, to see whether the test suite notices.
-
-A development tool, not a CI gate, and deliberately so: every mutation is
-anchored to a literal string in the source, so ordinary edits break anchors,
-and a stale anchor looks the same as a real gap. The suite's own red means "a
-rule stopped matching", and mixing this in would blur that signal.
-
-Usage: python3 modules/claude/claude-bash-guard.mutation.py
-"""
-
 from __future__ import annotations
 
 import concurrent.futures
@@ -434,8 +424,8 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "            ask = next((r for r in RULES if r.matches(command)), None)",
     ),
     "allow: malformed flag never set": (
-        "        malformed = True\n        # An `&` that belongs",
-        "        # An `&` that belongs",
+        "        malformed = True\n        rough = re.sub(",
+        "        rough = re.sub(",
     ),
     "allow: prefix ignored": (
         '        rule and rule.decision == "allow" and not command.prefixed',
@@ -538,7 +528,7 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         "        else:\n            return arg",
     ),
     "git ask: broad ask listed ahead of the allows": (
-        "    # Allow rules come after the specific asks, and only lift the broad git",
+        '    Rule(\n        id="git-checkout-branch",',
         "    Rule(\n"
         '        id="git-checkout-early",\n'
         '        names=frozenset({"git"}),\n'
@@ -546,7 +536,7 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '        predicate=lambda c: git_subcommand(c) == "checkout",\n'
         '        message="early",\n'
         "    ),\n"
-        "    # Allow rules come after the specific asks, and only lift the broad git",
+        '    Rule(\n        id="git-checkout-branch",',
     ),
     "ask: every rule becomes an ask": (
         '    decision: str = "deny"',
@@ -605,8 +595,8 @@ MUTATIONS: dict[str, tuple[str, str]] = {
         '            substituted = substituted or (\n                token == "(" and bool(current) and current[-1].endswith("$")\n            )',
     ),
     "op: global flag value read as subcommand": (
-        '        elif arg in OP_VALUE_FLAGS:\n            skip = True\n        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\n# Tools that open',
-        '        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\n# Tools that open',
+        '        elif arg in OP_VALUE_FLAGS:\n            skip = True\n        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\nSOCKET_TOOLS',
+        '        elif not arg.startswith("-"):\n            words.append(arg)\n    return tuple(words)\n\n\nSOCKET_TOOLS',
     ),
     "op: help not exempt": (
         '    if "help" in set(command.long_flags()) or "-h" in command.args:\n        return False\n\n    words = op_words',
@@ -979,17 +969,10 @@ MUTATIONS: dict[str, tuple[str, str]] = {
 }
 
 
-# A mutant that loops forever is caught, not slow: the suite takes well under
-# a second in process, so this leaves room for a loaded machine.
 MUTANT_TIMEOUT = 60
 
 
 def run_suite(source: str, fail_fast: bool = True) -> tuple[int | None, str]:
-    """Exit code and output of the suite against `source`; None on timeout.
-
-    Each mutant gets its own directory and process, so mutants run side by
-    side without sharing a file or a module.
-    """
     env = {**os.environ, "PYTHONHASHSEED": "0", "GUARD_SUBPROCESS": "", "GUARD_BIN": ""}
     if fail_fast:
         env["GUARD_FAIL_FAST"] = "1"
