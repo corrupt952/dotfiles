@@ -108,4 +108,6 @@ bun.lockb
 .pnpm-store/
 deno.lock
 
+# Dirigo
+**/.dirigo/wortkrees
 
