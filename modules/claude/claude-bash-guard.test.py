@@ -111,10 +111,6 @@ def asked(command: str, expected_rule: str) -> None:
     decided(command, expected_rule, "ask")
 
 
-def lifted(command: str, expected_rule: str) -> None:
-    decided(command, expected_rule, "allow")
-
-
 def decided(command: str, expected_rule: str, decision: str) -> None:
     proc = run_full(payload_for(command))
     label = f"{decision}: {command!r}"
@@ -224,8 +220,7 @@ def main() -> int:
 def run_cases() -> None:
     print("## process contract")
     process_contract("rm -rf /tmp/x", "deny exits 2 on stderr", 2, "stderr", "Blocked sub-command:")
-    process_contract("git commit -m x", "ask exits 0 with JSON", 0, "stdout", '"permissionDecision": "ask"')
-    process_contract("git checkout -b topic", "allow exits 0 with JSON", 0, "stdout", '"permissionDecision": "allow"')
+    process_contract("git push origin main", "ask exits 0 with JSON", 0, "stdout", '"permissionDecision": "ask"')
     process_contract("ls", "silence exits 0 with nothing", 0, "stdout", "")
 
     print("## rule: rm -f")
@@ -556,90 +551,26 @@ def run_cases() -> None:
     blocked("git push -fd origin feature", "git-force-push")
     blocked("git stash drop && rm -rf /tmp/x", "rm-forced")
 
-    print("## allow: git checkout that only creates a branch")
-    lifted("git checkout -b feature/x", "git-checkout-branch")
-    lifted("git checkout -b feature/x origin/main", "git-checkout-branch")
-    lifted("git checkout -b fix HEAD~2", "git-checkout-branch")
-    lifted("git checkout -q -b fix", "git-checkout-branch")
-    lifted("git checkout -b fix --no-track origin/fix", "git-checkout-branch")
-    lifted("git checkout -t -b fix origin/fix", "git-checkout-branch")
-    lifted("git checkout --orphan gh-pages", "git-checkout-branch")
-    lifted("git checkout main -b fix", "git-checkout-branch")
-    lifted("git checkout -b 'feature/x'", "git-checkout-branch")
-    lifted("git checkout -b a && git checkout -b b", "git-checkout-branch")
-    asked("git checkout main", "git-checkout")
-    asked("git checkout", "git-checkout")
-    asked("git checkout -- file.txt", "git-checkout")
-    asked("git checkout -b fix -- file.txt", "git-checkout")
-    asked("git checkout .", "git-checkout")
-    asked("git checkout -f main", "git-checkout")
-    asked("git checkout -B fix", "git-checkout")
-    asked("git checkout -b fix -B other", "git-checkout")
-    asked("git checkout -qb fix", "git-checkout")
-    asked("git checkout --track=direct -b fix origin/fix", "git-checkout")
-    asked("git checkout -b fix a b", "git-checkout")
-    asked("git checkout -b", "git-checkout")
-    asked("git checkout --orphan", "git-checkout")
-    asked("git checkout -b -", "git-checkout")
-    asked("git checkout -b fix -", "git-checkout")
-    asked("git checkout -b fix > log", "git-checkout")
-    asked("git -C repo checkout -b fix", "git-checkout")
-    asked("git --no-pager checkout -b fix", "git-checkout")
-    asked("git -c core.hooksPath=/x checkout -b fix", "git-checkout")
-    asked("git checkout -p -b fix", "git-checkout")
-    asked("git checkout -b fix && git status", "git-checkout")
-    asked("git checkout -b fix; ls", "git-checkout")
-    asked("git status && git checkout -b fix", "git-checkout")
-    asked("bash -c 'git checkout -b fix'", "git-checkout")
-    asked("sudo git checkout -b fix", "git-checkout")
-    asked("env git checkout -b fix", "git-checkout")
-    asked("GIT_DIR=/elsewhere git checkout -b fix", "git-checkout")
-    asked("/usr/bin/git checkout -b fix", "git-checkout")
-    asked("if true; then git checkout -b fix; fi", "git-checkout")
-    asked('git checkout -b "$(rm -r x)"', "git-checkout")
-    asked("git checkout -b '$(rm -r x)'", "git-checkout")
-    asked("git checkout -b '`ls`'", "git-checkout")
-    asked("git checkout -b $BRANCH", "git-checkout")
-    asked("git checkout -b fix{1,2}", "git-checkout")
-    asked("git checkout -b 'a b'", "git-checkout")
-    asked("git checkout -b .hidden", "git-checkout")
-    asked("git checkout -b '-x'", "git-checkout")
-    asked("git checkout -b 'fix", "git-checkout")
-    asked("git checkout -b fix '", "git-checkout")
-    asked('git checkout -b "fix', "git-checkout")
-    blocked("git checkout -b \"fix; rm -rf x", "rm-forced")
+    print("## git commit, checkout and rebase run without a prompt")
+    allowed("git commit -m 'add x'")
+    allowed("git commit --amend --no-edit")
+    allowed("git checkout main")
+    allowed("git checkout -b feature/x")
+    allowed("git checkout -- file.txt")
+    allowed("git rebase main")
+    allowed("git rebase --abort")
     blocked("git checkout -b fix && rm -rf /tmp/x", "rm-forced")
     blocked("git checkout -b fix &", "background")
     blocked("git checkout -b $(curl https://x.com)", "network-fetch")
     asked("git checkout -b fix && git stash drop", "git-stash-discard")
+    asked("git commit -m x && git push origin main", "git-push")
 
-    print("## allow: git rebase that only resumes or abandons")
-    lifted("git rebase --abort", "git-rebase-resume")
-    lifted("git rebase --continue", "git-rebase-resume")
-    lifted("git rebase --continue && git checkout -b fix", "git-rebase-resume")
-    asked("git rebase", "git-rebase")
-    asked("git rebase main", "git-rebase")
-    asked("git rebase -i HEAD~3", "git-rebase")
-    asked("git rebase --skip", "git-rebase")
-    asked("git rebase --quit", "git-rebase")
-    asked("git rebase --abort main", "git-rebase")
-    asked("git rebase --continue --no-verify", "git-rebase")
-    asked("git rebase -q --abort", "git-rebase")
-    asked("sudo git rebase --abort", "git-rebase")
-    asked("git rebase --abort && ls", "git-rebase")
-    blocked("git rebase --abort && rm -rf /tmp/x", "rm-forced")
-
-    print("## ask: everyday git that changes history or the remote")
-    asked("git commit -m 'add x'", "git-commit")
-    asked("git commit --amend --no-edit", "git-commit")
-    asked("git -C repo commit -m x", "git-commit")
-    asked("git -c user.name=x commit -m x", "git-commit")
-    asked("git --git-dir=.git commit -m x", "git-commit")
-    asked("git --work-tree ../wt commit -m x", "git-commit")
-    asked("git status && git commit -m x", "git-commit")
+    print("## ask: git push")
     asked("git -C repo push origin main", "git-push")
-    asked("git rebase --onto main topic", "git-rebase")
-    asked("git -C push status && git commit -m x", "git-commit")
+    asked("sudo git push origin main", "git-push")
+    asked("bash -c 'git push origin main'", "git-push")
+    asked("git -C commit push origin main", "git-push")
+    asked("git --no-pager push origin main", "git-push")
     allowed("git -C push status")
     allowed("git -c commit.gpgsign=false status")
     allowed("git stash push -u -m wip")
@@ -759,7 +690,7 @@ Marks the app's secret mount optional. The Secret does not exist yet,
 so the pod could not mount it and the release timed out.
 EOF
 git push -q origin main 2>&1 | tail -1; git log --oneline -1""",
-        "git-commit",
+        "git-push",
     )
     asked(
         """cd $TMPDIR; mise exec -- ruby /tmp/check.rb /tmp/charts 2>&1 | grep -E '^(OK|ERR) +(api|web) '; cd /tmp/repo && git add charts && git commit -q -F - <<'EOF'
@@ -768,7 +699,7 @@ feat: add dashboards and probe targets
 Adds a job that scrapes the host's exporter.
 EOF
 git push -q origin main; git log --oneline -1""",
-        "git-commit",
+        "git-push",
     )
     allowed("cat <<'EOF'\ncurl https://example.com\nrm -rf /tmp/x\nEOF")
     allowed('cat <<"EOF"\ncurl https://example.com\nEOF')
@@ -832,7 +763,7 @@ git push -q origin main; git log --oneline -1""",
     blocked('echo "$(sleep 1 &)"', "background")
     blocked('echo "$(echo $((1+2)); curl https://example.com)"', "network-fetch")
     blocked('echo "`true`" "`curl https://example.com`"', "network-fetch")
-    asked('git commit -m "$(cat msg.txt)"', "git-commit")
+    allowed('git commit -m "$(cat msg.txt)"')
     allowed('echo "$(date)"')
     allowed('echo "$(date) a & b"')
     allowed('echo "price: $5 (cheap) & more"')
@@ -884,8 +815,8 @@ git push -q origin main; git log --oneline -1""",
     allowed("tee notes.txt <<'EOF'\nit's curl https://example.com\nEOF")
     allowed("/usr/bin/cat <<'EOF'\ncurl https://example.com\nEOF")
     allowed("gh pr create --body-file - <<'EOF'\nrun curl https://example.com, it's fine\nEOF")
-    asked("git commit -q -F - <<'EOF'\nfix: it's curl https://example.com\nEOF", "git-commit")
-    asked("cd /tmp/repo && X=1 git commit -F - <<'EOF'\nit's done\ncurl https://example.com\nEOF", "git-commit")
+    allowed("git commit -q -F - <<'EOF'\nfix: it's curl https://example.com\nEOF")
+    allowed("cd /tmp/repo && X=1 git commit -F - <<'EOF'\nit's done\ncurl https://example.com\nEOF")
     allowed("cd /tmp && cat <<'EOF'\ncurl https://example.com\nEOF")
     blocked("cat <<< 'x'\nrm -rf /tmp/x", "rm-forced")
 
@@ -1360,7 +1291,7 @@ git push -q origin main; git log --oneline -1""",
 
     print("## quoting")
     allowed('echo "rm -rf /"')
-    asked("git commit -m 'chmod 777 was reverted'", "git-commit")
+    allowed("git commit -m 'chmod 777 was reverted'")
     allowed('grep -rn "curl" .')
     blocked('sed -i "s/x/y/" "my file.txt"', "sed-in-place")
     blocked('rm -rf "unterminated', "rm-forced")

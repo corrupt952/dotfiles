@@ -98,7 +98,6 @@ class Command:
     args: tuple[str, ...]
     raw: str
     background: bool = False
-    prefixed: bool = False
     substituted: bool = False
     piped: bool = False
 
@@ -572,40 +571,6 @@ def git_subcommand(command: Command) -> str | None:
         elif not arg.startswith("-"):
             return arg
     return None
-
-
-CHECKOUT_BRANCH_FLAGS = frozenset(
-    {
-        "-b",
-        "--orphan",
-        "-q",
-        "--quiet",
-        "-t",
-        "--track",
-        "--no-track",
-        "--no-guess",
-        "--progress",
-        "--no-progress",
-    }
-)
-
-REF_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/@^~+-]*$")
-
-
-def creates_branch_only(command: Command) -> bool:
-    if not command.args or command.args[0] != "checkout":
-        return False
-
-    rest = command.args[1:]
-    if not {"-b", "--orphan"} & set(rest):
-        return False
-
-    flags = [arg for arg in rest if arg.startswith("-")]
-    if any(flag not in CHECKOUT_BRANCH_FLAGS for flag in flags):
-        return False
-
-    names = [arg for arg in rest if not arg.startswith("-")]
-    return 1 <= len(names) <= 2 and all(REF_NAME.match(name) for name in names)
 
 
 TMUX_DETACHED: dict[str, str] = {
@@ -1150,49 +1115,11 @@ RULES: Sequence[Rule] = (
         ),
     ),
     Rule(
-        id="git-checkout-branch",
-        names=frozenset({"git"}),
-        decision="allow",
-        predicate=creates_branch_only,
-        message="Creating a branch only moves HEAD; the working tree is untouched.",
-    ),
-    Rule(
-        id="git-rebase-resume",
-        names=frozenset({"git"}),
-        decision="allow",
-        predicate=lambda c: c.args in {("rebase", "--abort"), ("rebase", "--continue")},
-        message="Finishing or abandoning a rebase already in progress; no history is rewritten.",
-    ),
-    Rule(
-        id="git-commit",
-        names=frozenset({"git"}),
-        decision="ask",
-        predicate=lambda c: git_subcommand(c) == "commit",
-        message="This records a commit on the current branch.",
-    ),
-    Rule(
         id="git-push",
         names=frozenset({"git"}),
         decision="ask",
         predicate=lambda c: git_subcommand(c) == "push",
         message="This publishes commits to the remote, where others can fetch them.",
-    ),
-    Rule(
-        id="git-rebase",
-        names=frozenset({"git"}),
-        decision="ask",
-        predicate=lambda c: git_subcommand(c) == "rebase",
-        message="This rewrites the commits of the current branch.",
-    ),
-    Rule(
-        id="git-checkout",
-        names=frozenset({"git"}),
-        decision="ask",
-        predicate=lambda c: git_subcommand(c) == "checkout",
-        message=(
-            "This switches branches, or overwrites files in the working tree "
-            "with another version of them."
-        ),
     ),
 )
 
@@ -1340,7 +1267,7 @@ def strip_comments(command_line: str) -> str:
     return "".join(result)
 
 
-def tokenize(command_line: str) -> tuple[list[str], bool]:
+def tokenize(command_line: str) -> list[str]:
     without_comments = strip_comments(command_line)
     prepared = (
         without_comments.replace("\n", " ; ").replace("\r", " ; ").replace("`", " ; ")
@@ -1349,18 +1276,16 @@ def tokenize(command_line: str) -> tuple[list[str], bool]:
     lexer = shlex.shlex(prepared, posix=True, punctuation_chars=True)
     lexer.whitespace_split = True
     lexer.commenters = ""
-    malformed = False
     try:
         tokens = list(lexer)
     except ValueError:
-        malformed = True
         rough = re.sub(r"(\|\||&&|;|\||(?<![<>])&(?!>)|\(|\)|\{|\})", " \\1 ", prepared)
         tokens = [token.strip("\"'") for token in rough.split() if token.strip("\"'")]
 
     result: list[str] = []
     for token in tokens:
         result.extend(split_operators(token))
-    return result, malformed
+    return result
 
 
 def split_operators(token: str) -> list[str]:
@@ -1384,7 +1309,6 @@ def normalize(
     tokens: list[str], background: bool = False, substituted: bool = False
 ) -> Command | None:
     tokens = [token.replace(QUOTED_AMPERSAND, "&") for token in tokens]
-    original_length = len(tokens)
 
     changed = True
     while changed and tokens:
@@ -1429,19 +1353,17 @@ def normalize(
         args=tuple(tokens[1:]),
         raw=" ".join(tokens),
         background=background,
-        prefixed=len(tokens) != original_length or name != tokens[0],
         substituted=substituted,
     )
 
 
-def split_commands(command_line: str) -> tuple[list[Command], bool]:
+def split_commands(command_line: str) -> list[Command]:
     commands: list[Command] = []
     current: list[str] = []
     substituted = False
     piped = False
 
-    tokens, malformed = tokenize(command_line)
-    for token in tokens:
+    for token in tokenize(command_line):
         if token in SEPARATORS:
             command = normalize(current, background=token == "&", substituted=substituted)
             if command:
@@ -1456,7 +1378,7 @@ def split_commands(command_line: str) -> tuple[list[Command], bool]:
     if command:
         commands.append(replace(command, piped=piped))
 
-    return commands, malformed
+    return commands
 
 
 SSH_VALUE_FLAGS = frozenset(
@@ -1574,49 +1496,25 @@ def nested_command(command: Command) -> str | None:
     return None
 
 
-def match_all(
-    command_line: str, depth: int = 0
-) -> tuple[list[tuple[Rule | None, Command]], bool]:
+def match_all(command_line: str, depth: int = 0) -> list[tuple[Rule | None, Command]]:
     matches: list[tuple[Rule | None, Command]] = []
-    commands, malformed = split_commands(command_line)
-    for command in commands:
+    for command in split_commands(command_line):
         matches.append((next((r for r in RULES if r.matches(command)), None), command))
 
         if depth == 0:
             payload = nested_command(command) or relayed_command(command)
             if payload:
-                inner, inner_malformed = match_all(payload, depth + 1)
-                matches.extend(inner)
-                malformed = malformed or inner_malformed
+                matches.extend(match_all(payload, depth + 1))
 
-    return matches, malformed
+    return matches
 
 
 def decide(command_line: str) -> tuple[Rule, Command] | None:
-    matches, malformed = match_all(command_line)
+    matches = match_all(command_line)
     for decision in ("deny", "ask"):
         for rule, command in matches:
             if rule and rule.decision == decision:
                 return rule, command
-
-    if malformed:
-        return fallback_ask(matches)
-
-    if matches and all(
-        rule and rule.decision == "allow" and not command.prefixed
-        for rule, command in matches
-    ):
-        return matches[0][0], matches[0][1]
-
-    return fallback_ask(matches)
-
-
-def fallback_ask(matches: list[tuple[Rule | None, Command]]) -> tuple[Rule, Command] | None:
-    for rule, command in matches:
-        if rule and rule.decision == "allow":
-            ask = next((r for r in RULES if r.decision == "ask" and r.matches(command)), None)
-            if ask:
-                return ask, command
 
     return None
 
@@ -1660,7 +1558,7 @@ def main() -> int:
 
     rule, command = verdict
 
-    if rule.decision in {"ask", "allow"}:
+    if rule.decision == "ask":
         json.dump(
             {
                 "hookSpecificOutput": {
